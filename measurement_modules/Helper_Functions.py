@@ -6,7 +6,7 @@ Created on Thu Nov 12 10:56:06 2020
 
 purpose: Contain general helper functions that are useful for all instruments
 """
-from hat_utilities import Controller_Module as CM
+from measurement_modules import Controller_Module as CM
 import numpy as np
 import os 
 
@@ -127,5 +127,5 @@ def load_instrument(inst_class, *args, **kwargs):
         return inst
     except AttributeError:
         pass    
-    
+
     
