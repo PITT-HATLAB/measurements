@@ -107,7 +107,7 @@ def read_latest_message_and_delete(username, password):
         
         imap.store(mail, "+FLAGS", "\\Deleted")
         
-ret = read_latest_message_and_delete(username, password)
+# ret = read_latest_message_and_delete(username, password)
 #%%
 ###################### Required Manual Information
 #TX Fridge indexes, depends on sensor order in OI system
@@ -354,10 +354,14 @@ class Fridge_Logger():
             Turbo_Motor = raw_log_array[self.log_key['Turbo Motor (C)']],
             Turbo_Bottom = raw_log_array[self.log_key['Turbo Bottom (C)']]
             )
-    def make_new_ddh5(self, timediff): 
+    def make_new_ddh5(self, current_time, start_time):
+        timediff = current_time-start_time
         if timediff > 43200: #12 hours
             self.fridge_writer = dds.DDH5Writer(self.datadir, self.fridge_data, name="Log_Test")
             self.fridge_writer.__enter__()
+            return current_time
+        else: 
+            return start_time
             
     def monitor(self): 
         '''
@@ -368,21 +372,21 @@ class Fridge_Logger():
         None.
 
         '''
-        starttime = time.time()
+        start_time = time.time()
         logging = True
         print("Logging Fridge Data, use CTRL+C to interrupt")
         lastalerted = 0
         while logging: 
             current_time = time.time()
-            self.make_new_ddh5(current_time-starttime)
+            start_time = self.make_new_ddh5(current_time, start_time)
             time.sleep(10)
             new_data = self.get_new_logdata(self.vcf_folder)
             self.save_log_data(new_data)
             latest_temp = new_data[self.log_key['MC RuOx Temp (K)']]
             msg = f"Latest Info: {str(datetime.now())}\nMC RuOx Temp: {new_data[self.log_key['MC RuOx Temp (K)']]}\nMC Cernox Temp (K): {new_data[self.log_key['MC Cernox Temp (K)']]}"
             print(msg)
-            if latest_temp > 30e-3:
-                if time.time() - lastalerted > 300:
+            if latest_temp > 50e-3:
+                if time.time() - lastalerted > 600:
                     self.AlertRyan(msg)
                     lastalerted = time.time()
     

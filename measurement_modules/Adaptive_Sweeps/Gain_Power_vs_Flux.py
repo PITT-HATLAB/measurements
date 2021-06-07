@@ -36,7 +36,7 @@ def smoothen(trace, window_len=40):
     w = np.blackman(window_len)
     return np.convolve(w/w.sum(), trace, mode='same')
 
-def find_peak(frequencies, trace, d = 10, w = 0.1, p = 5):
+def find_peak(frequencies, trace, d = 10, w = 1, p = 5):
     df = frequencies[1] - frequencies[0]
     
     # convert required distance between peaks from frequency to idx
@@ -168,13 +168,13 @@ class Gain_Power_vs_Flux():
             sat_gain = gains.reshape(1,-1)
             )
         
-    def analyze_trace(self, frequencies, trace, smooth=True, plot=False):
+    def analyze_trace(self, frequencies, trace, smooth=True, plot=False, peak_width_minimum = 1):
         if smooth:
             smooth_trace = power2dB(smoothen(dB2power((trace))))
-            peak_pos, peak_height, peak_width = find_peak(frequencies, dB2power(smooth_trace))
+            peak_pos, peak_height, peak_width = find_peak(frequencies, dB2power(smooth_trace), w = peak_width_minimum)
         else:
             smooth_trace = None
-            peak_pos, peak_height, peak_width = find_peak(frequencies, trace)
+            peak_pos, peak_height, peak_width = find_peak(frequencies, trace, p = peak_width_minimum)
             
         if plot:
             plt.close('all')
@@ -227,11 +227,11 @@ class Gain_Power_vs_Flux():
         gain = np.average(pow_data[f_bool_arr])
         return gain, pow_data, phase_data, fdata
         
-    def find_gain_W(self): 
+    def find_gain_W(self, peak_width_minimum = 1): 
         freqs = self.VNA.getSweepData()
         freqs_renormed = (freqs-freqs[int(len(freqs)/2)])/1e6
         data = np.array(self.VNA.average(self.VNA_avg_number))
-        peak_pos, peak_height, peak_width = self.analyze_trace(freqs_renormed, data[0], plot = True)
+        peak_pos, peak_height, peak_width = self.analyze_trace(freqs_renormed, data[0], plot = True, peak_width_minimum = peak_width_minimum)
         if peak_pos is not None: 
             peak_freq = peak_pos*1e6 + freqs[int(len(freqs)/2)]
         else: 
@@ -279,7 +279,7 @@ class Gain_Power_vs_Flux():
         
         return pows, data
         
-    def sweep_power_for_gain(self, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100): 
+    def sweep_power_for_gain(self, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, peak_width_minimum = 1): 
         current_bias = self.CS.current()
         gen_freq = self.Gen.frequency()
         starting_power = self.Gen.power()
@@ -317,7 +317,7 @@ class Gain_Power_vs_Flux():
             for gen_power in pow_arr: 
                 print(f"Gen_power: {gen_power}")
                 self.Gen.power(gen_power)
-                gain_freq_found, gain_found, bw_found, VNA_freqs, VNA_gain_trace, VNA_phase_trace = self.find_gain_W()
+                gain_freq_found, gain_found, bw_found, VNA_freqs, VNA_gain_trace, VNA_phase_trace = self.find_gain_W(peak_width_minimum = peak_width_minimum)
                 self.save_gain_datapoint(current_bias, gen_freq, gen_power, VNA_freqs, VNA_gain_trace, VNA_phase_trace, gain_found, gain_freq_found, bw_found)
                 
                 #for adaptivity: 
@@ -369,7 +369,7 @@ class Gain_Power_vs_Flux():
                 return sorted_data[0], sorted_data[1], [float("NaN"), float("NaN")]
             i+=1 
             
-    def sweep_gain_vs_freq(self, gen_freqs, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100):
+    def sweep_gain_vs_freq(self, gen_freqs, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, peak_width_minimum = 1):
         '''
         Parameters
         ----------
@@ -392,7 +392,18 @@ class Gain_Power_vs_Flux():
             print(f"Adjusting frequency: {freq}, starting power {prev_pow}")
             self.Gen.frequency(freq)
             self.Gen.power(prev_pow)
-            pow_arr, gain_arr, [closest_power, closest_val] =  self.sweep_power_for_gain(stepsize = stepsize, block_size = block_size, limit = limit, target_gain = target_gain, threshold = threshold, saturation_sweep = True, vna_p_start = vna_p_start, vna_p_stop = vna_p_stop, vna_p_steps = vna_p_steps, vna_p_avgs = vna_p_avgs)
+            pow_arr, gain_arr, [closest_power, closest_val] =  self.sweep_power_for_gain(stepsize = stepsize, 
+                                                                                         block_size = block_size, 
+                                                                                         limit = limit, 
+                                                                                         target_gain = target_gain,
+                                                                                         threshold = threshold,
+                                                                                         saturation_sweep = True,
+                                                                                         vna_p_start = vna_p_start,
+                                                                                         vna_p_stop = vna_p_stop,
+                                                                                         vna_p_steps = vna_p_steps,
+                                                                                         vna_p_avgs = vna_p_avgs,
+                                                                                         peak_width_minimum = peak_width_minimum
+                                                                                         )
             
             if closest_power != closest_power:
                 pass #this means no point was found, so we'll keep the power guess where it was at

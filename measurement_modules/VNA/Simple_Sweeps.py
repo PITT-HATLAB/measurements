@@ -93,10 +93,11 @@ def Power_Sweep(DATADIR, name, VNA_settings, Gen_settings, renorm = False):
     data.validate()
     VNA.fcenter(VNA_fcenter)
     VNA.fspan(VNA_fspan)
-    Gen.output_status(0)
+    
     if renorm: 
+        Gen.output_status(0)
         VNA.renormalize(VNA_avgs)
-    Gen.output_status(1)
+        Gen.output_status(1)
     i = 0
     with dds.DDH5Writer(DATADIR, data, name=name) as writer:
         for p_val in np.linspace(p_start,p_stop,p_points):
@@ -113,7 +114,10 @@ def Power_Sweep(DATADIR, name, VNA_settings, Gen_settings, renorm = False):
                 )
             print(f'{np.round((i+1)/p_points*100)} percent  complete')
             i+=1
-    Gen.output_status(0)
+    try: 
+        Gen.output_status(0)
+    except AttributeError: 
+        Gen.rfout(0)
 #%%
 
 def Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings): 

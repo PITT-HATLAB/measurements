@@ -12,13 +12,13 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import h5py
 import datetime as dt
-from hatdrivers.meta_instruments import Modes
+from instrument_drivers.meta_instruments import Modes
 import time
 import pickle
-from hat_utilities.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
-from hat_utilities.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
-from hat_utilities.Adaptive_Sweeps.Duffing_Test import Duffing_Test
-from hat_utilities.Helper_Functions import adjust, adjust_2, controller_adjust, get_name_from_path
+from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
+from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
+from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
+from measurement_modules.Helper_Functions import adjust, adjust_2, controller_adjust, get_name_from_path
 from plottr.data import datadict_storage as dds, datadict as dd
 from datetime import datetime
 from plottr.apps.autoplot import autoplotDDH5, script, main
@@ -26,7 +26,7 @@ from plottr.apps.autoplot import autoplotDDH5, script, main
 #%% fluxsweep
 
 DATADIR = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\fluxsweep'
-name='C1_FS6_very_wide_fine'
+name='C1_FS6_recheck_after_rebuild'
 #instruments
 VNA = pVNA
 CS = yoko2
@@ -68,27 +68,36 @@ for (name, sgpow) in list(zip(names, pows)):
 SigGen.output_status(0)
             
 #%%power sweep
-DATADIR = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\pump_freq_sweeps\subharmonic pump'
-
 
 #instruments
 VNA = pVNA
-Gen = SigGen
+pVNA.rfout(1)
+# Gen = SigGen
+# mode = CuCav
+mode = AlCav
 
+mode.push(VNA = pVNA)
+VNA_avgs = mode.avgnum()
+# AlCav.push(VNA = pVNA)
+temp = 720
+if mode.name == 'AlCav': 
+    DATADIR = r'Z:\Texas\Cooldown_20210525\PC_HPAl_etch_3'
+
+elif mode.name == 'CuCav': 
+    DATADIR = r'Z:\Texas\Cooldown_20210525\PC_CuCollar'
+else: 
+    raise Exception("AAAAAHHHHH")
 #starting parameters
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = VNA.fcenter(), VNA.fspan(), VNA.num_points(), 30
+VNA_fcenter, VNA_fspan, VNA_fpoints = VNA.fcenter(), VNA.fspan(), VNA.num_points()
 
-p_start, p_stop, p_points = -20, 10, 300
-base_freq = 11516076691.7
+# p_start, p_stop, p_points = -43, 20, 64 #wi!h -40dB on RT atten
+p_start, p_stop, p_points = -20, 20, 41 #with 0 dB on RT atten
+# name = f'vna_trace_vs_vna_power_40dBatten_{temp}mK'
+name = f'vna_trace_vs_vna_power_0dBatten_{temp}mK'
 
-freqs = [base_freq]
-names = ['1.786e-5mA_Power_sweep']
-
-for (name, sgfreq) in list(zip(names, freqs)): 
-    SigGen.frequency(sgfreq)
-    VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
-    Gen_settings = [Gen, p_start, p_stop, p_points]
-    Power_Sweep(DATADIR, name, VNA_settings, Gen_settings)
+VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
+Gen_settings = [VNA, p_start, p_stop, p_points]
+Power_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%% Duffing Test
 #v2: uses a file with a pre-fitted fluxsweep to help out
 
@@ -137,7 +146,7 @@ cwd = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\Tacos'
 if cwd == None: 
     raise Exception("CWD not chosen!")
     
-bias = 0.016e-3
+bias = 0.01375e-3
     
 filename = f'{np.round(bias*1000, 3)}mA_TACO'
 
@@ -154,20 +163,19 @@ vna_p_start, vna_p_stop, vna_p_steps, vna_p_avgs = -43, 10, 1600, 100
 #general VNA settings
 vna_att = 40
 VNA_avg_number = 10
-VNA.fstart(5932889162.65)
-VNA.fstop(5982889162.65)
+VNA.fstart(6028097660.75)
+VNA.fstop(6128097660.75)
 VNA.power(-43)
 
 #detail for a found 20dB gain point to start from
-start_freq = 11895778325.3
+start_freq = 12125117856.34
 sf = start_freq
-# pow_start = -8.8
-pow_start = -10.72
+pow_start = 5.13
 
 gen_freq_start = sf
-gen_freq_stop = sf+30e6
+gen_freq_stop = sf+25e6
 gen_freq_steps = 1e6
-gen_att = 10
+gen_att = 20
 
 SigGen.power(pow_start)
 SigGen.frequency(gen_freq_start)
@@ -186,16 +194,18 @@ SigGen.output_status(1)
 # run an entire frequency sweep and save it 
 #run one taco
 datasets = GP_F.sweep_gain_vs_freq(gen_freqs, 
-                                   stepsize = 0.1, 
+                                   stepsize = 0.05, 
                                    block_size = 10,
                                    limit = 6,
-                                   target_gain = 19,
+                                   target_gain = 20,
                                    threshold = 1,
                                    saturation_sweep = True,
                                    vna_p_start = vna_p_start, 
                                    vna_p_stop = vna_p_stop, 
                                    vna_p_steps = vna_p_steps, 
-                                   vna_p_avgs = vna_p_avgs)
+                                   vna_p_avgs = vna_p_avgs, 
+                                   peak_width_minimum = 0.1)
+SigGen.output_status(0)
 #%%
 GP_F.plot_powers(gen_freqs, datasets[0], datasets[2], datasets[3])
 #%% Set up a sweep of currents based off of the known taco (be sure it is a decent minimum)
