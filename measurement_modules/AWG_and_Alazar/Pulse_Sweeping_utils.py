@@ -12,16 +12,17 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from plottr.data import datadict_storage as dds, datadict as dd
 
-from hatdrivers.alazar_utilities.controller.ATSChannelController import ATSChannelController
-from hatdrivers.alazar_utilities.controller.alazar_channel import AlazarChannel
+from instrument_drivers.alazar_utilities.controller.ATSChannelController import ATSChannelController
+from instrument_drivers.alazar_utilities.controller.alazar_channel import AlazarChannel
 
-from hat_utilities.signal_processing.Pulse_Processing import demod, phase_correction
+from data_processing.signal_processing.Pulse_Processing import demod, phase_correction
 
 import time
 import matplotlib.pyplot as plt
 
-def Process_One_Acquisition(sI_c, sQ_c, bin_start, bin_stop):
+def Process_One_Acquisition(name, sI_c, sQ_c, bin_start, bin_stop, hist_scale = 200):
     fig = plt.figure(1)
+    fig.suptitle(name)
     ax1 = fig.add_subplot(221)
     ax1.set_title("I")
     ax1.plot(np.average(sI_c[0::2], axis = 0), label = 'even records')
@@ -39,7 +40,7 @@ def Process_One_Acquisition(sI_c, sQ_c, bin_start, bin_stop):
     ax3.plot(np.average(sI_c[0::2], axis = 0), np.average(sQ_c[0::2], axis = 0))
     ax3.plot(np.average(sI_c[1::2], axis = 0),np.average(sQ_c[1::2], axis = 0))
     
-    #figure for difference tarce
+    #figure for difference trace
     fig2 = plt.figure(2)
     ax21 = fig2.add_subplot(221)
     ax21.set_title("I")
@@ -60,10 +61,19 @@ def Process_One_Acquisition(sI_c, sQ_c, bin_start, bin_stop):
     ax24 = fig2.add_subplot(224)
     ax24.plot(np.average(sI_c[0::2]-sI_c[1::2], axis = 0)**2+np.average(sQ_c[0::2]-sQ_c[1::2], axis = 0)**2, label = 'magnitude')
     ax24.legend()
-    #%%
     ax4 = fig.add_subplot(224)
-    boxcar_histogram(fig, ax4, bin_start, bin_stop, sI_c, sQ_c, Ioffset = 0, Qoffset = 0, scale = 1200)
-
+    
+    fig2, ax99 = plt.subplots()
+    bins_even, h_even = boxcar_histogram(fig2, ax99, bin_start, bin_stop, sI_c[0::2], sQ_c[0::2], Ioffset = 0, Qoffset = 0, scale = hist_scale)
+    bins_odd, h_odd = boxcar_histogram(fig2, ax99, bin_start, bin_stop, sI_c[1::2], sQ_c[1::2], Ioffset = 0, Qoffset = 0, scale = hist_scale)
+    plt.close(fig2)
+    
+    bins, h = boxcar_histogram(fig, ax4, bin_start, bin_stop, sI_c, sQ_c, Ioffset = 0, Qoffset = 0, scale = hist_scale)
+    
+    return bins_even, bins_odd, h_even.T, h_odd.T
+    
+    
+    
 def boxcar_histogram(fig, ax, start_pt, stop_pt, sI, sQ, Ioffset = 0, Qoffset = 0, scale = 1, num_bins = 100):
     I_bground = Ioffset
     Q_bground = Qoffset
@@ -84,7 +94,82 @@ def boxcar_histogram(fig, ax, start_pt, stop_pt, sI, sQ, Ioffset = 0, Qoffset = 
     # ax.set_xticks(np.array([-100,-75,-50,-25,0,25,50,75,100])*scale/100)
     # ax.set_yticks(np.array([-100,-75,-50,-25,0,25,50,75,100])*scale/100)
     ax.grid()
+    
+    return bins, h
 
+from scipy.optimize import curve_fit
+
+
+def Gaussian_2D(bins_tiled,amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
+    size = int(np.sqrt(np.size(bins_tiled)))
+    # print(size)
+    bins = np.reshape(bins_tiled, (size, size))[0]
+    x, y = np.meshgrid(bins, bins)
+    xo = float(xo)
+    yo = float(yo)
+    a = (np.cos(theta)**2)/(2*sigma_x**2) + (np.sin(theta)**2)/(2*sigma_y**2)
+    b = -(np.sin(2*theta))/(4*sigma_x**2) + (np.sin(2*theta))/(4*sigma_y**2)
+    c = (np.sin(theta)**2)/(2*sigma_x**2) + (np.cos(theta)**2)/(2*sigma_y**2)
+    g = offset + amplitude*np.exp( - (a*((x-xo)**2) + 2*b*(x-xo)*(y-yo)
+                            + c*((y-yo)**2)))
+    return g.ravel()
+
+class Gaussian_info: 
+    def __init__(self): 
+        self.info_dict = {}
+    def print_info(self):
+        for key, val in self.info_dict.items(): 
+            if key == 'popt':
+                pass
+            elif key == 'pcov':
+                pass
+            else: 
+                print(key, ': ', val)
+                
+    def __sub__(self, other_GC):
+        sub_class = Gaussian_info()
+        for key, val in self.info_dict.items(): 
+            sub_class.info_dict[key] = val - other_GC.info_dict[key]
+        return sub_class
+    
+    def center_vec(self): 
+        return np.array([self.info_dict['x0'], self.info_dict['y0']])
+    def plot_on_ax(self, ax, displacement = np.array([0,0]), color = 'white'): 
+        ax.annotate("", xy=self.center_vec(), xytext=(0, 0), arrowprops=dict(arrowstyle = '->', lw = 3, color = color))
+        
+
+def fit_2D_Gaussian(bins, 
+                    h_arr, 
+                    x0Guess = 0,
+                    y0Guess = 0,
+                    ampGuess = 20,
+                    sxGuess = 0.005,
+                    syGuess = 0.005,
+                    thetaGuess = 0,
+                    offsetGuess = 0): 
+    xdata, ydata= np.tile(bins[0:-1], 99), h_arr.flatten()
+    
+    popt, pcov = curve_fit(Gaussian_2D, xdata, ydata, p0 = [ampGuess, x0Guess, y0Guess, sxGuess, syGuess, thetaGuess, offsetGuess])
+    GC = Gaussian_info()
+    GC.info_dict['amplitude'] = popt[0]
+    GC.info_dict['x0'] = popt[1]
+    GC.info_dict['y0'] = popt[2]
+    GC.info_dict['sigma_x'] = popt[3]
+    GC.info_dict['sigma_y'] = popt[4]
+    GC.info_dict['theta'] = popt[5]
+    GC.info_dict['offset'] = popt[6]
+    GC.info_dict['popt'] = popt
+    GC.info_dict['pcov'] = pcov
+    
+    return GC
+
+def get_contour_line(cont_x, cont_y, contour_arr, contour_line = 3):
+    fig = plt.figure()
+    contour_map = plt.contour(cont_x, cont_y, contour_arr)
+    plt.close(fig)
+    v = contour_map.collections[contour_line].get_paths()[0].vertices
+    plot_y, plot_x = v[:,1], v[:,0]
+    return plot_x, plot_y
 
     
 def Standard_Alazar_Config(alazar_inst,alazar_dataclass):

@@ -25,17 +25,17 @@ from plottr.apps.autoplot import autoplotDDH5, script, main
 
 #%% fluxsweep
 
-DATADIR = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\fluxsweep'
-name='C1_FS6_recheck_after_rebuild'
+DATADIR = r'E:\Data\Cooldown_20210611\SNAIL_Amps\C1\fluxsweep'
+name='C1_FS_recheck_fine_res'
 #instruments
 VNA = pVNA
 CS = yoko2
 #starting parameters
 c_start = -0.16e-3
 c_stop = 0.21e-3
-c_points = 1000
+c_points = 10000
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = 5.4e9, 2.5e9, 1600, 15
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 3
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]
@@ -75,11 +75,12 @@ pVNA.rfout(1)
 # Gen = SigGen
 # mode = CuCav
 mode = AlCav
+#ifbw = 200 for low power, 500 high power
 
 mode.push(VNA = pVNA)
 VNA_avgs = mode.avgnum()
 # AlCav.push(VNA = pVNA)
-temp = 720
+temp = 820
 if mode.name == 'AlCav': 
     DATADIR = r'Z:\Texas\Cooldown_20210525\PC_HPAl_etch_3'
 
@@ -89,11 +90,11 @@ else:
     raise Exception("AAAAAHHHHH")
 #starting parameters
 VNA_fcenter, VNA_fspan, VNA_fpoints = VNA.fcenter(), VNA.fspan(), VNA.num_points()
-
-# p_start, p_stop, p_points = -43, 20, 64 #wi!h -40dB on RT atten
-p_start, p_stop, p_points = -20, 20, 41 #with 0 dB on RT atten
+# 
+p_start, p_stop, p_points = -43, 20, 64 #wi!h -40dB on RT atten
+# p_start, p_stop, p_points = -20, 20, 41 #with 0 dB on RT atten
 # name = f'vna_trace_vs_vna_power_40dBatten_{temp}mK'
-name = f'vna_trace_vs_vna_power_0dBatten_{temp}mK'
+name = f'vna_trace_vs_vna_power_40dBatten_{temp}mK'
 
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 Gen_settings = [VNA, p_start, p_stop, p_points]
