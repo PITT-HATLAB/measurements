@@ -26,9 +26,9 @@ SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 logging.basicConfig(level=logging.INFO)
 #%%
-DATADIR = r'E:\Data\Cooldown_20210611\SNAIL_Amps\C1\phase_preserving_checks'
+DATADIR = r'E:\Data\Cooldown_20210611\SNAIL_Amps\C1\phase_preserving_checks\15dB\amp_on\33pt_sweep_with_switch'
 
-amp_detuning = 1e3
+amp_detuning = 1e6
 
 mod_freq = 50e6
 
@@ -56,11 +56,11 @@ cmpc = PU.cavity_mimicking_pulse_class(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.085, -0.104, 0.0, 0.0),
+    (-0.125, -0.081, 0.0, 0.0),
     # ch2_correction: 
-    0.9681946466348401,
+    0.9988184173068773,
     # phase_offset: 
-    0.038603793201914094,
+    0.07260407094218913,
     # phase_rotation: 
     0,
     #amplitude: 
@@ -74,13 +74,15 @@ cmpc = PU.cavity_mimicking_pulse_class(
     # npts: 
     1000, 
     #only plus?
-    True, 
+    False, 
     #only
     False, 
     )
 p = PU.Phase_Parameter('rotation_phase', cmpc)
 #%%
-PS.set_independent_parameter(p, 0, 2*np.pi, 6, arange = False, filename = '15dB_Gain')
+amp_pump = 1
+SigGen.output_status(amp_pump)
+PS.set_independent_parameter(p, 0, 2*np.pi, 33, arange = False, filename = f'15dB_Gain_pt_amp_{amp_pump}')
 #%%
 PS.sweep(DATADIR)
 

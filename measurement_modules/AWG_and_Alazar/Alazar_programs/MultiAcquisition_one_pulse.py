@@ -72,11 +72,11 @@ cmpc = PU.cavity_mimicking_pulse_class(
     # SR: 
     1e9,
     # npts: 
-    1000, 
+    1000,
     #only plus?
-    True, 
+    True,
     #only
-    False, 
+    False,
     )
 p = PU.Phase_Parameter('rotation_phase', cmpc)
 #%%
