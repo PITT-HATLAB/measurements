@@ -26,9 +26,9 @@ SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 logging.basicConfig(level=logging.INFO)
 #%%
-DATADIR = r'E:\Data\Cooldown_20210611\SNAIL_Amps\C1\phase_preserving_checks\15dB\amp_on\33pt_sweep_with_switch'
+DATADIR = r'E:\Data\Cooldown_20210611\SNAIL_Amps\C1\phase_preserving_checks\20dB\amp_on'
 
-amp_detuning = 1e6
+amp_detuning = 0e6
 
 mod_freq = 50e6
 
@@ -43,10 +43,11 @@ Al_config.SR = 1e9
  
 AWG_config = AWG_Config()
 AWG_config.Mod_freq = 50e6
-AWG_config.Sig_freq = 6112083796.8+amp_detuning
+AWG_config.Sig_freq = 6245232424.16+amp_detuning
 AWG_config.Ref_freq = AWG_config.Sig_freq+AWG_config.Mod_freq
+Alazar_ctrl = PU.Standard_Alazar_Config(alazar, Al_config)
 #%%
-PS = PU.Pulse_Sweep(AWG, AWG_config, alazar, Al_config, SC4, SC9)
+PS = PU.Pulse_Sweep(AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9)
 #%%
 cmpc = PU.cavity_mimicking_pulse_class( 
     # name 
@@ -56,11 +57,11 @@ cmpc = PU.cavity_mimicking_pulse_class(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.125, -0.081, 0.0, 0.0),
+    (-0.11, -0.062, 0.0, 0.0),
     # ch2_correction: 
-    0.9988184173068773,
+    0.9928913530429669,
     # phase_offset: 
-    0.07260407094218913,
+    0.06333744516795381,
     # phase_rotation: 
     0,
     #amplitude: 
@@ -82,8 +83,11 @@ p = PU.Phase_Parameter('rotation_phase', cmpc)
 #%%
 amp_pump = 1
 SigGen.output_status(amp_pump)
-PS.set_independent_parameter(p, 0, 2*np.pi, 33, arange = False, filename = f'15dB_Gain_pt_amp_{amp_pump}')
+PS.set_independent_parameter(p, 0, 2*np.pi, 33, arange = False, filename = f'f_{AWG_config.Sig_freq}_Gain_pt_amp_{amp_pump}')
 #%%
+# try: 
 PS.sweep(DATADIR)
-
+# except RuntimeError: 
+#     AWG.stop()
+#     print('not enough memory available for all the alazar data. reduce record number by a multiple of 640 (LCM(128,20))')
 

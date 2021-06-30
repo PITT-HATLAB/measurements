@@ -18,22 +18,21 @@ import pickle
 from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
 from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
 from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
-from measurement_modules.Helper_Functions import adjust, adjust_2, controller_adjust, get_name_from_path
 from plottr.data import datadict_storage as dds, datadict as dd
 from datetime import datetime
 from plottr.apps.autoplot import autoplotDDH5, script, main
 
 #%% fluxsweep
 
-DATADIR = r'E:\Data\Cooldown_20210611\SNAIL_Amps\C1\fluxsweep'
-name='C1_FS_recheck_fine_res'
+DATADIR = r'Z:/Data/C1'
+name='C1_FS2_-43dBm'
 #instruments
 VNA = pVNA
 CS = yoko2
 #starting parameters
-c_start = -0.16e-3
-c_stop = 0.21e-3
-c_points = 10000
+c_start = -0.085e-3
+c_stop = -0.06e-3
+c_points = 500
 
 VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 3
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]

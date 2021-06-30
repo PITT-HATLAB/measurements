@@ -6,7 +6,6 @@ Created on Thu Nov 12 10:56:06 2020
 
 purpose: Contain general helper functions that are useful for all instruments
 """
-from measurement_modules import Controller_Module as CM
 import numpy as np
 import os 
 
@@ -46,8 +45,7 @@ def adjust_2(Params, stepsizes):
         if in_string == "q": 
             break
         
-def controller_adjust(Params, stepsizes):
-    CM.sample_first_joystick(Params, stepsizes)
+
     
 def shift_array_relative_to_middle(array, div_factor = 1e6):
     return (array-array[int(len(array)/2)])/div_factor

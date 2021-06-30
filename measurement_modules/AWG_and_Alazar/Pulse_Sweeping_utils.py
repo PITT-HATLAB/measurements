@@ -191,21 +191,21 @@ def get_contour_line(cont_x, cont_y, contour_arr, contour_line = 3):
     plot_y, plot_x = v[:,1], v[:,0]
     return plot_x, plot_y
 
-def extract_2pulse_histogram_from_filepath(datapath, bin_start = 55, bin_stop = 150, hist_scale = 0.01, even_only = False, odd_only = False): 
+def extract_2pulse_histogram_from_filepath(datapath, bin_start = 55, bin_stop = 150, hist_scale = 0.01, even_only = False, odd_only = False, numRecords = 3840*2): 
     
     dd = all_datadicts_from_hdf5(datapath)['data']
     
     time_unit = dd['time']['unit']
-    time_vals = dd['time']['values'].reshape((7500, 208))
+    time_vals = dd['time']['values'].reshape((numRecords//2, np.size(dd['time']['values'])//(numRecords//2)))
     
     rec_unit = dd['record_num']['unit']
-    rec_num = dd['record_num']['values'].reshape((7500, 208))
+    rec_num = dd['record_num']['values'].reshape((numRecords//2, np.size(dd['time']['values'])//(numRecords//2)))
     
-    I_plus = dd['I_plus']['values'].reshape((7500, 208))
-    I_minus = dd['I_minus']['values'].reshape((7500, 208))
+    I_plus = dd['I_plus']['values'].reshape((numRecords//2, np.size(dd['time']['values'])//(numRecords//2)))
+    I_minus = dd['I_minus']['values'].reshape((numRecords//2, np.size(dd['time']['values'])//(numRecords//2)))
     
-    Q_plus = dd['Q_plus']['values'].reshape((7500, 208))
-    Q_minus = dd['Q_minus']['values'].reshape((7500, 208))
+    Q_plus = dd['Q_plus']['values'].reshape((numRecords//2, np.size(dd['time']['values'])//(numRecords//2)))
+    Q_minus = dd['Q_minus']['values'].reshape((numRecords//2, np.size(dd['time']['values'])//(numRecords//2)))
     
     #averages
     I_plus_avg = np.average(I_plus, axis = 0)
@@ -277,9 +277,9 @@ def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
     myctrl.int_time(4e-6)
     myctrl.int_delay(0e-9)
     
-    print(myctrl.samples_per_record())
+    print("Samples per record: ",myctrl.samples_per_record())
     alazar.buffer_timeout.set(20000)
-    rec_num = 15000
+    rec_num = 7680
     chan1 = AlazarChannel(myctrl, 'ChanA', demod=False, integrate_samples=False, average_records=False, average_buffers = True)
     chan1.alazar_channel('A')
     chan1.records_per_buffer(rec_num)
@@ -505,9 +505,9 @@ def acquire_one_pulse(AWG_inst, Alazar_controller, Sig_Gen, Ref_Gen, LO_frequenc
     Ref_Gen.output_status(1)
     myctrl = Alazar_controller
     AWG = AWG_inst
-    AWG.ch1_m1_high(1.5)
+    AWG.ch1_m1_high(1.8)
     AWG.ch1_m2_high(2.5)
-    AWG.ch2_m1_high(1.5)
+    AWG.ch2_m1_high(1.9)
     AWG.ch2_m2_high(2.5)
     AWG.run()
     time.sleep(1)
@@ -518,20 +518,23 @@ def acquire_one_pulse(AWG_inst, Alazar_controller, Sig_Gen, Ref_Gen, LO_frequenc
     arr_shape = list(np.shape(ch1data)) #same as ch2
     arr_shape[1] = int(arr_shape[1]//mod_period)
     
-    sI = np.zeros(arr_shape)
-    sQ = np.zeros(arr_shape)
-    rI = np.zeros(arr_shape)
-    rQ = np.zeros(arr_shape)
+    sI = []
+    sQ = []
+    rI = []
+    rQ = []
     
     for i, (ch1data_record, ch2data_record) in enumerate(zip(ch1data, ch2data)):
         
         sI_row,sQ_row,rI_row,rQ_row = demod(ch1data_record, ch2data_record)
-        sI[i] = sI_row
-        sQ[i] = sQ_row
-        rI[i] = rI_row
-        rQ[i] = rQ_row
+        sI.append(sI_row)
+        sQ.append(sQ_row)
+        rI.append(rI_row)
+        rQ.append(rQ_row)
         
-    
+    sI = np.array(sI)
+    sQ = np.array(sQ)
+    rI = np.array(rI)
+    rQ = np.array(rQ)
     # Phase correction
     sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)
     
@@ -557,12 +560,9 @@ class Pulse_Sweep():
         
         
         
-    def set_independent_parameter(self, ind_par, start, stop, points_or_step, arange = False, filename = None): 
-        if arange: 
-            self.ind_par_vals = np.arange(start, stop, points_or_step)
-        else: 
-            self.ind_par_vals = np.linspace(start, stop, points_or_step)
-            
+    def set_independent_parameter(self, ind_par, points, filename = None): 
+
+        self.ind_par_vals = points
         self.ind_par = ind_par
         if filename == None: 
             self.filenames = [f'{ind_par.name}_{np.round(ind_par_val, 3)}' for ind_par_val in self.ind_par_vals]
