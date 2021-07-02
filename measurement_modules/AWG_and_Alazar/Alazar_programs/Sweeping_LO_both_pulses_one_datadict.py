@@ -49,7 +49,7 @@ print(np.size(pump_powers))
 #%%
 amp_pump = 1
 for LO_freq in LO_freqs: 
-    for pump_power in pump_powers: 
+    for pump_power in pump_powers:
         AWG_config = AWG_Config()
         AWG_config.Mod_freq = 50e6
         AWG_config.Sig_freq = LO_freq
@@ -57,7 +57,7 @@ for LO_freq in LO_freqs:
         
         PS = PU.Pulse_Sweep(AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9)
         
-        cmpc = PU.cavity_mimicking_pulse_class( 
+        cmpc = PU.cavity_mimicking_pulse_class(
             # name 
             'phase_pres_check',
             #AWG_inst
@@ -87,11 +87,12 @@ for LO_freq in LO_freqs:
             #only minus?
             False, 
             )
+            
         p = PU.Phase_Parameter('rotation_phase', cmpc)
         SigGen.output_status(amp_pump)
         SigGen.power(pump_power)
         phase_points = np.linspace(0,2*np.pi, 3, endpoint = False)
-        PS.set_independent_parameter(p, phase_points, filename = f'LO_{LO_freq}_pwr_{np.round(pump_power, 2)}_amp_{amp_pump}')
+        PS.add_independent_parameter(p, phase_points, filename = f'LO_{LO_freq}_pwr_{np.round(pump_power, 2)}_amp_{amp_pump}')
         PS.sweep(DATADIR)
 
 
