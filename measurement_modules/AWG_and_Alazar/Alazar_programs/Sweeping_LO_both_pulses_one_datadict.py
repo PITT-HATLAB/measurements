@@ -48,51 +48,49 @@ print(np.size(LO_freqs))
 print(np.size(pump_powers))
 #%%
 amp_pump = 1
-for LO_freq in LO_freqs: 
-    for pump_power in pump_powers:
-        AWG_config = AWG_Config()
-        AWG_config.Mod_freq = 50e6
-        AWG_config.Sig_freq = LO_freq
-        AWG_config.Ref_freq = AWG_config.Sig_freq+AWG_config.Mod_freq
-        
-        PS = PU.Pulse_Sweep(AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9)
-        
-        cmpc = PU.cavity_mimicking_pulse_class(
-            # name 
-            'phase_pres_check',
-            #AWG_inst
-            AWG,
-            # LO_frequency: 
-            AWG_config.Sig_freq,
-            # DC_offsets: 
-            (-0.111, -0.074, 0.0, 0.0),
-            # ch2_correction: 
-             0.9904003724571333,
-            # phase_offset: 
-            0.07228873642636158,
-            # phase_rotation: 
-            0,
-            #amplitude: 
-            0.5,
-            # sim_filepath_plus: 
-            r'\\phyast-hatlab.univ.pitt.edu\HATLAB\RK\Transfer\kappa_2MHz_Chi_2MHz_-det_plus_ringdown.csv',
-            # sim_filepath_minus: 
-            r'\\phyast-hatlab.univ.pitt.edu\HATLAB\RK\Transfer\kappa_2MHz_Chi_2MHz_+det_plus_ringdown.csv',
-            # SR: 
-            1e9,
-            # npts: 
-            1000, 
-            #only plus?
-            False, 
-            #only minus?
-            False, 
-            )
-            
-        p = PU.Phase_Parameter('rotation_phase', cmpc)
-        SigGen.output_status(amp_pump)
-        SigGen.power(pump_power)
-        phase_points = np.linspace(0,2*np.pi, 3, endpoint = False)
-        PS.add_independent_parameter(p, phase_points, filename = f'LO_{LO_freq}_pwr_{np.round(pump_power, 2)}_amp_{amp_pump}')
-        PS.sweep(DATADIR)
+AWG_config = AWG_Config()
+AWG_config.Mod_freq = 50e6
+AWG_config.Sig_freq = LO_freq
+AWG_config.Ref_freq = AWG_config.Sig_freq+AWG_config.Mod_freq
+
+PS = PU.Pulse_Sweep(AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9)
+
+cmpc = PU.cavity_mimicking_pulse_class(
+    # name 
+    'phase_pres_check',
+    #AWG_inst
+    AWG,
+    # LO_frequency: 
+    AWG_config.Sig_freq,
+    # DC_offsets: 
+    (-0.111, -0.074, 0.0, 0.0),
+    # ch2_correction: 
+     0.9904003724571333,
+    # phase_offset: 
+    0.07228873642636158,
+    #amplitude: 
+    0.5,
+    # phase_rotation:
+    0,
+    # sim_filepath_plus: 
+    r'\\phyast-hatlab.univ.pitt.edu\HATLAB\RK\Transfer\kappa_2MHz_Chi_2MHz_-det_plus_ringdown.csv',
+    # sim_filepath_minus: 
+    r'\\phyast-hatlab.univ.pitt.edu\HATLAB\RK\Transfer\kappa_2MHz_Chi_2MHz_+det_plus_ringdown.csv',
+    # SR: 
+    1e9,
+    # npts: 
+    1000, 
+    #only plus?
+    False, 
+    #only minus?
+    False, 
+    )
+    
+p = PU.Phase_Parameter('rotation_phase', cmpc)
+SigGen.output_status(amp_pump)
+SigGen.power(pump_power)
+phase_points = np.linspace(0,2*np.pi, 3, endpoint = False)
+PS.add_independent_parameter(p, phase_points, filename = f'LO_{LO_freq}_pwr_{np.round(pump_power, 2)}_amp_{amp_pump}')
+PS.sweep(DATADIR)
 
 
