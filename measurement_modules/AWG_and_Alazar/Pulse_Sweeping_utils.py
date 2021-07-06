@@ -17,6 +17,8 @@ from qcodes.instrument.parameter import Parameter
 from data_processing.signal_processing.Pulse_Processing import demod, phase_correction
 
 import time
+
+from itertools import product
     
 def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
     alazar = alazar_inst
@@ -82,6 +84,7 @@ class Phase_Parameter(Parameter):
         super().__init__(name)
         self._phase = cavity_mimicking_pulse_class.phase_rotation
         self.pulse_class = cavity_mimicking_pulse_class
+        self.unit = 'rad'
 
     # you must provide a get method, a set method, or both.
     def get_raw(self):
@@ -102,6 +105,7 @@ class LO_Parameter(Parameter):
         self.SigGen = SigGen
         self.RefGen = RefGen
         self.mod_freq = Modulation_freq
+        self.unit = 'Hz'
         
     # you must provide a get method, a set method, or both.
     def get_raw(self):
@@ -110,10 +114,6 @@ class LO_Parameter(Parameter):
     def set_raw(self, val):
         self.SigGen.frequency(val)
         self.RefGen.frequency(val+self.mod_freq)
-        self.create_and_load_awg_sequence()
-        
-    def create_and_load_awg_sequence(self):
-        self.pulse_class.setup_pulse()
         
 class Voltage_Parameter(Parameter): 
     def __init__(self, name, cavity_mimicking_pulse_class):
@@ -121,6 +121,7 @@ class Voltage_Parameter(Parameter):
         super().__init__(name)
         self._amplitude = cavity_mimicking_pulse_class.amplitude
         self.pulse_class = cavity_mimicking_pulse_class
+        self.unit = 'V'
 
     # you must provide a get method, a set method, or both.
     def get_raw(self):
@@ -136,7 +137,7 @@ class Voltage_Parameter(Parameter):
 
     
 def acquire_one_pulse(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug = False): 
-
+    print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
     myctrl = Alazar_controller
     AWG = AWG_inst
     AWG.ch1_m1_high(1.8)
@@ -177,7 +178,7 @@ def acquire_one_pulse(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug 
 class Pulse_Sweep(): 
     
     def __init__(self, 
-                 AWG: Tektronix_AWG5014, 
+                 AWG, 
                  AWG_Config, 
                  Alazar_ctrl, 
                  Alazar_config, 
@@ -195,33 +196,42 @@ class Pulse_Sweep():
         self.AWG_Config = AWG_Config
         self.sig_gen = Sig_Gen
         self.ref_gen = Ref_Gen
-        self.ind_par_dict = []
+        self.ind_par_dict_arr = []
         
-    def add_independent_parameter(self, ind_par, points, filename = None): 
-
-        self.ind_par_vals = points
-        self.ind_par.append(ind_par)
-        if filename == None: 
-            self.filenames = [f'{ind_par.name}_{np.round(ind_par_val, 3)}' for ind_par_val in self.ind_par_vals]
-        else: 
-            self.filenames = [f'{filename}_{ind_par.name}_{np.round(ind_par_val, 3)}' for ind_par_val in self.ind_par_vals]
-        
+    def add_independent_parameter(self, ind_par_dict: dict): 
+        '''
+        will take input in form of 
+        ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
+        '''
+        self.ind_par_dict_arr.append(ind_par_dict)
         self.is_ind_par_set = True
-        
-    def configure_datadict(independent_parameters, dependent_variables):
-        
-        
-        
-        
-    def pre_measurement_operation(self, i): 
-        self.ind_par(self.ind_par_vals[i])
+    
+    def filename_func(self, val_dict):
+        '''
+        takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+        eg {SigGen.power: dict('name' = str, 'val' = float))}
+        '''
+        filename = ''
+        for name, val in val_dict.items(): 
+            filename += (name+'_')
+            filename += (str(np.round(val['val'], 3))+'_'+val['parameter'].unit + '_')
+        return filename
+    
+    def pre_measurement_operation(self): 
+        '''
+        takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+        eg {name: dict(parameter = SigGen.power, 'val' = float))} 
+        '''
+        for name, val in self.setpoint_dict.items(): 
+            val['parameter'](val['val'])
+        print(f'Setting {name} to {val["val"]} {val["parameter"].unit}\nvia {val["parameter"].name}')
         self.sig_gen.output_status(1)
         self.ref_gen.output_status(1)
-        
+
     def post_measurement_operation(self, i): 
         self.sig_gen.output_status(0)
         self.ref_gen.output_status(0)
-        print(f"\nMeasurement {i+1} out of {np.size(self.ind_par_vals)} completed\n")
+        print(f"\nMeasurement {i+1} out of {np.shape(list(self.setpoint_arr))[0]} completed\n")
     
     def sweep(self, DATADIR, savemode = 'seperate'):
         
@@ -229,22 +239,42 @@ class Pulse_Sweep():
             raise Exception("Independent parameter not yet set. Run set_independent_parameter method")
         
         if savemode == 'seperate': 
-            for i, filename in enumerate(self.filenames):
+            '''zip all the combos of parameters, names, units, and values to 
+            iterate over, we want ONE loop to rule them all
+            '''
+            ind_par_names = []
+            ind_par_parameters = []
+            ind_par_vals = []
+            for ind_par_dict in self.ind_par_dict_arr: 
+                for name, info_dict in ind_par_dict.items(): 
+                    ind_par_names.append(name)
+                    ind_par_parameters.append(ind_par_dict[name]['parameter'])
+                    ind_par_vals.append(ind_par_dict[name]['vals'])
+                
+            ################
+            self.setpoint_arr = list(product(*ind_par_vals))
+            for i, values in enumerate(self.setpoint_arr): 
+                self.setpoint_dict = {}
+                for j in range(np.size(values)):
+                    self.setpoint_dict[ind_par_names[j]] = dict(parameter = ind_par_parameters[j], 
+                                                           val = values[j])
+                
+                dep_var_dict = dict(time = dict(unit = 'ns'),
+                                    record_num = dict(unit = 'num'),
+                                    I_plus = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    Q_plus = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    I_minus = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    Q_minus = dict(axes=['record_num', 'time' ], unit = 'V')
+                                    )
                 
                 ####################### Set up the datadict
-                self.datadict = dd.DataDict(
-                    time = dict(unit = 'ns'),
-                    record_num = dict(unit = 'num'),
-                    I_plus = dict(axes=['record_num', 'time' ], unit = 'DAC'),
-                    Q_plus = dict(axes=['record_num', 'time' ], unit = 'DAC'),
-                    I_minus = dict(axes=['record_num', 'time' ], unit = 'DAC'),
-                    Q_minus = dict(axes=['record_num', 'time' ], unit = 'DAC')
-                )
-            
-                self.pre_measurement_operation(i)
+                self.datadict = dd.DataDict(**dep_var_dict)
+                self.pre_measurement_operation()
+                filename = self.filename_func(self.setpoint_dict)
+                
                 
                 with dds.DDH5Writer(DATADIR, self.datadict, name=filename) as writer:
-                    sI_c, sQ_c, ref_I, ref_Q = acquire_one_pulse(self.AWG_inst, self.Alazar_ctrl, self.sig_gen, self.ref_gen, self.AWG_Config.Sig_freq, self.AWG_Config.Mod_freq, self.Alazar_config.SR)
+                    sI_c, sQ_c, ref_I, ref_Q = acquire_one_pulse(self.AWG_inst, self.Alazar_ctrl, self.AWG_Config.Mod_freq, self.Alazar_config.SR)
                     s = list(np.shape(sI_c))
                     s[0] = int(s[0]//2) #evenly divided amongst I_plus and I_minus
                     time_step = self.Alazar_config.SR/self.AWG_Config.Mod_freq
