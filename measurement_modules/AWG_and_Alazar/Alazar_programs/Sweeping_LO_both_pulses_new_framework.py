@@ -35,7 +35,7 @@ SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 logging.basicConfig(level=logging.INFO)
 #%%
-DATADIR = r'Z:\Data\C1\C1_Hakan\Gain_pt_0.103mA\signal_power_sweeps\1'
+DATADIR = r'Z:\Data\C1\C1_Hakan\Gain_pt_0.103mA\signal_power_sweeps\3_mid_powers'
 mod_freq = 50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
@@ -64,11 +64,11 @@ cmpc = PC.cavity_mimicking_pulse_class(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.111, -0.074, 0.0, 0.0),
+    (-0.116, -0.092, 0.0, 0.0),
     # ch2_correction: 
-     0.9904003724571333,
+     0.9975162154920661,
     # phase_offset: 
-    0.07228873642636158,
+    0.08073960299998406,
     #amplitude: 
     0.5,
     # phase_rotation:
@@ -94,7 +94,7 @@ LO = PU.LO_Parameter('LO_frequency', PS.ref_gen, PS.sig_gen, AWG_config.Mod_freq
 SigGen.output_status(amp_pump)
 SigGen.power(-7.42)
 phase_points = np.linspace(0,2*np.pi, 3, endpoint = False)
-voltage_points = np.arange(0, 2.5, 0.5)
+voltage_points = np.arange(0.2, 0.75, 0.05)
 #ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
 amp_dict = dict(Amp = dict(parameter = SigGen.output_status, vals = np.array([0,1])))
 phase_dict = dict(Phase = dict(parameter=P, vals = phase_points))
@@ -105,7 +105,6 @@ PS.add_independent_parameter(amp_dict)
 PS.add_independent_parameter(LO_dict)
 PS.add_independent_parameter(volt_dict)
 PS.add_independent_parameter(phase_dict)
-
 
 #%%
 PS.sweep(DATADIR)
