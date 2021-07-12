@@ -174,7 +174,7 @@ class cavity_mimicking_pulse_class:
         CavSeq.addElement(4, CavEl2)
         
         CavSeq.setSR(1e9)
-        plotter(CavSeq)
+        # plotter(CavSeq)
         
         #set the sequencing
         # Here we repeat each element twice and then proceed to the next, wrapping over at the end

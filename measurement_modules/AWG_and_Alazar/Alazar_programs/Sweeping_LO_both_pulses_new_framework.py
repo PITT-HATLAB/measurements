@@ -35,18 +35,20 @@ SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 logging.basicConfig(level=logging.INFO)
 #%%
-DATADIR = r'Z:\Data\C1\C1_Hakan\Gain_pt_0.103mA\signal_power_sweeps\3_mid_powers'
+DATADIR = r'Z:\Data\C1\C1_Hakan\Gain_pt_0.102mA\pwr_det_sweeps\1_mid_powers'
 mod_freq = 50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
 #%%
-cf = 6.151798714e9
+cf = 6171427180.18
 # LO_freqs = np.arange(cf+1e6, cf+4.5e6, 0.5e6)
-LO_freqs = [cf+1.5e6]
-# pump_powers = np.linspace(-9.24, -7.24, 12)
+LO_freqs = np.arange(cf+0.5e6, cf+3.5e6, 0.2e6)
+pump_powers = np.linspace(-9.43, -8.43, 6)
+SG_pow_20dB = -8.43
+SG_freq = 12342728199
 # pump_powers = [-20]
 print(np.size(LO_freqs))
-# print(np.size(pump_powers))
+print(np.size(pump_powers))
 #%%
 amp_pump = 1
 AWG_config = AWG_Config()
@@ -58,17 +60,17 @@ PS = PU.Pulse_Sweep(AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9)
 
 cmpc = PC.cavity_mimicking_pulse_class(
     # name 
-    'phase_pres_check',
+    'pwr_det_sweep',
     #AWG_inst
     AWG,
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.116, -0.092, 0.0, 0.0),
+    (-0.11, -0.083, 0.0, 0.0),
     # ch2_correction: 
-     0.9975162154920661,
+     0.9962039519502721,
     # phase_offset: 
-    0.08073960299998406,
+    0.07777303946936387,
     #amplitude: 
     0.5,
     # phase_rotation:
@@ -91,22 +93,30 @@ P = PU.Phase_Parameter('rotation_phase', cmpc)
 V = PU.Voltage_Parameter('Voltage', cmpc)
 LO = PU.LO_Parameter('LO_frequency', PS.ref_gen, PS.sig_gen, AWG_config.Mod_freq)
 
+V(0.4)
+
 SigGen.output_status(amp_pump)
-SigGen.power(-7.42)
+SigGen.frequency(SG_freq)
 phase_points = np.linspace(0,2*np.pi, 3, endpoint = False)
 voltage_points = np.arange(0.2, 0.75, 0.05)
+
+
+
 #ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
 amp_dict = dict(Amp = dict(parameter = SigGen.output_status, vals = np.array([0,1])))
+pump_pwr_dict = dict(pwr = dict(parameter = SigGen.power, vals = pump_powers))
 phase_dict = dict(Phase = dict(parameter=P, vals = phase_points))
 volt_dict = dict(Sig_Volt = dict(parameter=V, vals = voltage_points))
 LO_dict = dict(LO_freq = dict(parameter=LO, vals = LO_freqs))
 
 PS.add_independent_parameter(amp_dict)
+PS.add_independent_parameter(pump_pwr_dict)
 PS.add_independent_parameter(LO_dict)
-PS.add_independent_parameter(volt_dict)
+# PS.add_independent_parameter(volt_dict)
 PS.add_independent_parameter(phase_dict)
 
 #%%
 PS.sweep(DATADIR)
+
 
 

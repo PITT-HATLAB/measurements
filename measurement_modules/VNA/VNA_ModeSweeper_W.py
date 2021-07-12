@@ -24,14 +24,14 @@ from plottr.apps.autoplot import autoplotDDH5, script, main
 
 #%% fluxsweep
 
-DATADIR = r'Z:/Data/C1'
-name='C1_FS2_-43dBm'
+DATADIR = r'Z:\Data\SA_2X_B1\fluxsweep'
+name='B1_FS1'
 #instruments
 VNA = pVNA
 CS = yoko2
 #starting parameters
-c_start = -0.085e-3
-c_stop = -0.06e-3
+c_start = -0.00013356
+c_stop = 0.00035616
 c_points = 500
 
 VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 3
@@ -141,12 +141,12 @@ Gen_settings = [Gen, gen_freq, gen_power, gen_att]
 Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%%Minimum Gain pwr vs flux
 
-cwd = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\Tacos'
+cwd = r'Z:\Data\SA_2X_B1\tacos'
 
 if cwd == None: 
     raise Exception("CWD not chosen!")
     
-bias = 0.01375e-3
+bias = 2.44e-05
     
 filename = f'{np.round(bias*1000, 3)}mA_TACO'
 
@@ -163,19 +163,19 @@ vna_p_start, vna_p_stop, vna_p_steps, vna_p_avgs = -43, 10, 1600, 100
 #general VNA settings
 vna_att = 40
 VNA_avg_number = 10
-VNA.fstart(6028097660.75)
-VNA.fstop(6128097660.75)
+VNA.fstart(7766533232.5)
+VNA.fstop(7846533232.5)
 VNA.power(-43)
 
 #detail for a found 20dB gain point to start from
-start_freq = 12125117856.34
+start_freq = 15578226826.62
 sf = start_freq
-pow_start = 5.13
+pow_start = 0
 
 gen_freq_start = sf
-gen_freq_stop = sf+25e6
+gen_freq_stop = sf+40e6
 gen_freq_steps = 1e6
-gen_att = 20
+gen_att = 0
 
 SigGen.power(pow_start)
 SigGen.frequency(gen_freq_start)
@@ -194,11 +194,11 @@ SigGen.output_status(1)
 # run an entire frequency sweep and save it 
 #run one taco
 datasets = GP_F.sweep_gain_vs_freq(gen_freqs, 
-                                   stepsize = 0.05, 
+                                   stepsize = 0.1, 
                                    block_size = 10,
                                    limit = 6,
                                    target_gain = 20,
-                                   threshold = 1,
+                                   threshold = 0.5,
                                    saturation_sweep = True,
                                    vna_p_start = vna_p_start, 
                                    vna_p_stop = vna_p_stop, 
