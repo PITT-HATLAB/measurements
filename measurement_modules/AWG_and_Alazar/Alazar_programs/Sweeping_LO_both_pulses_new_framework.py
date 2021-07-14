@@ -35,7 +35,7 @@ SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 logging.basicConfig(level=logging.INFO)
 #%%
-DATADIR = r'Z:\Data\C1\C1_Hakan\Gain_pt_0.102mA\pwr_det_sweeps\1_mid_powers'
+DATADIR = r'Z:\Data\C1\C1_Hakan\Gain_pt_0.102mA\loopbacks'
 mod_freq = 50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
@@ -110,8 +110,8 @@ volt_dict = dict(Sig_Volt = dict(parameter=V, vals = voltage_points))
 LO_dict = dict(LO_freq = dict(parameter=LO, vals = LO_freqs))
 
 PS.add_independent_parameter(amp_dict)
-PS.add_independent_parameter(pump_pwr_dict)
-PS.add_independent_parameter(LO_dict)
+# PS.add_independent_parameter(pump_pwr_dict)
+# PS.add_independent_parameter(LO_dict)
 # PS.add_independent_parameter(volt_dict)
 PS.add_independent_parameter(phase_dict)
 

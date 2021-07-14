@@ -18,9 +18,12 @@ import pickle
 from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
 from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
 from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
+from measurement_modules.dataclasses import GPF_dataclass
+
 from plottr.data import datadict_storage as dds, datadict as dd
 from datetime import datetime
 from plottr.apps.autoplot import autoplotDDH5, script, main
+from dataclasses import dataclass
 
 #%% fluxsweep
 
@@ -141,73 +144,42 @@ Gen_settings = [Gen, gen_freq, gen_power, gen_att]
 Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%%Minimum Gain pwr vs flux
 
-cwd = r'Z:\Data\SA_2X_B1\tacos'
+GP_F_dc = GPF_dataclass(
+    cwd = r'Z:\Data\SA_2X_B1\tacos',
+    filename = f'{yoko2.current()}mA_TACO',
+    inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
+    bias_current = yoko2.current(),
+    #SigGen settings
+    gen_att = 0,
+    #VNA settings
+    vna_att = 30
+    )
 
-if cwd == None: 
-    raise Exception("CWD not chosen!")
-    
-bias = 2.44e-05
-    
-filename = f'{np.round(bias*1000, 3)}mA_TACO'
-
-VNA = pVNA
-Gen = SigGen
-CS = yoko2
-mode = None
-
-CS.change_current(bias)
-
-#for saturation data taking (optional)
-vna_p_start, vna_p_stop, vna_p_steps, vna_p_avgs = -43, 10, 1600, 100
-
-#general VNA settings
-vna_att = 40
-VNA_avg_number = 10
-VNA.fstart(7766533232.5)
-VNA.fstop(7846533232.5)
-VNA.power(-43)
-
-#detail for a found 20dB gain point to start from
-start_freq = 15578226826.62
-sf = start_freq
-pow_start = 0
-
-gen_freq_start = sf
-gen_freq_stop = sf+40e6
-gen_freq_steps = 1e6
-gen_att = 0
-
-SigGen.power(pow_start)
-SigGen.frequency(gen_freq_start)
-SigGen.output_status(1)
-
-gen_freqs = np.arange(gen_freq_start, gen_freq_stop, gen_freq_steps)
-
+#%% go to your start point then run this
+yoko2.change_current(2.3e-5)
+SigGen.frequency(15996691322.3)
+SigGen.power(10.45)
+GP_F_dc.set_start()
+#%% #jump to  a possible stop point
+GP_F_dc.goto_stop(gen_freq_offset = 75e6)
+#%%tune, then run this
+GP_F_dc.set_stop()
+#%%check: 
+GP_F_dc.goto_start()
 #%%
-GP_F = Gain_Power_vs_Flux(CS, Gen, VNA, cwd, filename, gen_att = gen_att, vna_att = vna_att)
-GP_F.VNA_avg_number = VNA_avg_number
-SigGen.output_status(0)
-pVNA.renormalize(50)
-SigGen.output_status(1)
-#run single gain vs power test: 
-# GP_F.sweep_power_for_gain(target_gain = 17)
-# run an entire frequency sweep and save it 
-#run one taco
-datasets = GP_F.sweep_gain_vs_freq(gen_freqs, 
-                                   stepsize = 0.1, 
-                                   block_size = 10,
-                                   limit = 6,
-                                   target_gain = 20,
-                                   threshold = 0.5,
-                                   saturation_sweep = True,
-                                   vna_p_start = vna_p_start, 
-                                   vna_p_stop = vna_p_stop, 
-                                   vna_p_steps = vna_p_steps, 
-                                   vna_p_avgs = vna_p_avgs, 
-                                   peak_width_minimum = 0.1)
-SigGen.output_status(0)
+GP_F_dc.renormalize(power = -30)
 #%%
-GP_F.plot_powers(gen_freqs, datasets[0], datasets[2], datasets[3])
+GP_F_dc.init_sweep_class()
+GP_F_dc.sweep(
+              peak_width_minimum = 1,
+              vna_avgs = 10,
+              stepsize = 0.1,
+              block_size = 10,
+              limit = 6,
+              target_gain = 20,
+              threshold = 0.5)
+#%%
+GP_F_dc.GP_F.plot_powers(gen_freqs, datasets[0], datasets[2], datasets[3])
 #%% Set up a sweep of currents based off of the known taco (be sure it is a decent minimum)
 from hat_utilities.ddh5_Plotting.utility_modules.FS_utility_functions import fit_fluxsweep
 from scipy.interpolate import interp1d

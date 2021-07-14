@@ -16,6 +16,8 @@ from plottr.data import datadict_storage as dds, datadict as dd
 from scipy.signal import find_peaks
 
 #supporting functions #############################################
+def lorentzian(x, y, [a, b]) 
+    
 def power2dB(power):
     if np.size(power) == 1:
         if power == None: 
@@ -32,11 +34,12 @@ def dB2power(dB):
 # def smoothen(trace, window_len=51):
 #     w = savgol_filter(trace, window_len, 3)
 #     return w
-def smoothen(trace, window_len=40):
+
+def smoothen(trace, window_len=50):
     w = np.blackman(window_len)
     return np.convolve(w/w.sum(), trace, mode='same')
 
-def find_peak(frequencies, trace, d = 10, w = 1, p = 5):
+def find_peak(frequencies, trace, d = 10, w = 2, p = 5):
     df = frequencies[1] - frequencies[0]
     
     # convert required distance between peaks from frequency to idx
@@ -48,7 +51,7 @@ def find_peak(frequencies, trace, d = 10, w = 1, p = 5):
     width = w / df
     
     # require height and prominence of at least 3 log power units
-    peaks, props = find_peaks(trace, 8, distance=dist, prominence=p, width=width)
+    peaks, props = find_peaks(trace, 5, distance=dist, prominence=p, width=width)
     
     if len(peaks) == 0:
         return None, None, None
@@ -264,6 +267,7 @@ class Gain_Power_vs_Flux():
         
         #average
         data = self.VNA.average(vna_p_avgs)
+        print(data)
         pows = self.VNA.getSweepData()
         self.Gen.output_status(0)
         
@@ -369,7 +373,7 @@ class Gain_Power_vs_Flux():
                 return sorted_data[0], sorted_data[1], [float("NaN"), float("NaN")]
             i+=1 
             
-    def sweep_gain_vs_freq(self, gen_freqs, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, peak_width_minimum = 1):
+    def sweep_gain_vs_freq(self, gen_freqs, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, smooth = True, peak_width_minimum = 1):
         '''
         Parameters
         ----------
