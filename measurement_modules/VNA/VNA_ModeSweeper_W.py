@@ -145,7 +145,7 @@ Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%%Minimum Gain pwr vs flux
 
 GP_F_dc = GPF_dataclass(
-    cwd = r'Z:\Data\SA_2X_B1\tacos',
+    cwd = r'Z:\Data\SA_2X_B1\tacos_TX',
     filename = f'{yoko2.current()}mA_TACO',
     inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
     bias_current = yoko2.current(),
@@ -156,12 +156,10 @@ GP_F_dc = GPF_dataclass(
     )
 
 #%% go to your start point then run this
-yoko2.change_current(2.3e-5)
-SigGen.frequency(15996691322.3)
-SigGen.power(10.45)
+
 GP_F_dc.set_start()
 #%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 75e6)
+GP_F_dc.goto_stop(gen_freq_offset = 150e6)
 #%%tune, then run this
 GP_F_dc.set_stop()
 #%%check: 
@@ -172,12 +170,12 @@ GP_F_dc.renormalize(power = -30)
 GP_F_dc.init_sweep_class()
 GP_F_dc.sweep(
               peak_width_minimum = 1,
-              vna_avgs = 10,
+              vna_avgs = 3,
               stepsize = 0.1,
-              block_size = 10,
+              block_size = 11,
               limit = 6,
               target_gain = 20,
-              threshold = 0.5)
+              threshold = 1)
 #%%
 GP_F_dc.GP_F.plot_powers(gen_freqs, datasets[0], datasets[2], datasets[3])
 #%% Set up a sweep of currents based off of the known taco (be sure it is a decent minimum)
