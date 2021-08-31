@@ -48,13 +48,14 @@ def cavity_response_with_correction(amp, filepath, SR, npts, amp_corr = 1, phase
         scaled = real*amp_scaling
         amplitude_corrected = scaled*amp_corr
         Q_data = pd.read_csv(filepath, usecols = ['imag']).to_numpy().T[0]*amp
+        # Q_data = np.ones(np.size(imag))
         phase_corrected = phase_shifter(amplitude_corrected, Q_data, phase_corr)
         return phase_corrected
     
     return cavity_response_I_bb, cavity_response_Q_bb
 
 def cavity_response_with_correction_and_phase_rotation(theta, amp, filepath, SR, npts, amp_corr = 1, phase_offset = 0):
-    cavity_response_I_bb, cavity_response_Q_bb = cavity_response_with_correction(amp, filepath, SR, npts, amp_corr = 1, phase_offset = 0)
+    cavity_response_I_bb, cavity_response_Q_bb = cavity_response_with_correction(amp, filepath, SR, npts, amp_corr = amp_corr, phase_offset = phase_offset)
     
     return lambda amp, filepath, SR, npts: cavity_response_I_bb(amp, filepath, SR, npts)*np.cos(theta)+cavity_response_Q_bb(amp, filepath, SR, npts)*np.sin(theta), lambda amp, filepath, SR, npts: cavity_response_Q_bb(amp, filepath, SR, npts)*np.cos(theta)-cavity_response_I_bb(amp, filepath, SR, npts)*np.sin(theta)
 
@@ -70,7 +71,7 @@ class cavity_mimicking_pulse_class:
     LO_frequency: float
     DC_offsets: tuple
     ch2_correction: float
-    phase_offset: float
+    phase_correction: float
     amplitude: float
     phase_rotation: float
     sim_filepath_plus: str
@@ -80,9 +81,31 @@ class cavity_mimicking_pulse_class:
     only_plus: bool
     only_minus: bool
     
-    def setup_pulse(self): 
+    def print_info(self):
+        print("Phase Correction: ", self.phase_correction)
+        print("Amplitude correction: ", self.ch2_correction)
+    
+    def setup_pulse(self, preview = False): 
         pulse_voltage = self.amplitude
-        Ifunc_corrected, Qfunc_corrected = cavity_response_with_correction_and_phase_rotation(self.phase_rotation,pulse_voltage, self.sim_filepath_plus, self.SR, self.npts, amp_corr = self.ch2_correction, phase_offset = self.phase_offset)
+        Ifunc_corrected, Qfunc_corrected = cavity_response_with_correction_and_phase_rotation(self.phase_rotation,pulse_voltage, self.sim_filepath_plus, self.SR, self.npts, amp_corr = self.ch2_correction, phase_offset = self.phase_correction)
+        
+        if preview: 
+            #plot traces before correction
+            Ifunc, Qfunc = cavity_response_with_correction(1, self.sim_filepath_plus, self.SR, self.npts, amp_corr = 1, phase_offset = self.phase_rotation)
+            fig, ax = plt.subplots(figsize = (12, 10))
+            fig.suptitle("Pulses")
+            ax.set_aspect(1)
+            t_arr = np.linspace(0, 4e-6, 4000)
+            ax.plot(Ifunc(self.amplitude, self.sim_filepath_plus, 1e9, 4000), Qfunc(self.amplitude, self.sim_filepath_plus, 1e9, 4000), label = 'uncorrected G')
+            ax.plot(Ifunc_corrected(self.amplitude, self.sim_filepath_plus, 1e9, 4000), Qfunc_corrected(self.amplitude, self.sim_filepath_plus,1e9, 4000), label = 'corrected G')
+            
+            ax.set_aspect(1)
+            t_arr = np.linspace(0, 4e-6, 4000)
+            ax.plot(Ifunc(1, self.sim_filepath_minus, 1e9, 4000), Qfunc(t_arr, self.sim_filepath_minus, 1e9, 4000), label = 'uncorrected E')
+            ax.plot(Ifunc_corrected(1, self.sim_filepath_minus, 1e9, 4000), Qfunc_corrected(1, self.sim_filepath_minus,1e9, 4000), label = 'corrected E')
+            ax.legend()
+            ax.grid()
+
         #all in one box,
         wait_time = 1e-6
         rearm_time = 10e-6

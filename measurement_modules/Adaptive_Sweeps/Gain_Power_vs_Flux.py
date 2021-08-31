@@ -16,8 +16,6 @@ from plottr.data import datadict_storage as dds, datadict as dd
 from scipy.signal import find_peaks
 
 #supporting functions #############################################
-def lorentzian(x, y, [a, b]) 
-    
 def power2dB(power):
     if np.size(power) == 1:
         if power == None: 
@@ -283,7 +281,7 @@ class Gain_Power_vs_Flux():
         
         return pows, data
         
-    def sweep_power_for_gain(self, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, peak_width_minimum = 1): 
+    def sweep_power_for_gain(self, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, peak_width_minimum = 1, gain_tracking = 'max_point', gain_detuning = 500e3): 
         current_bias = self.CS.current()
         gen_freq = self.Gen.frequency()
         starting_power = self.Gen.power()
@@ -359,7 +357,10 @@ class Gain_Power_vs_Flux():
                     
                     #perform saturation sweep at this point if desired
                     if saturation_sweep: 
-                        self.saturation_sweep(current_bias, gen_freq, closest_power, closest_vna_freq, vna_p_start, vna_p_stop, vna_p_steps, vna_p_avgs)
+                        if gain_tracking == 'max_point': 
+                            self.saturation_sweep(current_bias, gen_freq, closest_power, closest_vna_freq, vna_p_start, vna_p_stop, vna_p_steps, vna_p_avgs)
+                        elif gain_tracking == 'gen_frequency': 
+                            self.saturation_sweep(current_bias, gen_freq, closest_power, gen_freq/2+gain_detuning, vna_p_start, vna_p_stop, vna_p_steps, vna_p_avgs)
                         
                     return sorted_data[0], sorted_data[1], [closest_power, closest_val]
             if i == limit:
@@ -373,7 +374,7 @@ class Gain_Power_vs_Flux():
                 return sorted_data[0], sorted_data[1], [float("NaN"), float("NaN")]
             i+=1 
             
-    def sweep_gain_vs_freq(self, gen_freqs, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, smooth = True, peak_width_minimum = 1):
+    def sweep_gain_vs_freq(self, gen_freqs, stepsize = 0.01, block_size = 10, limit = 10, target_gain = 20, threshold = 2, saturation_sweep = True, vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100, smooth = True, peak_width_minimum = 1, gain_tracking = 'max_point', gain_detuning = 500e3):
         '''
         Parameters
         ----------
@@ -406,7 +407,9 @@ class Gain_Power_vs_Flux():
                                                                                          vna_p_stop = vna_p_stop,
                                                                                          vna_p_steps = vna_p_steps,
                                                                                          vna_p_avgs = vna_p_avgs,
-                                                                                         peak_width_minimum = peak_width_minimum
+                                                                                         peak_width_minimum = peak_width_minimum, 
+                                                                                         gain_tracking = gain_tracking, 
+                                                                                         gain_detuning = gain_detuning
                                                                                          )
             
             if closest_power != closest_power:

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 class Duffing_Test():
     
-    def __init__(self, DATADIR, name, VNA_settings, CS_settings, Gen_Settings, fs_fit_filepath, mode_kappa = 15e7, mode_side = 4): 
+    def __init__(self, DATADIR, name, VNA_settings, CS_settings, Gen_Settings, fs_fit_filepath, mode_kappa = 15e7, mode_side = 4, ramp_rate = None): 
         [self.VNA, self.VNA_fstart, self.VNA_fstop, self.VNA_fpoints, self.VNA_avgs, self.VNA_power] = VNA_settings
         [self.CS, self.c_start, self.c_stop, self.c_points] = CS_settings
         [self.Gen, self.p_start, self.p_stop, self.p_points, self.attn] = Gen_Settings
@@ -48,7 +48,7 @@ class Duffing_Test():
         self.VNA.num_points(self.VNA_fpoints)
         self.VNA.avgnum(self.VNA_avgs)
         self.VNA.power(self.VNA_power)
-        
+        self.ramp_rate = ramp_rate
         self.ETA = self.VNA.sweep_time()*self.VNA_avgs*self.c_points*self.p_points
         print(f"Measurement configured, ETA = {self.ETA/60} minutes")
 
@@ -92,7 +92,7 @@ class Duffing_Test():
             if adaptive_VNA_window: 
                 self.VNA.fcenter(float(self.fs_fit_func(bias_current)))
                 self.VNA.fspan(10*self.mode_kappa)
-            self.CS.change_current(bias_current)
+            self.CS.change_current(bias_current, ramp_rate = self.ramp_rate)
             vna_freqs = self.VNA.getSweepData() #1XN array, N in [1601,1000]
             vnadata = np.array(self.VNA.average(self.VNA_avgs)) #2xN array, N in [1601, 1000]
             undriven_vna_phase = vnadata[1, :]
@@ -113,5 +113,7 @@ class Duffing_Test():
                 self.save_data(bias_current, gen_power, gen_freq, vna_freqs, undriven_vna_phase, undriven_vna_power, driven_vna_phase, driven_vna_power)
             if i%5 == 0: 
                 print(f'--------------------\nPROGRESS: {np.round((i+1)/self.c_points*100)} percent  complete\n---------------------')
+        print("Sweep, completed")
+        self.writer.file.close()
             
             

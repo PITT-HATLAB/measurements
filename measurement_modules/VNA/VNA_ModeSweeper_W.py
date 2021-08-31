@@ -27,32 +27,32 @@ from dataclasses import dataclass
 
 #%% fluxsweep
 
-DATADIR = r'Z:\Data\SA_2X_B1\fluxsweep'
-name='B1_FS1'
+DATADIR = r'Z:\Data\SA_3C1_3132\fluxsweep'
+name='3C1_TX_fine'
 #instruments
 VNA = pVNA
 CS = yoko2
 #starting parameters
-c_start = -0.00013356
-c_stop = 0.00035616
-c_points = 500
+c_start = -0.9e-3
+c_stop = 0.6e-3
+c_points = 250
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 3
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 15
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]
 print(f"Estimated time: {VNA.sweep_time()*VNA_avgs*c_points/60} minutes")
 #%%
-Flux_Sweep(DATADIR, name, VNA_settings, CS_settings)
+Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = 1e-3)
 
 #%% Frequency Sweep
-DATADIR = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\pump_freq_sweeps\subharmonic'
+DATADIR = r'Z:\Data\SA_2X_B1\Hakan\Amplifier_idler_sweeps'
 
 #instruments
 VNA = pVNA
-Gen = SigGen
+Gen = SC4
 #starting parameters
-pows = [SigGen.power()]
+pows = [SC4.power()]
 names = [f'C1_Subharmonic_Sweep{power}dbm' for power in pows]
 
 for (name, sgpow) in list(zip(names, pows)): 
@@ -68,7 +68,7 @@ for (name, sgpow) in list(zip(names, pows)):
     
     Frequency_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 SigGen.output_status(0)
-            
+
 #%%power sweep
 
 #instruments
@@ -104,19 +104,20 @@ Power_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%% Duffing Test
 #v2: uses a file with a pre-fitted fluxsweep to help out
 
-DATADIR = r'E:\Data\Cooldown_20210104'
-name = "Chempot_Duffing_wide"
-fs_fit_file = r'E:\Data\Cooldown_20210104\20210330_MariaChemPot_Processing\2021-03-30\2021-03-30_0006_20210330_Chempot_FS_Fit\2021-03-30_0006_20210330_Chempot_FS_Fit.ddh5'
-#fs_fit_file = "E:\Data\h5py_to_csv test\2021-02-22_0045_2021-02-22_0001_CPP_FS_fit.ddh5"
-[VNA, VNA_fstart, VNA_fstop, VNA_fpoints, VNA_avgs, VNA_power] = [pVNA, 6.5e9, 9.5e9, 1601, 30, -30]
-[CS, c_start, c_stop, c_points] = [yoko2, -1.2e-3, -3.2e-3, 100]
-[Gen, p_start, p_stop, p_points, attn] = [SigGen, -20, 15, 35, 30]
+DATADIR = r'Z:\Data\SA_3C1_3132\duffing\SNAIL'
+name = "SA_3C1_Duffing"
+fs_fit_file = r'Z:/Data/SA_3C1_3132/fluxsweep/fits/2021-08-30/2021-08-30_0004_SA_3C1_fine_fit/2021-08-30_0004_SA_3C1_fine_fit.ddh5'
+[VNA, VNA_fstart, VNA_fstop, VNA_fpoints, VNA_avgs, VNA_power] = [pVNA, 6e9, 7.8e9, 2000, 20, -30]
+#-0.04457831325301205 mA to  0.05180722891566265 mA
+[CS, c_start, c_stop, c_points] = [yoko2, -0.044e-3, 0.1e-3, 80]
+[Gen, p_start, p_stop, p_points, attn] = [SigGen, -10.0, 5, 40, 40]
 
 VNA_Settings = [VNA, VNA_fstart, VNA_fstop, VNA_fpoints, VNA_avgs, VNA_power]
 CS_Settings = [CS, c_start, c_stop, c_points]
 Gen_Settings = [Gen, p_start, p_stop, p_points, attn]
 
-DT = Duffing_Test(DATADIR, name, VNA_Settings, CS_Settings, Gen_Settings, fs_fit_file, mode_kappa = 20e6, mode_side = 10)
+DT = Duffing_Test(DATADIR, name, VNA_Settings, CS_Settings, Gen_Settings, fs_fit_file, mode_kappa = 40e6, mode_side = 4, ramp_rate = 1e-3)
+DT.preview()
 #%%Run the msmt
 DT.measure(adaptive_VNA_window = True)
 #%%Saturation over cw_frequencies
@@ -145,39 +146,47 @@ Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%%Minimum Gain pwr vs flux
 
 GP_F_dc = GPF_dataclass(
-    cwd = r'Z:\Data\SA_2X_B1\tacos_TX',
+    cwd = r'Z:\Data\SA_3C1_3132\tacos',
     filename = f'{yoko2.current()}mA_TACO',
     inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
     bias_current = yoko2.current(),
     #SigGen settings
-    gen_att = 0,
+    gen_att = 20,
     #VNA settings
-    vna_att = 30
+    vna_att = 50, 
+    vna_p_avgs = 30
     )
-
 #%% go to your start point then run this
-
 GP_F_dc.set_start()
 #%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 150e6)
+GP_F_dc.goto_stop(gen_freq_offset = 205e6, gen_power_offset = 0)
 #%%tune, then run this
-GP_F_dc.set_stop()
+GP_F_dc.set_stop(gen_pts = 50)
 #%%check: 
 GP_F_dc.goto_start()
 #%%
-GP_F_dc.renormalize(power = -30)
+GP_F_dc.set_sweep_settings(
+                           peak_width_minimum = 1, 
+                           vna_avgs = 10, 
+                           stepsize = 0.05, 
+                           block_size = 10,
+                           limit = 8,
+                           target_gain = 20,
+                           threshold = 1, 
+                           gain_tracking = 'gen_frequency', 
+                           gain_detuning = 500e3)
+#%%if you only want one, jus trun this
+GP_F_dc.sweep()
 #%%
-GP_F_dc.init_sweep_class()
-GP_F_dc.sweep(
-              peak_width_minimum = 1,
-              vna_avgs = 3,
-              stepsize = 0.1,
-              block_size = 11,
-              limit = 6,
-              target_gain = 20,
-              threshold = 1)
+sweeps = []
 #%%
-GP_F_dc.GP_F.plot_powers(gen_freqs, datasets[0], datasets[2], datasets[3])
+sweeps.append(GP_F_dc)
+#%%
+for sweep in sweeps: 
+    sweep.sweep()
+#%%
+for sweep in sweeps: 
+    sweep.threshold = 1
 #%% Set up a sweep of currents based off of the known taco (be sure it is a decent minimum)
 from hat_utilities.ddh5_Plotting.utility_modules.FS_utility_functions import fit_fluxsweep
 from scipy.interpolate import interp1d

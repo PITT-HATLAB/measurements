@@ -57,19 +57,27 @@ class GPF_dataclass:
         self.gen_freq_start = self.inst_dict['Gen'].frequency()
         self.gen_power_start = self.inst_dict['Gen'].power()
         self.gen_freq_start_set = 1
+        self.c_start = self.inst_dict['CS'].current()
     
-    def goto_stop(self, gen_freq_offset = 30e6):
+    def goto_stop(self, gen_freq_offset = 30e6, gen_power_offset = 0):
+        try: 
+            if self.stop_set: 
+                self.inst_dict['Gen'].frequency(self.gen_freq_stop)
+                self.inst_dict['Gen'].power(self.gen_power_stop)
+        except: 
+            pass
         if self.gen_freq_start_set: 
             self.inst_dict['Gen'].frequency(self.gen_freq_start+gen_freq_offset)
+            self.inst_dict['Gen'].power(self.gen_power_start - gen_power_offset)
         else: 
             raise Exception('Set start first')
         
-    def set_stop(self, gen_pts = 20): 
+    def set_stop(self, gen_pts = 20, gen_power_offset = 0): 
         self.vna_start = self.inst_dict['VNA'].fstart()
         self.vna_stop = self.inst_dict['VNA'].fstop()
         self.gen_freq_stop = self.inst_dict['Gen'].frequency()
         self.gen_power_stop = self.inst_dict['Gen'].power()
-        
+        self.stop_set = 1
         if self.gen_freq_start_set: 
             self.gen_freqs = np.linspace(self.gen_freq_start, self.gen_freq_stop, gen_pts)
         else: 
@@ -104,26 +112,55 @@ class GPF_dataclass:
         # self.inst_dict['VNA'].smoothing(0)
         self.inst_dict['Gen'].output_status(1)
         
-    def sweep(self, 
-              peak_width_minimum = 0.2, 
-              vna_avgs = 10, 
-              stepsize = 0.1, 
-              block_size = 10,
-              limit = 6,
-              target_gain = 20,
-              threshold = 0.5): 
         
-        self.GP_F.VNA_avg_number = vna_avgs
+    def set_sweep_settings(self, 
+                           peak_width_minimum = 0.2, 
+                           vna_avgs = 10, 
+                           stepsize = 0.1, 
+                           block_size = 10,
+                           limit = 6,
+                           target_gain = 20,
+                           threshold = 0.5, 
+                           gain_tracking = 'max_point', 
+                           gain_detuning = 500e3):
+        self.peak_width_minimum = peak_width_minimum
+        self.vna_avgs = vna_avgs
+        self.stepsize = stepsize
+        self.block_size = block_size
+        self.limit = limit
+        self.target_gain = target_gain
+        self.threshold = threshold
+        self.sweep_configured = 1
+        self.gain_tracking = gain_tracking
+        self.gain_detuning = gain_detuning
+        
+    def sweep(self): 
+        self.init_sweep_class()
+        self.inst_dict['CS'].change_current(self.c_start)
+        self.inst_dict['VNA'].fstart(self.vna_start)
+        self.inst_dict['VNA'].fstart(self.vna_stop)
+        self.renormalize(power = -30, avgnum = 40)
+        self.GP_F.VNA_avg_number = self.vna_avgs
         self.datasets = self.GP_F.sweep_gain_vs_freq(
                                    self.gen_freqs, 
-                                   stepsize = stepsize, 
-                                   block_size = block_size,
-                                   limit = limit,
-                                   target_gain = target_gain,
-                                   threshold = threshold,
+                                   stepsize = self.stepsize, 
+                                   block_size =self. block_size,
+                                   limit = self.limit,
+                                   target_gain = self.target_gain,
+                                   threshold = self.threshold,
                                    saturation_sweep = True,
                                    vna_p_start = self.vna_p_start, 
                                    vna_p_stop = self.vna_p_stop, 
                                    vna_p_steps = self.vna_p_steps, 
                                    vna_p_avgs = self.vna_p_avgs, 
-                                   peak_width_minimum = peak_width_minimum)
+                                   peak_width_minimum = self.peak_width_minimum, 
+                                   gain_tracking = self.gain_tracking, 
+                                   gain_detuning = self.gain_detuning)
+    def queue(self): 
+        return self.sweep
+        
+        
+        
+        
+        
+        

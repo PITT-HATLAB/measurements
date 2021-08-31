@@ -11,7 +11,7 @@ import numpy as np
 from plottr.data import datadict_storage as dds, datadict as dd
 
 #%%
-def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings):
+def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None):
     
     [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs] = VNA_settings
     [CS, c_start, c_stop, c_points] = CS_settings
@@ -31,7 +31,7 @@ def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings):
     i = 0
     with dds.DDH5Writer(DATADIR, data, name=name) as writer:
         for current_val in np.linspace(c_start,c_stop,c_points):
-            CS.change_current(current_val)
+            CS.change_current(current_val, ramp_rate = ramp_rate)
             freqs = VNA.getSweepData() #1XN array, N in [1601,1000]
             vnadata = np.array(VNA.average(VNA_avgs)) #2xN array, N in [1601, 1000]
     
@@ -43,6 +43,94 @@ def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings):
                 )
             print(f'{np.round((i+1)/c_points*100)} percent  complete')
             i+=1
+#%%
+def Spec_sweep(DATADIR, name, CXA_settings, Gen_settings): 
+    [CXA, CXA_fcenter, CXA_fspan, CXA_avgs] = CXA_settings
+    [Gen, fstart, fstop, fpoints] = Gen_settings
+    data = dd.DataDict(
+        Gen_freq = dict(unit='Hz'),
+        CXA_frequency = dict(unit='Hz'),
+        power = dict(axes=['Gen_freq', 'CXA_frequency'], unit = 'dBm'), 
+    )
+    data.validate()
+    CXA.fcenter(CXA_fcenter)
+    CXA.fspan(CXA_fspan)
+    i = 0
+    Gen.output_status(1)
+    with dds.DDH5Writer(DATADIR, data, name=name) as writer:
+        for f_val in np.linspace(fstart,fstop,fpoints):
+            Gen.frequency(f_val)
+            data = CXA.get_data(count = CXA_avgs)
+            freqs = data[:, 0] #1XN array, N in [1601,1000]
+            pows = data[:, 1]
+            # original writer cmd that failed on array size change
+            writer.add_data(
+                    Gen_freq = f_val*np.ones(np.size(freqs)),
+                    CXA_frequency = freqs,
+                    power = pows
+                )
+            print(f'{np.round((i+1)/fpoints*100)} percent  complete')
+            i+=1
+    Gen.output_status(0)
+#%%
+def Spec_frequency_sweep(DATADIR, name, CXA_settings, Gen_settings): 
+    [CXA, CXA_fcenter, CXA_fspan, CXA_avgs] = CXA_settings
+    [Gen, fstart, fstop, fpoints] = Gen_settings
+    data = dd.DataDict(
+        Gen_freq = dict(unit='Hz'),
+        CXA_frequency = dict(unit='Hz'),
+        power = dict(axes=['Gen_freq', 'CXA_frequency'], unit = 'dBm'), 
+    )
+    data.validate()
+    CXA.fcenter(CXA_fcenter)
+    CXA.fspan(CXA_fspan)
+    i = 0
+    Gen.output_status(1)
+    with dds.DDH5Writer(DATADIR, data, name=name) as writer:
+        for f_val in np.linspace(fstart,fstop,fpoints):
+            Gen.frequency(f_val)
+            data = CXA.get_data(count = CXA_avgs)
+            freqs = data[:, 0] #1XN array, N in [1601,1000]
+            pows = data[:, 1]
+            # original writer cmd that failed on array size change
+            writer.add_data(
+                    Gen_freq = f_val*np.ones(np.size(freqs)),
+                    CXA_frequency = freqs,
+                    power = pows
+                )
+            print(f'{np.round((i+1)/fpoints*100)} percent  complete')
+            i+=1
+    Gen.output_status(0)
+    
+#%%
+def Spec_power_sweep(DATADIR, name, CXA_settings, Gen_settings): 
+    [CXA, CXA_fcenter, CXA_fspan, CXA_avgs] = CXA_settings
+    [Gen, pstart, pstop, ppoints] = Gen_settings
+    data = dd.DataDict(
+        Gen_power = dict(unit='dBm'),
+        CXA_frequency = dict(unit='Hz'),
+        power = dict(axes=['Gen_power', 'CXA_frequency'], unit = 'dBm'), 
+    )
+    data.validate()
+    CXA.fcenter(CXA_fcenter)
+    CXA.fspan(CXA_fspan)
+    i = 0
+    Gen.output_status(1)
+    with dds.DDH5Writer(DATADIR, data, name=name) as writer:
+        for p_val in np.linspace(pstart,pstop,ppoints):
+            Gen.power(p_val)
+            data = CXA.get_data(count = CXA_avgs)
+            freqs = data[:, 0] #1XN array, N in [1601,1000]
+            pows = data[:, 1]
+            # original writer cmd that failed on array size change
+            writer.add_data(
+                    Gen_power = p_val*np.ones(np.size(freqs)),
+                    CXA_frequency = freqs,
+                    power = pows
+                )
+            print(f'{np.round((i+1)/ppoints*100)} percent  complete')
+            i+=1
+    Gen.output_status(0)
 #%%
 def Frequency_Sweep(DATADIR, name, VNA_settings, Gen_settings):
     

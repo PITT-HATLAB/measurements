@@ -133,6 +133,25 @@ class Voltage_Parameter(Parameter):
         
     def create_and_load_awg_sequence(self):
         self.pulse_class.setup_pulse()
+        
+class Phase_Correction_Parameter(Parameter): 
+    def __init__(self, name, cavity_mimicking_pulse_class):
+        # only name is required
+        super().__init__(name)
+        self._phase_correction = cavity_mimicking_pulse_class.phase_correction
+        self.pulse_class = cavity_mimicking_pulse_class
+        self.unit = 'rad'
+
+    # you must provide a get method, a set method, or both.
+    def get_raw(self):
+        return self.pulse_class.phase_correction
+
+    def set_raw(self, val):
+        self.pulse_class.phase_correction = val
+        self.create_and_load_awg_sequence()
+        
+    def create_and_load_awg_sequence(self):
+        self.pulse_class.setup_pulse()
 
 
     
@@ -175,9 +194,50 @@ def acquire_one_pulse(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug 
 
     return sI_c, sQ_c, rI_trace, rQ_trace
 
+def acquire_one_pulse_set(AWG_inst, Alazar_controller, mod_freq, sample_rate, num_pulsetypes = 2, debug = False): 
+    # print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
+    # myctrl = Alazar_controller
+    # AWG = AWG_inst
+    # AWG.ch1_m1_high(1.8)
+    # AWG.ch1_m2_high(2.5)
+    # AWG.ch2_m1_high(1.9)
+    # AWG.ch2_m2_high(2.5)
+    # AWG.run()
+    # time.sleep(1)
+    # ch1data, ch2data = myctrl.channels.data()
+    # AWG.stop()
+    # #Demodulation
+    # mod_period = sample_rate//mod_freq
+    # arr_shape = list(np.shape(ch1data)) #same as ch2
+    # arr_shape[1] = int(arr_shape[1]//mod_period)
+    
+    # sI = []
+    # sQ = []
+    # rI = []
+    # rQ = []
+    
+    # for i, (ch1data_record, ch2data_record) in enumerate(zip(ch1data, ch2data)):
+        
+    #     sI_row,sQ_row,rI_row,rQ_row = demod(ch1data_record, ch2data_record)
+    #     sI.append(sI_row)
+    #     sQ.append(sQ_row)
+    #     rI.append(rI_row)
+    #     rQ.append(rQ_row)
+        
+    # sI = np.array(sI)
+    # sQ = np.array(sQ)
+    # rI = np.array(rI)
+    # rQ = np.array(rQ)
+    # # Phase correction
+    # sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)
+
+    # return sI_c, sQ_c, rI_trace, rQ_trace
+    pass
+
 class Pulse_Sweep(): 
     
     def __init__(self, 
+                 name,
                  AWG, 
                  AWG_Config, 
                  Alazar_ctrl, 
@@ -188,6 +248,7 @@ class Pulse_Sweep():
         '''
         Implicit in this file is the external interferometer, these components
         '''
+        self.filename_prepend = name+'_'
         self.AWG_inst = AWG
         self.is_ind_par_set = False
         self.Alazar_ctrl = Alazar_ctrl
@@ -211,7 +272,7 @@ class Pulse_Sweep():
         takes in a dictionary where the parameters are the keys, and the vals are the setpoints
         eg {SigGen.power: dict('name' = str, 'val' = float))}
         '''
-        filename = ''
+        filename = self.filename_prepend
         for name, val in val_dict.items(): 
             filename += (name+'_')
             filename += (str(np.round(val['val'], 3))+'_'+val['parameter'].unit + '_')
