@@ -16,7 +16,7 @@ from instrument_drivers.meta_instruments import Modes
 import time
 import pickle
 from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
-from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
+#from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
 from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
 from measurement_modules.dataclasses import GPF_dataclass
 
@@ -27,17 +27,17 @@ from dataclasses import dataclass
 
 #%% fluxsweep
 
-DATADIR = r'Z:\Data\SA_2X_B1\fluxsweep'
-name='B1_FS1'
+DATADIR = r'X:\Data\SH_5A1_2142\SNAIL\fluxsweep'
+name='A1_SNAIL_FS1'
 #instruments
 VNA = pVNA
-CS = yoko2
+CS = yoko1
 #starting parameters
-c_start = -0.00013356
-c_stop = 0.00035616
-c_points = 500
+c_start = -0.5e-3
+c_stop = 4.5e-3
+c_points = 250
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 3
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 5
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]

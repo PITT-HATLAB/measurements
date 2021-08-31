@@ -16,7 +16,6 @@ from plottr.data import datadict_storage as dds, datadict as dd
 from scipy.signal import find_peaks
 
 #supporting functions #############################################
-def lorentzian(x, y, [a, b]) 
     
 def power2dB(power):
     if np.size(power) == 1:
