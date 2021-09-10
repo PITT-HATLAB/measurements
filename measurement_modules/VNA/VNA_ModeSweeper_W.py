@@ -159,7 +159,7 @@ GP_F_dc = GPF_dataclass(
 #%% go to your start point then run this
 GP_F_dc.set_start()
 #%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 205e6, gen_power_offset = 0)
+GP_F_dc.goto_stop(gen_freq_offset = 130e6, gen_power_offset = 0)
 #%%tune, then run this
 GP_F_dc.set_stop(gen_pts = 50)
 #%%check: 

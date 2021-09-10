@@ -138,7 +138,7 @@ class GPF_dataclass:
         self.init_sweep_class()
         self.inst_dict['CS'].change_current(self.c_start)
         self.inst_dict['VNA'].fstart(self.vna_start)
-        self.inst_dict['VNA'].fstart(self.vna_stop)
+        self.inst_dict['VNA'].fstop(self.vna_stop)
         self.renormalize(power = -30, avgnum = 40)
         self.GP_F.VNA_avg_number = self.vna_avgs
         self.datasets = self.GP_F.sweep_gain_vs_freq(
