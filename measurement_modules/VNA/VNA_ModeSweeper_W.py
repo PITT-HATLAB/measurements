@@ -16,6 +16,7 @@ from instrument_drivers.meta_instruments import Modes
 import time
 import pickle
 from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
+from measurement_modules.VNA.Simple_VNA_Freq_Sweeps import VNA_Frequency_Sweep
 #from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
 from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
 from measurement_modules.dataclasses import GPF_dataclass
@@ -30,20 +31,34 @@ from dataclasses import dataclass
 DATADIR = r'X:\Data\SH_5A1_2142\SNAIL\fluxsweep'
 name='A1_SNAIL_FS1'
 #instruments
-VNA = pVNA
+VNA = pVNA2
 CS = yoko1
 #starting parameters
-c_start = -0.5e-3
-c_stop = 4.5e-3
-c_points = 250
+c_start = 1.5e-3
+c_stop = 3.5e-3
+c_points = 300
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1600, 5
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA2.fcenter(), pVNA2.fspan(), 1600, 5
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]
 print(f"Estimated time: {VNA.sweep_time()*VNA_avgs*c_points/60} minutes")
 #%%
 Flux_Sweep(DATADIR, name, VNA_settings, CS_settings)
+
+#%%
+VNA = pVNA2
+
+VNA_fspan = 100e6
+VNA_fpoints = 1601
+VNA_avgs = 100
+freqstart = 1.05e9
+freqstop = 18.05e9
+freqpoints = 171
+
+VNA_settings = [VNA, VNA_fspan, VNA_fpoints, VNA_avgs, freqstart, freqstop, freqpoints]
+
+VNA_Frequency_Sweep(VNA_settings)
 
 #%% Frequency Sweep
 DATADIR = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\pump_freq_sweeps\subharmonic'

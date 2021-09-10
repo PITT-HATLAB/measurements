@@ -9,6 +9,7 @@ A repostory for functional 1-parameter sweeps that produce either a 2d image or 
 """
 import numpy as np 
 from plottr.data import datadict_storage as dds, datadict as dd
+import easygui
 
 #%%
 def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings):
@@ -80,19 +81,24 @@ def Frequency_Sweep(DATADIR, name, VNA_settings, Gen_settings):
     Gen.output_status(0)
     
 #%%
-def VNA_Frequency_Sweep(DATADIR, name, VNA_settings):
+def VNA_Frequency_Sweep(VNA_settings, DATADIR = None, name = None):
     
-    [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs, freqstart, freqstop, freqpoints] = VNA_settings
+    if DATADIR == None:
+        DATADIR = easygui.diropenbox("Choose file location: ")
+        assert DATADIR != None
+    if name == None: 
+        name = easygui.enterbox("Enter Trace Name: ")
+        assert name != None
+    [VNA, VNA_fspan, VNA_fpoints, VNA_avgs, freqstart, freqstop, freqpoints] = VNA_settings
     data = dd.DataDict(
         VNA_frequency = dict(unit='Hz'),
-        power = dict(axes=['Gen_freq', 'VNA_frequency'], unit = 'dBm'), 
-        phase = dict(axes=['Gen_freq', 'VNA_frequency'], unit = 'Degrees'),
+        power = dict(axes=['VNA_frequency'], unit = 'dBm'), 
+        phase = dict(axes=['VNA_frequency'], unit = 'Degrees'),
     )
     data.validate()
-    VNA.fcenter(VNA_fcenter)
+    VNA.rfout(1)
     VNA.fspan(VNA_fspan)
     VNA.num_points(VNA_fpoints)
-    VNA.renormalize(5*VNA_avgs)
     i = 0
     with dds.DDH5Writer(DATADIR, data, name=name) as writer:
         for VNA_fcenter in np.linspace(freqstart,freqstop,freqpoints):
@@ -108,7 +114,9 @@ def VNA_Frequency_Sweep(DATADIR, name, VNA_settings):
                 )
             print(f'{np.round((i+1)/freqpoints*100)} percent  complete')
             i+=1
+    VNA.rfout(0)
             
+
 #%%
 def Power_Sweep(DATADIR, name, VNA_settings, Gen_settings, renorm = False): 
     
