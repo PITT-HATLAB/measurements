@@ -131,6 +131,45 @@ def Spec_power_sweep(DATADIR, name, CXA_settings, Gen_settings):
             print(f'{np.round((i+1)/ppoints*100)} percent  complete')
             i+=1
     Gen.output_status(0)
+#%% 2 Tone Test for measuring IIP3
+
+def Two_Tone(DATADIR, name, CXA_settings, Gen_settings): 
+    
+    [CXA, CXA_fcenter, CXA_fspan, CXA_avgs] = CXA_settings
+    [Gen1, Gen2, f1, f2, pstart, pstop, ppoints] = Gen_settings
+    data = dd.DataDict(
+        Gen_power = dict(unit='dBm'),
+        CXA_frequency = dict(unit='Hz'),
+        power = dict(axes=['Gen_power', 'CXA_frequency'], unit = 'dBm'), 
+    )
+    data.validate()
+    
+    CXA.fcenter(CXA_fcenter)
+    CXA.fspan(CXA_fspan)
+    i = 0
+    Gen1.frequency(f1)
+    Gen2.frequency(f2)
+    Gen1.output_status(1)
+    Gen2.output_status(1)
+    with dds.DDH5Writer(DATADIR, data, name=name) as writer:
+        for p_val in np.linspace(pstart,pstop,ppoints):
+            Gen1.power(p_val)
+            Gen2.power(p_val)
+            data = CXA.get_data(count = CXA_avgs)
+            freqs = data[:, 0] #1XN array, N in [1601,1000]
+            pows = data[:, 1]
+            # original writer cmd that failed on array size change
+            writer.add_data(
+                    Gen_power = p_val*np.ones(np.size(freqs)),
+                    CXA_frequency = freqs,
+                    power = pows
+                )
+            print(f'{np.round((i+1)/ppoints*100)} percent  complete')
+            i+=1
+    Gen1.output_status(0)
+    Gen2.output_status(0)
+    
+    
 #%%
 def Frequency_Sweep(DATADIR, name, VNA_settings, Gen_settings):
     
@@ -208,7 +247,7 @@ def Power_Sweep(DATADIR, name, VNA_settings, Gen_settings, renorm = False):
         Gen.rfout(0)
 #%%
 
-def Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings): 
+def Saturation_freq_Sweep(DATADIR, name, VNA_settings, Gen_settings): 
     #take a VNA trace, and perform a saturation sweep at each point in the sweep
     [VNA, vna_avgs, vna_cw_start, vna_cw_stop, vna_cw_points, vna_p_start, vna_p_stop, vna_p_pts, vna_att] = VNA_settings
     [Gen, gen_freq, gen_power, gen_att] = Gen_settings
@@ -256,4 +295,48 @@ def Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings):
                 )
     Gen.output_status(0)
         
-        
+#%%
+def saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings): 
+    #take a VNA trace, and perform a saturation sweep at each point in the sweep
+    [VNA, vna_cw_freq, vna_avgs, vna_p_start, vna_p_stop, vna_p_pts, vna_att] = VNA_settings
+    [Gen, gen_freq, gen_power_start, gen_power_stop, gen_power_points, gen_att] = Gen_settings
+    
+    Gen.frequency(gen_freq)
+    #change sweep type on VNA before changing powers
+    VNA.sweep_type('POW')
+    VNA.fcenter(vna_cw_freq)
+    VNA.math('NORM') #turn math off
+    VNA.power_start(vna_p_start)
+    VNA.power_stop(vna_p_stop)
+    VNA.num_points(vna_p_pts)
+    
+    sat_data = dd.DataDict(
+        ## saturation data
+        sat_gen_freq = dict(unit = 'Hz'),
+        sat_gen_power = dict(unit = 'dBm'),
+        sat_vna_freq = dict(unit = 'Hz'),
+        sat_vna_powers = dict(unit = 'dBm'),
+        sat_gain = dict(axes = ['sat_gen_freq', 'sat_gen_power', 'sat_vna_freq', 'sat_vna_powers'], unit = 'dBm'),
+        sat_phases = dict(axes = ['sat_gen_freq', 'sat_gen_power', 'sat_vna_freq', 'sat_vna_powers'], unit = 'rad')
+        )
+    sat_data.validate()
+    
+    gen_powers = np.linspace(gen_power_start, gen_power_stop, gen_power_points)
+    
+    print('creating file')
+    with dds.DDH5Writer(DATADIR, sat_data, name=name) as writer:
+        #average
+        for gen_power in gen_powers: 
+            data = VNA.average(vna_avgs)
+            gains = data[0, :]
+            phases = data[1, :]
+            pows = VNA.getSweepData()
+            writer.add_data(
+                sat_gen_freq = [gen_freq],
+                sat_gen_power = [gen_power-gen_att],
+                sat_vna_freq = [vna_cw_freq],
+                sat_vna_powers = pows.reshape(1,-1)-vna_att,
+                sat_gain = gains.reshape(1,-1),
+                sat_phases = phases.reshape(1, -1)
+                )
+    Gen.output_status(0)

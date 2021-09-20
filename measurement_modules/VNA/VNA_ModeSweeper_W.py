@@ -15,7 +15,7 @@ import datetime as dt
 from instrument_drivers.meta_instruments import Modes
 import time
 import pickle
-from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, Saturation_Sweep
+from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, saturation_gen_power_sweep
 from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
 from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
 from measurement_modules.dataclasses import GPF_dataclass
@@ -70,36 +70,36 @@ for (name, sgpow) in list(zip(names, pows)):
 SigGen.output_status(0)
 
 #%%power sweep
-
+DATADIR = r'Z:\Data\Hakan\SH_5B1_SS_Gain_6.064GHz\vna_gain_sweep'
 #instruments
 VNA = pVNA
 pVNA.rfout(1)
-# Gen = SigGen
+Gen = SigGen
 # mode = CuCav
-mode = AlCav
+# mode = AlCav
 #ifbw = 200 for low power, 500 high power
 
-mode.push(VNA = pVNA)
-VNA_avgs = mode.avgnum()
+# mode.push(VNA = pVNA)
+# VNA_avgs = mode.avgnum()
 # AlCav.push(VNA = pVNA)
-temp = 820
-if mode.name == 'AlCav': 
-    DATADIR = r'Z:\Texas\Cooldown_20210525\PC_HPAl_etch_3'
+# temp = 820
+# if mode.name == 'AlCav': 
+#     DATADIR = r'Z:\Texas\Cooldown_20210525\PC_HPAl_etch_3'
 
-elif mode.name == 'CuCav': 
-    DATADIR = r'Z:\Texas\Cooldown_20210525\PC_CuCollar'
-else: 
-    raise Exception("AAAAAHHHHH")
+# elif mode.name == 'CuCav': 
+#     DATADIR = r'Z:\Texas\Cooldown_20210525\PC_CuCollar'
+# else: 
+#     raise Exception("AAAAAHHHHH")
 #starting parameters
-VNA_fcenter, VNA_fspan, VNA_fpoints = VNA.fcenter(), VNA.fspan(), VNA.num_points()
-# 
-p_start, p_stop, p_points = -43, 20, 64 #wi!h -40dB on RT atten
+VNA_fcenter, VNA_fspan, VNA_fpoints = SigGen.frequency()/2, 10e6, 2000
+VNA_avgs = 50
+p_start, p_stop, p_points = -7, -6, 21 #wi!h -40dB on RT atten
 # p_start, p_stop, p_points = -20, 20, 41 #with 0 dB on RT atten
 # name = f'vna_trace_vs_vna_power_40dBatten_{temp}mK'
-name = f'vna_trace_vs_vna_power_40dBatten_{temp}mK'
-
+name = f'gain_vs_gen_power_50dBatten'
+SigGen.output_status(1)
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
-Gen_settings = [VNA, p_start, p_stop, p_points]
+Gen_settings = [SigGen, p_start, p_stop, p_points]
 Power_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%% Duffing Test
 #v2: uses a file with a pre-fitted fluxsweep to help out
@@ -143,6 +143,32 @@ VNA_settings = [VNA, vna_avgs, vna_cw_start, vna_cw_stop, vna_cw_points, vna_p_s
 Gen_settings = [Gen, gen_freq, gen_power, gen_att]
 
 Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings)
+
+
+#%%Saturation vs generator power
+DATADIR = r'Z:\Data\Hakan\SH_5B1_SS_Gain_6.064GHz\vna_saturation_sweep'
+name = 'SH_5B1_saturation_sweep_offres_+500kHz'
+
+VNA = pVNA 
+vna_avgs = 30 
+vna_cw_freq = 6.06464e9+500e3
+gen_power_points = 10
+vna_p_start = -43
+vna_p_stop = 0 
+vna_p_pts = 1000 
+vna_att = 50
+
+Gen = SigGen 
+gen_freq = 12131300000.0
+gen_power_start = -7
+gen_power_stop = -6 
+gen_power_points = 5
+gen_att = 20
+
+VNA_settings = [VNA, vna_cw_freq, vna_avgs, vna_p_start, vna_p_stop, vna_p_pts, vna_att]
+Gen_settings = [Gen, gen_freq, gen_power_start, gen_power_stop, gen_power_points, gen_att]
+
+saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%%Minimum Gain pwr vs flux
 
 GP_F_dc = GPF_dataclass(

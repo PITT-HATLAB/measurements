@@ -17,15 +17,14 @@ from instrument_drivers.base_drivers.SignalCore_sc5511a import SignalCore_SC5511
 from instrument_drivers.base_drivers.Keysight_N5183B import Keysight_N5183B
 
 from plottr.apps.autoplot import main
-
+#%%
 AWG = Tektronix_AWG5014('AWG', 'TCPIP0::169.254.116.102::inst0::INSTR')
 AWG.write("SOUR1:FREQ 1E+9")
-
+#%%
 Al_config  = Alazar_Channel_config()
 Al_config.ch1_range = 0.1
 Al_config.ch2_range = 0.4
 Al_config.record_time = 4e-6 #limit is about 15us
-Al_config.record_num = 3840*2
 Al_config.SR = 1e9
 alazar = ATSdriver.AlazarTech_ATS9870(name='Alazar')
 Alazar_ctrl = PU.Standard_Alazar_Config(alazar, Al_config)
@@ -36,29 +35,29 @@ SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
 logging.basicConfig(level=logging.INFO)
 #%%
-DATADIR = r'Z:\Data\Hakan\SH_5B1_SS_Gain_6.064GHz\loopbacks'
+DATADIR = r'Z:\Data\SA_2X_B1\Hakan\signal_power_and_detuning'
 mod_freq = 50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
-
+#%%
 cf = 6.066e9
 target_freq = 6.065e9
 # LO_freqs = np.arange(cf+1e6, cf+4.5e6, 0.5e6)
 # LO_freqs = np.arange(cf+0.5e6, cf+7.5e6, 0.2e6)
-pump_powers = np.linspace(-7, -6, 11)
+# pump_powers = np.linspace(-1.4, -0.7, 8)
 SG_pow_20dB = -6.6
 SG_freq = 12.1313e9
 # pump_powers = [-20]
 # print(np.size(LO_freqs))
 # print(np.size(pump_powers))
-
+#%%
 amp_pump = 1
 AWG_config = AWG_Config()
 AWG_config.Mod_freq = 50e6
-AWG_config.Sig_freq = target_freq
+AWG_config.Sig_freq = target_freq-50e6
 AWG_config.Ref_freq = target_freq+50e6
 
-name = '40dB_signal_att'
+name = 'loopback_finite_IF'
 
 cmpc = PC.cavity_mimicking_pulse_class(
     # name 
@@ -68,12 +67,12 @@ cmpc = PC.cavity_mimicking_pulse_class(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.052, 0.064, 0.0, 0.0),
+    (-0.047, 0.066, 0.0, 0.0),
     # ch2_correction: 
-    0.994,
+    1,
     # 1,
     # phase_correction_on_I: 
-    0.11,
+    0,
     #amplitude: 
     0.5,
     # phase_rotation:
@@ -110,20 +109,20 @@ phase_correction_points = np.linspace(0.1, 0.2, 11)
 
 
 #ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
-# amp_dict = dict(Amp = dict(parameter = SigGen.output_status, vals = np.array([0,1])))
-# pump_pwr_dict = dict(pwr = dict(parameter = SigGen.power, vals = pump_powers))
+amp_dict = dict(Amp = dict(parameter = SigGen.output_status, vals = np.array([0,1])))
+pump_pwr_dict = dict(pwr = dict(parameter = SigGen.power, vals = pump_powers))
 phase_dict = dict(Phase = dict(parameter=P, vals = phase_points))
-# volt_dict = dict(Sig_Volt = dict(parameter=V, vals = voltage_points))
-# LO_dict = dict(LO_freq = dict(parameter=LO, vals = LO_freqs))
-# phase_corr_dict = dict(I_Ph_corr = dict(parameter=PCor, vals = phase_correction_points))
+volt_dict = dict(Sig_Volt = dict(parameter=V, vals = voltage_points))
+LO_dict = dict(LO_freq = dict(parameter=LO, vals = LO_freqs))
+phase_corr_dict = dict(I_Ph_corr = dict(parameter=PCor, vals = phase_correction_points))
 
-# PS.add_independent_parameter(amp_dict)
+PS.add_independent_parameter(amp_dict)
 # PS.add_independent_parameter(pump_pwr_dict)
-# PS.add_independent_parameter(LO_dict)
-# PS.add_independent_parameter(volt_dict)
+PS.add_independent_parameter(LO_dict)
+PS.add_independent_parameter(volt_dict)
 PS.add_independent_parameter(phase_dict)
 # PS.add_independent_parameter(phase_corr_dict)
-cmpc.setup_pulse(preview = True)
+cmpc.setup_pulse(preview = False)
 #%%
 PS.sweep(DATADIR)
 #%%
