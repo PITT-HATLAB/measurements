@@ -27,23 +27,23 @@ from dataclasses import dataclass
 
 #%% fluxsweep
 
-DATADIR = r'Z:\Data\SA_3C1_3132\fluxsweep'
-name='3C1_TX_fine'
+DATADIR = r'Z:\Data\SH_5B1_4141\fluxsweep\SNAIL'
+name='YROKO_sweep_half_quanta'
 #instruments
 VNA = pVNA
-CS = yoko2
+CS = YROKO1
 #starting parameters
-c_start = -0.9e-3
-c_stop = 0.6e-3
-c_points = 250
+c_start = -0e-3
+c_stop = -5.5e-3
+c_points = 450
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 15
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 10
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]
 print(f"Estimated time: {VNA.sweep_time()*VNA_avgs*c_points/60} minutes")
 #%%
-Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = 1e-3)
+Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None)
 
 #%% Frequency Sweep
 DATADIR = r'Z:\Data\SA_2X_B1\Hakan\Amplifier_idler_sweeps'
