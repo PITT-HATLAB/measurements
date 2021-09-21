@@ -22,7 +22,7 @@ class AWG_Config():
         self.Ref_freq = 1e10+self.Mod_freq
 
 @dataclass
-class GPF_dataclass: 
+class GPF_dataclass:
     cwd: str = None
     filename: str = None
     inst_dict: dict = None
