@@ -27,23 +27,23 @@ from dataclasses import dataclass
 
 #%% fluxsweep
 
-DATADIR = r'Z:\Data\SA_3C1_3132\fluxsweep'
-name='3C1_TX_fine'
+DATADIR = r'Z:\Data\SH_5B1_4141\fluxsweep\SNAIL'
+name='YROKO_sweep_half_quanta'
 #instruments
 VNA = pVNA
-CS = yoko2
+CS = YROKO1
 #starting parameters
-c_start = -0.9e-3
-c_stop = 0.6e-3
-c_points = 250
+c_start = -0e-3
+c_stop = -5.5e-3
+c_points = 450
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 15
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 10
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]
 print(f"Estimated time: {VNA.sweep_time()*VNA_avgs*c_points/60} minutes")
 #%%
-Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = 1e-3)
+Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None)
 
 #%% Frequency Sweep
 DATADIR = r'Z:\Data\SA_2X_B1\Hakan\Amplifier_idler_sweeps'
@@ -169,104 +169,41 @@ VNA_settings = [VNA, vna_cw_freq, vna_avgs, vna_p_start, vna_p_stop, vna_p_pts, 
 Gen_settings = [Gen, gen_freq, gen_power_start, gen_power_stop, gen_power_points, gen_att]
 
 saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings)
-#%%Minimum Gain pwr vs flux
-
-GP_F_dc = GPF_dataclass(
-    cwd = r'Z:\Data\SA_3C1_3132\tacos',
-    filename = f'{yoko2.current()}mA_TACO',
-    inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
-    bias_current = yoko2.current(),
-    #SigGen settings
-    gen_att = 20,
-    #VNA settings
-    vna_att = 50, 
-    vna_p_avgs = 30
+#%% Pump_FS
+from measurement_modules.Adaptive_Sweeps.Pump_flux_scanning import PS_dc, Pump_flux_scan
+dc = PS_dc(
+    datadir = r'Z:\Data\SH_5B1_4141\pump_scanning', 
+    name = 'First_tests',
+    VNA = pVNA,
+    VNA_pstart = -43,
+    VNA_pstop =  -10,
+    VNA_ppoints = 200,
+    VNA_avgs = 50,
+    VNA_att = 50,
+    VNA_detuning = 0.1e6,
+    
+    Gen = SigGen,
+    Gen_pstart = -11,
+    Gen_pstop =  19,
+    Gen_ppoints = 31,
+    Gen_detuning = 0,
+    Gen_att = 20,
+    
+    CS = YROKO1,
+    c_start = -4e-3,
+    c_stop = -5e-3,
+    c_points = 10,
+    c_ramp_rate = None,
+    
+    fs_fit_path = r'Z:/Data/SH_5B1_4141/fluxsweep/SNAIL/fits/2021-09-21/2021-09-21_0001_SH_5B1_YROKO_fit/2021-09-21_0001_SH_5B1_YROKO_fit.ddh5',
     )
-#%% go to your start point then run this
-GP_F_dc.set_start()
-#%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 130e6, gen_power_offset = 0)
-#%%tune, then run this
-GP_F_dc.set_stop(gen_pts = 50)
-#%%check: 
-GP_F_dc.goto_start()
+
 #%%
-GP_F_dc.set_sweep_settings(
-                           peak_width_minimum = 1, 
-                           vna_avgs = 10, 
-                           stepsize = 0.05, 
-                           block_size = 10,
-                           limit = 8,
-                           target_gain = 20,
-                           threshold = 1, 
-                           gain_tracking = 'gen_frequency', 
-                           gain_detuning = 500e3)
-#%%if you only want one, jus trun this
-GP_F_dc.sweep()
-#%%
-sweeps = []
-#%%
-sweeps.append(GP_F_dc)
-#%%
-for sweep in sweeps: 
-    sweep.sweep()
-#%%
-for sweep in sweeps: 
-    sweep.threshold = 1
-#%% Set up a sweep of currents based off of the known taco (be sure it is a decent minimum)
-from hat_utilities.ddh5_Plotting.utility_modules.FS_utility_functions import fit_fluxsweep
-from scipy.interpolate import interp1d
+dc.configure()
+dc.ETA()
+dc.preview()
+#%% send into measurement class
+PFS = Pump_flux_scan(dc)
+ #%%
+PFS.measure()
 
-datadir = r'E:\Data\Cooldown_20210104\fluxsweep\2021-01-04_0003_Recentering_FS.ddh5'
-savedir = r'E:\Data\Cooldown_20210104\fluxsweep'
-
-FS = fit_fluxsweep(datadir, savedir, '2021-01-04_0004_Recentering_FS_fit')
-FS.initial_fit(5.5e9, QextGuess = 50, magBackGuess = 0.001)
-#%% Automatic Fitting (be sure initial fit is good!)
-currents, res_freqs, Qints, Qexts, magBacks = FS.semiauto_fit(FS.currents, FS.vna_freqs/(2*np.pi), FS.undriven_vna_power, FS.undriven_vna_phase, FS.initial_popt, debug = False, savedata = False)
-#Finding and plotting flux quanta and flux variables, interpolating resonance frequencies to generate resonance functions wrt bias current and flux
-res_func = interp1d(currents, res_freqs, 'quadratic')
-plt.figure(2)
-plt.plot(currents, res_freqs, label = 'fitted data')
-plt.plot(currents, res_func(currents), label = 'quadratic interpolation')
-plt.legend()
-#%%
-#ALSO NEED A FITTED FLUXSWEEP for res_func
-cwd = r'E:\Data\Cooldown_20210104'
-
-if cwd == None: 
-    raise Exception("CWD not chosen!")
-filename = 's41s_pVNA_TACO_-0.16mAto-0.163mA_-20MHz_to_+20MHz_res_func_guessing'
-
-VNA = pVNA
-vna_att = 30
-Gen = SigGen
-gen_att = 10
-CS = yoko2
-mode = None
-
-c_start = -0.16e-3
-c_stop = -0.163e-3
-c_stepsize = -0.001e-3
-current_settings = [c_start, c_stop, c_stepsize]
-
-#these should starting for the 1st taco
-gen_freq_known = float(res_func(-0.16e-3))*2
-gen_pow_known = -3.2
-gen_init_freq_range = 40e6
-gen_init_freq_stepsize = 2e6
-Gen_settings = [gen_freq_known, gen_init_freq_range, gen_init_freq_stepsize, gen_pow_known]
-
-VNA_fcenter = float(res_func(-0.16e-3))
-VNA_fspan = 100e6
-VNA_favgs = 40
-VNA_fpower = -40
-VNA_fpoints = 1601
-VNA_settings = [VNA_fcenter, VNA_fspan, VNA_favgs, VNA_fpower, VNA_fpoints]
-
-GP_F = Gain_Power_vs_Flux(CS, Gen, VNA, cwd, filename, gen_att = gen_att, vna_att = vna_att)
-GP_F.VNA_avg_number = VNA_favgs
-GP_F.sweep_min_power_and_saturation_vs_current(current_settings, res_func, VNA_settings, Gen_settings, 
-                                               stepsize = 0.1, limit = 10, target_gain = 20, threshold = 2, 
-                                               saturation_sweep = True, 
-                                               vna_p_start = -43, vna_p_stop = 10, vna_p_steps = 1000, vna_p_avgs = 100)
