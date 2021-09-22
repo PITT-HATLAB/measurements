@@ -60,7 +60,7 @@ class PS_dc:
         
     def ETA(self): 
         time_per_combo = self.VNA.sweep_time()
-        print(f"ETA: {np.round(time_per_combo*self.VNA.avgnum()*self.Gen_ppoints*self.c_points/60, 1)} minutes")
+        print(f"ETA: {np.round(time_per_combo*self.VNA.avgnum()*self.Gen_ppoints*self.c_points/60/60, 1)} hours")
         
     def read_fs_data(self, fs_filepath, interpolation = 'linear'):
         ret = all_datadicts_from_hdf5(fs_filepath)
@@ -77,6 +77,7 @@ class PS_dc:
         plt.xlabel("current (A)")
         plt.ylabel("Frequency(Hz)")
         plt.title("Preview")
+        plt.grid()
         
     
 class Pump_flux_scan():
@@ -87,12 +88,13 @@ class Pump_flux_scan():
         self.datadict = dd.DataDict(
             current = dict(unit='A'),
             vna_input_power = dict(unit = 'dBm'),
-            vna_frequency = dict(unit='Hz'),
+            # vna_frequency = dict(unit='Hz'),
             
-            gen_frequency = dict(axes = ['current'], unit = 'Hz'),
+            gen_power = dict(unit = 'dBm'),
+            gen_frequency = dict(unit = 'Hz'),
             
-            vna_return_power = dict(axes=['current', 'vna_frequency', 'vna_input_power'], unit = 'dBm'),
-            vna_phase = dict(axes=['current', 'vna_frequency', 'vna_input_power'], unit = 'Degrees'), 
+            vna_return_power = dict(axes=['current', 'vna_input_power', 'gen_power', 'gen_frequency'], unit = 'dBm'),
+            vna_phase = dict(axes=['current', 'vna_input_power', 'gen_power', 'gen_frequency'], unit = 'Degrees'), 
 
         )
         
@@ -108,10 +110,10 @@ class Pump_flux_scan():
         vna_data = self.dc.VNA.average(self.dc.VNA_avgs)
         self.writer.add_data(
             current = self.dc.CS.current()*size_match, 
-            vna_input_power = vna_pows-self.dc.VNA_att, 
-            vna_frequency = self.dc.VNA.fcenter()*size_match, 
-            
+            vna_input_power = vna_pows - self.dc.VNA_att, 
+            # vna_frequency = self.dc.VNA.fcenter()*size_match, 
             gen_frequency = self.dc.Gen.frequency()*size_match,
+            gen_power = self.dc.Gen.power()*size_match-self.dc.Gen_att,
             
             vna_return_power = vna_data[0],
             vna_phase = vna_data[1],
@@ -123,6 +125,7 @@ class Pump_flux_scan():
             
             self.dc.CS.change_current(bias_current, ramp_rate = self.dc.c_ramp_rate)
             self.dc.VNA.fcenter(self.dc.VNA_cw_freqs[i])
+            self.dc.Gen.frequency(self.dc.Gen_freqs[i])
             for gen_power in self.dc.gen_powers: 
                 self.dc.Gen.power(gen_power)
                 self.dc.Gen.output_status(1)

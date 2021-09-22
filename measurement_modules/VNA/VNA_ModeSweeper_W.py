@@ -173,24 +173,24 @@ saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings)
 from measurement_modules.Adaptive_Sweeps.Pump_flux_scanning import PS_dc, Pump_flux_scan
 dc = PS_dc(
     datadir = r'Z:\Data\SH_5B1_4141\pump_scanning', 
-    name = 'First_test',
+    name = 'First_tests',
     VNA = pVNA,
-    VNA_pstart = -33,
+    VNA_pstart = -43,
     VNA_pstop =  -10,
-    VNA_ppoints = 500,
-    VNA_avgs = 30,
+    VNA_ppoints = 200,
+    VNA_avgs = 50,
     VNA_att = 50,
     VNA_detuning = 0.1e6,
     
     Gen = SigGen,
-    Gen_pstart = -20,
-    Gen_pstop = 0,
-    Gen_ppoints = 20,
+    Gen_pstart = -11,
+    Gen_pstop =  19,
+    Gen_ppoints = 31,
     Gen_detuning = 0,
     Gen_att = 20,
     
     CS = YROKO1,
-    c_start = -3e-3,
+    c_start = -4e-3,
     c_stop = -5e-3,
     c_points = 10,
     c_ramp_rate = None,
@@ -204,6 +204,6 @@ dc.ETA()
 dc.preview()
 #%% send into measurement class
 PFS = Pump_flux_scan(dc)
-#%%
+ #%%
 PFS.measure()
 
