@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 
 class Duffing_Test():
     
+    '''
+    class that you instantiate and run 'measure' method 
+    '''
+    
     def __init__(self, DATADIR, name, VNA_settings, CS_settings, Gen_Settings, fs_fit_filepath, mode_kappa = 15e7, mode_side = 4): 
         [self.VNA, self.VNA_fstart, self.VNA_fstop, self.VNA_fpoints, self.VNA_avgs, self.VNA_power] = VNA_settings
         [self.CS, self.c_start, self.c_stop, self.c_points] = CS_settings
