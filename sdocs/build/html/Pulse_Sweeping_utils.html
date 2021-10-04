@@ -1,0 +1,405 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Pulse_Sweeping_utils module &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MultiAcquisition module" href="MultiAcquisition.html" />
+    <link rel="prev" title="Pulse_Classes module" href="Pulse_Classes.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MultiAcquisition.html" title="MultiAcquisition module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Pulse_Classes.html" title="Pulse_Classes module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Sweeping_utils module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-Pulse_Sweeping_utils">
+<span id="pulse-sweeping-utils-module"></span><h1>Pulse_Sweeping_utils module<a class="headerlink" href="#module-Pulse_Sweeping_utils" title="Permalink to this headline">¶</a></h1>
+<p>Created on Thu Apr 29 09:40:12 2021</p>
+<p>&#64;author: Ryan Kaufman</p>
+<p>Set up function module that can assist in loading pulse sequences into AWG
+and functionalizing Alazar acquiring</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.LO_Parameter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">LO_Parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RefGen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SigGen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Modulation_freq</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#LO_Parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.LO_Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes.instrument.parameter.Parameter</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.LO_Parameter.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#LO_Parameter.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.LO_Parameter.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.LO_Parameter.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#LO_Parameter.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.LO_Parameter.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Correction_Parameter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Phase_Correction_Parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavity_mimicking_pulse_class</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Correction_Parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Correction_Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes.instrument.parameter.Parameter</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Correction_Parameter.create_and_load_awg_sequence">
+<span class="sig-name descname"><span class="pre">create_and_load_awg_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Correction_Parameter.create_and_load_awg_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Correction_Parameter.create_and_load_awg_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Correction_Parameter.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Correction_Parameter.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Correction_Parameter.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Correction_Parameter.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Correction_Parameter.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Correction_Parameter.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Parameter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Phase_Parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavity_mimicking_pulse_class</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes.instrument.parameter.Parameter</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Parameter.create_and_load_awg_sequence">
+<span class="sig-name descname"><span class="pre">create_and_load_awg_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Parameter.create_and_load_awg_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Parameter.create_and_load_awg_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Parameter.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Parameter.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Parameter.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Phase_Parameter.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Phase_Parameter.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Phase_Parameter.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Pulse_Sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG_Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_ctrl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sig_Gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ref_Gen</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep.add_independent_parameter">
+<span class="sig-name descname"><span class="pre">add_independent_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ind_par_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep.add_independent_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep.add_independent_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>will take input in form of
+ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep.filename_func">
+<span class="sig-name descname"><span class="pre">filename_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep.filename_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep.filename_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+eg {SigGen.power: dict(‘name’ = str, ‘val’ = float))}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep.post_measurement_operation">
+<span class="sig-name descname"><span class="pre">post_measurement_operation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep.post_measurement_operation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep.post_measurement_operation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep.pre_measurement_operation">
+<span class="sig-name descname"><span class="pre">pre_measurement_operation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep.pre_measurement_operation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep.pre_measurement_operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+eg {name: dict(parameter = SigGen.power, ‘val’ = float))}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep.sweep">
+<span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savemode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seperate'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep.sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep.sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_3_state">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Pulse_Sweep_3_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG_Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_ctrl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sig_Gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ref_Gen</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_3_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_3_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_3_state.add_independent_parameter">
+<span class="sig-name descname"><span class="pre">add_independent_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ind_par_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_3_state.add_independent_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_3_state.add_independent_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>will take input in form of
+ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_3_state.filename_func">
+<span class="sig-name descname"><span class="pre">filename_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_3_state.filename_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_3_state.filename_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+eg {SigGen.power: dict(‘name’ = str, ‘val’ = float))}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_3_state.post_measurement_operation">
+<span class="sig-name descname"><span class="pre">post_measurement_operation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_3_state.post_measurement_operation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_3_state.post_measurement_operation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_3_state.pre_measurement_operation">
+<span class="sig-name descname"><span class="pre">pre_measurement_operation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_3_state.pre_measurement_operation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_3_state.pre_measurement_operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+eg {name: dict(parameter = SigGen.power, ‘val’ = float))}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_3_state.sweep">
+<span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savemode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seperate'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_3_state.sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_3_state.sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_finite_IF">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Pulse_Sweep_finite_IF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG_Config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_ctrl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sig_Gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ref_Gen</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_finite_IF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.add_independent_parameter">
+<span class="sig-name descname"><span class="pre">add_independent_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ind_par_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_finite_IF.add_independent_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.add_independent_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>will take input in form of
+ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.filename_func">
+<span class="sig-name descname"><span class="pre">filename_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val_dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_finite_IF.filename_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.filename_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+eg {SigGen.power: dict(‘name’ = str, ‘val’ = float))}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.post_measurement_operation">
+<span class="sig-name descname"><span class="pre">post_measurement_operation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_finite_IF.post_measurement_operation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.post_measurement_operation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.pre_measurement_operation">
+<span class="sig-name descname"><span class="pre">pre_measurement_operation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_finite_IF.pre_measurement_operation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.pre_measurement_operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+eg {name: dict(parameter = SigGen.power, ‘val’ = float))}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.sweep">
+<span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savemode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seperate'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Pulse_Sweep_finite_IF.sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Standard_Alazar_Config">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Standard_Alazar_Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alazar_inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alazar_dataclass</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Standard_Alazar_Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Standard_Alazar_Config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Voltage_Parameter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">Voltage_Parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cavity_mimicking_pulse_class</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Voltage_Parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Voltage_Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes.instrument.parameter.Parameter</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Voltage_Parameter.create_and_load_awg_sequence">
+<span class="sig-name descname"><span class="pre">create_and_load_awg_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Voltage_Parameter.create_and_load_awg_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Voltage_Parameter.create_and_load_awg_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Voltage_Parameter.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Voltage_Parameter.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Voltage_Parameter.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.Voltage_Parameter.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#Voltage_Parameter.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.Voltage_Parameter.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.acquire_one_pulse">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">acquire_one_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_controller</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#acquire_one_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.acquire_one_pulse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.acquire_one_pulse_3_state">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">acquire_one_pulse_3_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_controller</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#acquire_one_pulse_3_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.acquire_one_pulse_3_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.acquire_one_pulse_finite_IF">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">acquire_one_pulse_finite_IF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_controller</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#acquire_one_pulse_finite_IF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.acquire_one_pulse_finite_IF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.acquire_one_pulse_set">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">acquire_one_pulse_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Alazar_controller</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_pulsetypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#acquire_one_pulse_set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.acquire_one_pulse_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.repitition_parameter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Sweeping_utils.</span></span><span class="sig-name descname"><span class="pre">repitition_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#repitition_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.repitition_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes.instrument.parameter.Parameter</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.repitition_parameter.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#repitition_parameter.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.repitition_parameter.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Sweeping_utils.repitition_parameter.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Sweeping_utils.html#repitition_parameter.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Sweeping_utils.repitition_parameter.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Pulse_Classes.html"
+                        title="previous chapter">Pulse_Classes module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="MultiAcquisition.html"
+                        title="next chapter">MultiAcquisition module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Pulse_Sweeping_utils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MultiAcquisition.html" title="MultiAcquisition module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Pulse_Classes.html" title="Pulse_Classes module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Sweeping_utils module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

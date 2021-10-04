@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gain_Power_vs_Flux &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Gain_Power_vs_Flux</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Gain_Power_vs_Flux</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Nov 10 09:30:44 2020</span>
+
+<span class="sd">@author: Ryan Kaufman, Wolfgang Pfaff</span>
+
+<span class="sd">Purpose: </span>
+<span class="sd">    Repository for well-established sweeps</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">color</span>
+<span class="kn">from</span> <span class="nn">plottr.data</span> <span class="kn">import</span> <span class="n">datadict_storage</span> <span class="k">as</span> <span class="n">dds</span><span class="p">,</span> <span class="n">datadict</span> <span class="k">as</span> <span class="n">dd</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">find_peaks</span>
+
+<span class="c1">#supporting functions #############################################</span>
+<div class="viewcode-block" id="power2dB"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.power2dB">[docs]</a><span class="k">def</span> <span class="nf">power2dB</span><span class="p">(</span><span class="n">power</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">power</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">power</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">power</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dB2power"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.dB2power">[docs]</a><span class="k">def</span> <span class="nf">dB2power</span><span class="p">(</span><span class="n">dB</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="n">dB</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span></div>
+
+<span class="c1"># def smoothen(trace, window_len=51):</span>
+<span class="c1">#     w = savgol_filter(trace, window_len, 3)</span>
+<span class="c1">#     return w</span>
+
+<div class="viewcode-block" id="smoothen"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.smoothen">[docs]</a><span class="k">def</span> <span class="nf">smoothen</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">window_len</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">blackman</span><span class="p">(</span><span class="n">window_len</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">w</span><span class="o">/</span><span class="n">w</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">trace</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="find_peak"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.find_peak">[docs]</a><span class="k">def</span> <span class="nf">find_peak</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1"># convert required distance between peaks from frequency to idx</span>
+    <span class="c1"># require 10 freq units here.</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">d</span> <span class="o">/</span> <span class="n">df</span>
+    
+    <span class="c1"># width conversion to idx</span>
+    <span class="c1"># require a width of 3 frequency units</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">df</span>
+    
+    <span class="c1"># require height and prominence of at least 3 log power units</span>
+    <span class="n">peaks</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="n">find_peaks</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">dist</span><span class="p">,</span> <span class="n">prominence</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">peaks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    
+    <span class="c1"># extract relevant information in useful units. use the peak closest to 0.</span>
+    <span class="n">peak_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">frequencies</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">peaks</span><span class="p">])</span>
+    <span class="n">peak_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">peak_positions</span><span class="o">-</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">peak_pos</span> <span class="o">=</span> <span class="n">peak_positions</span><span class="p">[</span><span class="n">peak_idx</span><span class="p">]</span>
+    <span class="n">peak_width</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;widths&#39;</span><span class="p">][</span><span class="n">peak_idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">df</span>
+    <span class="n">peak_height</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s1">&#39;peak_heights&#39;</span><span class="p">][</span><span class="n">peak_idx</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">peak_pos</span><span class="p">,</span> <span class="n">peak_height</span><span class="p">,</span> <span class="n">peak_width</span></div>
+
+<span class="c1">########################### Main Data taking #################################</span>
+    
+<div class="viewcode-block" id="Gain_Power_vs_Flux"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux">[docs]</a><span class="k">class</span> <span class="nc">Gain_Power_vs_Flux</span><span class="p">():</span> 
+    <span class="sd">&#39;&#39;&#39; Record 20dB gain power change wrt flux </span>
+<span class="sd">    </span>
+<span class="sd">    Procedure: </span>
+<span class="sd">        - Start with a minimal-power 20dB gain point at a certain flux</span>
+<span class="sd">        - program steps current by curr_step</span>
+<span class="sd">        - program sweeps generator frequency within given range with same power </span>
+<span class="sd">        (smoothing on?) to find highest power frequency</span>
+<span class="sd">        - program slowly increases or decreases power to reach 20dB gain maximum</span>
+<span class="sd">        - if 20dB cannot be achieved, NaN value is given for pump_power and </span>
+<span class="sd">        trace is saved, otherwise program records pump frequency, power, </span>
+<span class="sd">        and saves VNA amplitude trace at given current</span>
+<span class="sd">        - repeat until current array is exhausted</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CS</span><span class="p">,</span> <span class="n">Gen</span><span class="p">,</span> <span class="n">VNA</span><span class="p">,</span> <span class="n">cwd</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">gen_att</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">vna_att</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span> 
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">CS</span> <span class="o">=</span> <span class="n">CS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span> <span class="o">=</span> <span class="n">Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span> <span class="o">=</span> <span class="n">VNA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span> <span class="o">=</span> <span class="n">cwd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">att</span> <span class="o">=</span> <span class="n">gen_att</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vna_att</span> <span class="o">=</span> <span class="n">vna_att</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+            <span class="c1">#gain vs current data</span>
+            <span class="n">bias_current</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">),</span> <span class="c1">#length N</span>
+            <span class="n">gen_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span> <span class="c1">#length M for each N (NxM)</span>
+            <span class="n">gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">),</span> <span class="c1"># variable length P for each M (NxMxP)</span>
+            <span class="n">vna_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span> <span class="c1">#length L for each N,M,P pair (1601 usually, adjustable but not variable) (NxMxP(N,M)xL)</span>
+            
+            <span class="n">gain_trace</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bias_current&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;vna_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dB&#39;</span><span class="p">),</span> <span class="c1">#length L for each N,M,P combo (NxMxP(N,M)xL)</span>
+            <span class="n">phase_trace</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bias_current&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;vna_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Degrees&#39;</span><span class="p">),</span> <span class="c1">#length L for each N,M,P combo (NxMxP(N,M)xL)</span>
+            
+            <span class="n">calculated_gain</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bias_current&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> <span class="c1">#length 1 for each N,M,P combo (NxMxP(N,M)x1)</span>
+            <span class="n">gain_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bias_current&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+            <span class="n">gain_bw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bias_current&#39;</span><span class="p">,</span><span class="s1">&#39;gen_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+            <span class="c1">#^^ plotted quantities</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sat_data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+            <span class="c1">## saturation data</span>
+            <span class="n">sat_bias_current</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span><span class="p">),</span>
+            <span class="n">sat_gen_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+            <span class="n">sat_gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+            <span class="n">sat_vna_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+            <span class="n">sat_vna_powers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+            
+            <span class="n">sat_gain</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sat_bias_current&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_powers&#39;</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sat_data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;creating files&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_writer</span> <span class="o">=</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gain_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;_gain&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_writer</span><span class="o">.</span><span class="fm">__enter__</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sat_writer</span> <span class="o">=</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sat_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;_sat&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sat_writer</span><span class="o">.</span><span class="fm">__enter__</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;file created&#39;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Gain_Power_vs_Flux.set_VNA_to_freq_sweep"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.set_VNA_to_freq_sweep">[docs]</a>    <span class="k">def</span> <span class="nf">set_VNA_to_freq_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcenter</span><span class="p">,</span> <span class="n">fspan</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">avgs</span><span class="p">,</span> <span class="n">normed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">sweep_type</span><span class="p">(</span><span class="s1">&#39;LIN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">fcenter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">fspan</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">avgnum</span><span class="p">(</span><span class="n">avgs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normed</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">math</span><span class="p">(</span><span class="s1">&#39;DIV&#39;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Gain_Power_vs_Flux.save_gain_datapoint"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.save_gain_datapoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_gain_datapoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power</span><span class="p">,</span> <span class="n">vna_freqs</span><span class="p">,</span> <span class="n">vna_gain_trace</span><span class="p">,</span> <span class="n">vna_phase_trace</span><span class="p">,</span> <span class="n">calc_gain</span><span class="p">,</span> <span class="n">gain_freq</span><span class="p">,</span> <span class="n">bw</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        loads information into the class&#39;s stored datadict.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#this is entered as 1601 identical currents, 1601 identical gen frequencies, 1601 identical gen powers, </span>
+        <span class="c1">#1601 different VNA freqs, 1601 different, VNA gains, 1601 different VNA phases,</span>
+        <span class="c1">#and 1601 identical calculated gains</span>
+        <span class="c1"># shape_shifter = np.ones(len(vna_freqs))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+            <span class="n">bias_current</span> <span class="o">=</span> <span class="p">[</span><span class="n">current</span><span class="p">],</span>
+            <span class="n">gen_frequency</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_freq</span><span class="p">],</span>
+            <span class="n">gen_power</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_power</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">att</span><span class="p">],</span>
+            <span class="n">vna_frequency</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vna_freqs</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+            
+            <span class="n">gain_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vna_gain_trace</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> 
+            <span class="n">phase_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vna_phase_trace</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+            
+            <span class="n">calculated_gain</span> <span class="o">=</span> <span class="p">[</span><span class="n">calc_gain</span><span class="p">],</span>
+            <span class="n">gain_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">gain_freq</span><span class="p">],</span> 
+            <span class="n">gain_bw</span> <span class="o">=</span> <span class="p">[</span><span class="n">bw</span><span class="p">]</span>
+            <span class="p">)</span></div>
+<div class="viewcode-block" id="Gain_Power_vs_Flux.save_saturation_datapoint"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.save_saturation_datapoint">[docs]</a>    <span class="k">def</span> <span class="nf">save_saturation_datapoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power</span><span class="p">,</span> <span class="n">vna_freq</span><span class="p">,</span> <span class="n">vna_input_powers</span><span class="p">,</span> <span class="n">gains</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Loads information about the saturation power found for a given 20dB-ish gain point. </span>
+<span class="sd">        Goal is to have (Gain) vs (bias current, generator detuning, vna_power) plot </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sat_writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+            <span class="n">sat_bias_current</span> <span class="o">=</span> <span class="p">[</span><span class="n">current</span><span class="p">],</span>
+            <span class="n">sat_gen_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_freq</span><span class="p">],</span>
+            <span class="n">sat_gen_power</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_power</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">att</span><span class="p">],</span>
+            <span class="n">sat_vna_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">vna_freq</span><span class="p">],</span>
+            <span class="n">sat_vna_powers</span> <span class="o">=</span> <span class="n">vna_input_powers</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">vna_att</span><span class="p">,</span>
+            
+            <span class="n">sat_gain</span> <span class="o">=</span> <span class="n">gains</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Gain_Power_vs_Flux.analyze_trace"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.analyze_trace">[docs]</a>    <span class="k">def</span> <span class="nf">analyze_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">smooth</span><span class="p">:</span>
+            <span class="n">smooth_trace</span> <span class="o">=</span> <span class="n">power2dB</span><span class="p">(</span><span class="n">smoothen</span><span class="p">(</span><span class="n">dB2power</span><span class="p">((</span><span class="n">trace</span><span class="p">))))</span>
+            <span class="n">peak_pos</span><span class="p">,</span> <span class="n">peak_height</span><span class="p">,</span> <span class="n">peak_width</span> <span class="o">=</span> <span class="n">find_peak</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dB2power</span><span class="p">(</span><span class="n">smooth_trace</span><span class="p">),</span> <span class="n">w</span> <span class="o">=</span> <span class="n">peak_width_minimum</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">smooth_trace</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">peak_pos</span><span class="p">,</span> <span class="n">peak_height</span><span class="p">,</span> <span class="n">peak_width</span> <span class="o">=</span> <span class="n">find_peak</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">peak_width_minimum</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># ax.plot(frequencies, trace, label=&#39;data&#39;)</span>
+            
+            <span class="k">if</span> <span class="n">smooth_trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">smooth_trace</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;smoothed&#39;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">peak_pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">peak_pos</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="n">power2dB</span><span class="p">(</span><span class="n">peak_height</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">power2dB</span><span class="p">(</span><span class="n">peak_height</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">xmin</span><span class="o">=</span><span class="n">peak_pos</span><span class="o">-</span><span class="n">peak_width</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">peak_pos</span><span class="o">+</span><span class="n">peak_width</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">29</span><span class="p">,</span> 
+                        <span class="sa">f</span><span class="s2">&quot;$f$ = </span><span class="si">{</span><span class="n">peak_pos</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;$G$ = </span><span class="si">{</span><span class="n">power2dB</span><span class="p">(</span><span class="n">peak_height</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;$BW$ = </span><span class="si">{</span><span class="n">peak_width</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">backgroundcolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+                
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">dashes</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;frequency&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;S11 (dB)&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            
+        <span class="k">return</span> <span class="n">peak_pos</span><span class="p">,</span> <span class="n">power2dB</span><span class="p">(</span><span class="n">peak_height</span><span class="p">),</span> <span class="n">peak_width</span></div>
+<div class="viewcode-block" id="Gain_Power_vs_Flux.find_gain"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.find_gain">[docs]</a>    <span class="k">def</span> <span class="nf">find_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span> <span class="o">=</span> <span class="mf">1e6</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        avg_number : int</span>
+<span class="sd">            number of VNA averages taken</span>
+<span class="sd">        window : float</span>
+<span class="sd">            frequency range in Hz where we average over to get the effective gain</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        gain : float</span>
+<span class="sd">            calculated gain of a trace</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_avg_number</span><span class="p">))</span>
+        <span class="n">pow_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">phase_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">())</span>
+        <span class="n">max_loc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">pow_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pow_data</span><span class="p">)))))</span>
+        <span class="n">f_low</span> <span class="o">=</span> <span class="n">fdata</span><span class="p">[</span><span class="n">max_loc</span><span class="p">]</span> <span class="o">-</span> <span class="n">window</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">f_high</span> <span class="o">=</span> <span class="n">fdata</span><span class="p">[</span><span class="n">max_loc</span><span class="p">]</span> <span class="o">+</span> <span class="n">window</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">f_low_bool_arr</span> <span class="o">=</span> <span class="n">fdata</span> <span class="o">&gt;</span> <span class="n">f_low</span>
+        <span class="n">f_high_bool_arr</span> <span class="o">=</span> <span class="n">fdata</span><span class="o">&lt;</span><span class="n">f_high</span>
+        <span class="n">f_bool_arr</span> <span class="o">=</span> <span class="n">f_low_bool_arr</span><span class="o">*</span><span class="n">f_high_bool_arr</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">pow_data</span><span class="p">[</span><span class="n">f_bool_arr</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">gain</span><span class="p">,</span> <span class="n">pow_data</span><span class="p">,</span> <span class="n">phase_data</span><span class="p">,</span> <span class="n">fdata</span></div>
+        
+<div class="viewcode-block" id="Gain_Power_vs_Flux.find_gain_W"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.find_gain_W">[docs]</a>    <span class="k">def</span> <span class="nf">find_gain_W</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span> 
+        <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span>
+        <span class="n">freqs_renormed</span> <span class="o">=</span> <span class="p">(</span><span class="n">freqs</span><span class="o">-</span><span class="n">freqs</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)])</span><span class="o">/</span><span class="mf">1e6</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_avg_number</span><span class="p">))</span>
+        <span class="n">peak_pos</span><span class="p">,</span> <span class="n">peak_height</span><span class="p">,</span> <span class="n">peak_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_trace</span><span class="p">(</span><span class="n">freqs_renormed</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="n">peak_width_minimum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">peak_pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="n">peak_freq</span> <span class="o">=</span> <span class="n">peak_pos</span><span class="o">*</span><span class="mf">1e6</span> <span class="o">+</span> <span class="n">freqs</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">peak_freq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+            <span class="n">peak_height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+            <span class="n">peak_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">peak_freq</span><span class="p">,</span> <span class="n">peak_height</span><span class="p">,</span> <span class="n">peak_width</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="Gain_Power_vs_Flux.saturation_sweep"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.saturation_sweep">[docs]</a>    <span class="k">def</span> <span class="nf">saturation_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bias_current</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power</span><span class="p">,</span> <span class="n">vna_freq</span><span class="p">,</span> <span class="n">vna_p_start</span><span class="p">,</span> <span class="n">vna_p_stop</span><span class="p">,</span> <span class="n">vna_num_pts</span><span class="p">,</span> <span class="n">vna_p_avgs</span><span class="p">):</span> 
+        
+        <span class="c1">#storing_previous sweep swettings</span>
+        <span class="n">prev_fspan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fspan</span><span class="p">()</span>
+        <span class="n">prev_fcenter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">()</span>
+        <span class="n">prev_avgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">avgnum</span><span class="p">()</span>
+        <span class="n">prev_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">()</span>
+        <span class="c1">#setting initial independent variables</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="n">bias_current</span><span class="p">),</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">gen_freq</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">gen_power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#change sweep type on VNA before changing powers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">sweep_type</span><span class="p">(</span><span class="s1">&#39;POW&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">math</span><span class="p">(</span><span class="s1">&#39;NORM&#39;</span><span class="p">)</span> <span class="c1">#turn math off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">vna_freq</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">power_start</span><span class="p">(</span><span class="n">vna_p_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">power_stop</span><span class="p">(</span><span class="n">vna_p_stop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">vna_num_pts</span><span class="p">)</span>
+        
+        <span class="c1">#average</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vna_p_avgs</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">pows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">pows</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Power Sweep at </span><span class="si">{</span><span class="n">bias_current</span><span class="si">}</span><span class="s2">mA and VNA@</span><span class="si">{</span><span class="n">vna_freq</span><span class="si">}</span><span class="s2"> Gen @</span><span class="si">{</span><span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        
+        <span class="c1">#save</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_saturation_datapoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">current</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(),</span> <span class="n">pows</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        
+        <span class="c1">#reset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_VNA_to_freq_sweep</span><span class="p">(</span><span class="n">prev_fcenter</span><span class="p">,</span> <span class="n">prev_fspan</span><span class="p">,</span> <span class="n">prev_points</span><span class="p">,</span> <span class="n">prev_avgs</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">pows</span><span class="p">,</span> <span class="n">data</span></div>
+        
+<div class="viewcode-block" id="Gain_Power_vs_Flux.sweep_power_for_gain"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_power_for_gain">[docs]</a>    <span class="k">def</span> <span class="nf">sweep_power_for_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stepsize</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">block_size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">target_gain</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">saturation_sweep</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">vna_p_start</span> <span class="o">=</span> <span class="o">-</span><span class="mi">43</span><span class="p">,</span> <span class="n">vna_p_stop</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">vna_p_steps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">vna_p_avgs</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">gain_tracking</span> <span class="o">=</span> <span class="s1">&#39;max_point&#39;</span><span class="p">,</span> <span class="n">gain_detuning</span> <span class="o">=</span> <span class="mf">500e3</span><span class="p">):</span> 
+        <span class="n">current_bias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="n">gen_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">()</span>
+        <span class="n">starting_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">()</span>
+        
+        <span class="c1">#run a power sweep, and find the lowest power 20dB point in that sweep</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">block_size</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">pow_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">starting_power</span><span class="o">-</span><span class="n">steps</span><span class="o">*</span><span class="n">stepsize</span><span class="p">,</span> <span class="n">starting_power</span><span class="o">+</span><span class="n">steps</span><span class="o">*</span><span class="n">stepsize</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">)</span>
+        <span class="c1">#cut it off at 20dB and -20dB (generator range)</span>
+                <span class="c1">#(-1)^n</span>
+        <span class="n">alt_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">alt_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">alt_array</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">alt_array</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">step_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">steps</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">alt_step_array</span> <span class="o">=</span> <span class="n">step_array</span><span class="o">*</span><span class="n">alt_array</span>
+        
+        <span class="n">big_pow_step</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">steps</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">stepsize</span>
+        <span class="n">final_pow_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">final_gain_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span> 
+            <span class="n">gain_arr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">gain_vna_freq_arr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1">#changing range of power array</span>
+            <span class="n">pow_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">pow_arr</span><span class="o">+</span><span class="n">alt_step_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">big_pow_step</span><span class="p">)</span>
+            <span class="c1">#cut it off at 20dB and -20dB (generator range)</span>
+            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">):</span> 
+                <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">20</span><span class="p">:</span>
+                    <span class="n">pow_arr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">&gt;</span> <span class="mi">20</span><span class="p">:</span> 
+                    <span class="n">pow_arr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
+                    
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adjusting power, powers: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">gen_power</span> <span class="ow">in</span> <span class="n">pow_arr</span><span class="p">:</span> 
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gen_power: </span><span class="si">{</span><span class="n">gen_power</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">gen_power</span><span class="p">)</span>
+                <span class="n">gain_freq_found</span><span class="p">,</span> <span class="n">gain_found</span><span class="p">,</span> <span class="n">bw_found</span><span class="p">,</span> <span class="n">VNA_freqs</span><span class="p">,</span> <span class="n">VNA_gain_trace</span><span class="p">,</span> <span class="n">VNA_phase_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_gain_W</span><span class="p">(</span><span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="n">peak_width_minimum</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_gain_datapoint</span><span class="p">(</span><span class="n">current_bias</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power</span><span class="p">,</span> <span class="n">VNA_freqs</span><span class="p">,</span> <span class="n">VNA_gain_trace</span><span class="p">,</span> <span class="n">VNA_phase_trace</span><span class="p">,</span> <span class="n">gain_found</span><span class="p">,</span> <span class="n">gain_freq_found</span><span class="p">,</span> <span class="n">bw_found</span><span class="p">)</span>
+                
+                <span class="c1">#for adaptivity: </span>
+                <span class="n">gain_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gain_found</span><span class="p">)</span>
+                <span class="n">gain_vna_freq_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gain_freq_found</span><span class="p">)</span>
+                
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gain: </span><span class="si">{</span><span class="n">gain_found</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">gain_freq_found</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># checking to see what we found</span>
+            
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gain_arr</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span> <span class="c1">#all Nan&#39;s</span>
+                <span class="n">gain_found</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">No Peaks Found! Adjusting powers</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">gain_found</span> <span class="o">=</span> <span class="kc">True</span>
+                
+                <span class="n">gain_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">gain_arr</span><span class="p">)</span>
+                <span class="c1">#find gain that is closest to target_gaindB</span>
+                <span class="n">diff_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">gain_arr</span> <span class="o">-</span> <span class="n">target_gain</span><span class="p">)</span>
+                <span class="n">closest_val_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">diff_arr</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">diff_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">closest_val</span> <span class="o">=</span> <span class="n">gain_arr</span><span class="p">[</span><span class="n">closest_val_loc</span><span class="p">]</span>
+                <span class="n">closest_power</span> <span class="o">=</span> <span class="n">pow_arr</span><span class="p">[</span><span class="n">closest_val_loc</span><span class="p">]</span>
+                <span class="n">closest_vna_freq</span> <span class="o">=</span> <span class="n">gain_vna_freq_arr</span><span class="p">[</span><span class="n">closest_val_loc</span><span class="p">]</span>
+                
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Closest Gain: </span><span class="si">{</span><span class="n">closest_val</span><span class="si">}</span><span class="s1"> at </span><span class="si">{</span><span class="n">closest_vna_freq</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                
+                <span class="n">final_gain_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">final_gain_arr</span><span class="p">,</span> <span class="n">gain_arr</span><span class="p">)</span>
+                <span class="n">final_pow_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">final_pow_arr</span><span class="p">,</span> <span class="n">pow_arr</span><span class="p">)</span>
+
+                    
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">closest_val</span><span class="o">-</span><span class="n">target_gain</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">:</span> <span class="c1">#this is a good gainpoint</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gain Point found at pow:</span><span class="si">{</span><span class="n">closest_power</span><span class="si">}</span><span class="s2"> gain:</span><span class="si">{</span><span class="n">closest_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">closest_power</span><span class="p">)</span>
+                    <span class="n">sorted_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">final_pow_arr</span><span class="p">,</span><span class="n">final_gain_arr</span><span class="p">))])))</span>
+                    
+                    <span class="c1">#perform saturation sweep at this point if desired</span>
+                    <span class="k">if</span> <span class="n">saturation_sweep</span><span class="p">:</span> 
+                        <span class="k">if</span> <span class="n">gain_tracking</span> <span class="o">==</span> <span class="s1">&#39;max_point&#39;</span><span class="p">:</span> 
+                            <span class="bp">self</span><span class="o">.</span><span class="n">saturation_sweep</span><span class="p">(</span><span class="n">current_bias</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">closest_power</span><span class="p">,</span> <span class="n">closest_vna_freq</span><span class="p">,</span> <span class="n">vna_p_start</span><span class="p">,</span> <span class="n">vna_p_stop</span><span class="p">,</span> <span class="n">vna_p_steps</span><span class="p">,</span> <span class="n">vna_p_avgs</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">gain_tracking</span> <span class="o">==</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">:</span> 
+                            <span class="bp">self</span><span class="o">.</span><span class="n">saturation_sweep</span><span class="p">(</span><span class="n">current_bias</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">closest_power</span><span class="p">,</span> <span class="n">gen_freq</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="n">gain_detuning</span><span class="p">,</span> <span class="n">vna_p_start</span><span class="p">,</span> <span class="n">vna_p_stop</span><span class="p">,</span> <span class="n">vna_p_steps</span><span class="p">,</span> <span class="n">vna_p_avgs</span><span class="p">)</span>
+                        
+                    <span class="k">return</span> <span class="n">sorted_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sorted_data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">closest_power</span><span class="p">,</span> <span class="n">closest_val</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No Gain Point Found, breaking&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">closest_power</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span> 
+                    <span class="c1">#it might not exist if none were found, so if not we&#39;ll do the starting power</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">starting_power</span><span class="p">)</span>
+                <span class="n">sorted_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">final_pow_arr</span><span class="p">,</span><span class="n">final_gain_arr</span><span class="p">))])))</span>
+                <span class="k">return</span> <span class="n">sorted_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sorted_data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)]</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span> </div>
+            
+<div class="viewcode-block" id="Gain_Power_vs_Flux.sweep_gain_vs_freq"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_gain_vs_freq">[docs]</a>    <span class="k">def</span> <span class="nf">sweep_gain_vs_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gen_freqs</span><span class="p">,</span> <span class="n">stepsize</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">block_size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">target_gain</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">saturation_sweep</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">vna_p_start</span> <span class="o">=</span> <span class="o">-</span><span class="mi">43</span><span class="p">,</span> <span class="n">vna_p_stop</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">vna_p_steps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">vna_p_avgs</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">gain_tracking</span> <span class="o">=</span> <span class="s1">&#39;max_point&#39;</span><span class="p">,</span> <span class="n">gain_detuning</span> <span class="o">=</span> <span class="mf">500e3</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        VNA: Instrument</span>
+<span class="sd">        Gen: Instrument</span>
+<span class="sd">        gen_freqs : ndarray</span>
+<span class="sd">            list of possible frequencies to try for reaching 20dB gain</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">gain_arr_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pow_arr_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pow_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">gain_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">prev_pow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">gen_freqs</span><span class="p">:</span> 
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adjusting frequency: </span><span class="si">{</span><span class="n">freq</span><span class="si">}</span><span class="s2">, starting power </span><span class="si">{</span><span class="n">prev_pow</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">prev_pow</span><span class="p">)</span>
+            <span class="n">pow_arr</span><span class="p">,</span> <span class="n">gain_arr</span><span class="p">,</span> <span class="p">[</span><span class="n">closest_power</span><span class="p">,</span> <span class="n">closest_val</span><span class="p">]</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">sweep_power_for_gain</span><span class="p">(</span><span class="n">stepsize</span> <span class="o">=</span> <span class="n">stepsize</span><span class="p">,</span> 
+                                                                                         <span class="n">block_size</span> <span class="o">=</span> <span class="n">block_size</span><span class="p">,</span> 
+                                                                                         <span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="p">,</span> 
+                                                                                         <span class="n">target_gain</span> <span class="o">=</span> <span class="n">target_gain</span><span class="p">,</span>
+                                                                                         <span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span><span class="p">,</span>
+                                                                                         <span class="n">saturation_sweep</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                                                                                         <span class="n">vna_p_start</span> <span class="o">=</span> <span class="n">vna_p_start</span><span class="p">,</span>
+                                                                                         <span class="n">vna_p_stop</span> <span class="o">=</span> <span class="n">vna_p_stop</span><span class="p">,</span>
+                                                                                         <span class="n">vna_p_steps</span> <span class="o">=</span> <span class="n">vna_p_steps</span><span class="p">,</span>
+                                                                                         <span class="n">vna_p_avgs</span> <span class="o">=</span> <span class="n">vna_p_avgs</span><span class="p">,</span>
+                                                                                         <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="n">peak_width_minimum</span><span class="p">,</span> 
+                                                                                         <span class="n">gain_tracking</span> <span class="o">=</span> <span class="n">gain_tracking</span><span class="p">,</span> 
+                                                                                         <span class="n">gain_detuning</span> <span class="o">=</span> <span class="n">gain_detuning</span>
+                                                                                         <span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">closest_power</span> <span class="o">!=</span> <span class="n">closest_power</span><span class="p">:</span>
+                <span class="k">pass</span> <span class="c1">#this means no point was found, so we&#39;ll keep the power guess where it was at</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">prev_pow</span> <span class="o">=</span> <span class="n">closest_power</span>
+                
+            <span class="n">pow_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">closest_power</span><span class="p">)</span>
+            <span class="n">gain_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">closest_val</span><span class="p">)</span>
+            <span class="n">pow_arr_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">)</span>
+            <span class="n">gain_arr_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gain_arr</span><span class="p">)</span>
+            
+        <span class="k">return</span>  <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pow_list</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">gain_list</span><span class="p">),</span> <span class="n">pow_arr_arr</span><span class="p">,</span> <span class="n">gain_arr_arr</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="Gain_Power_vs_Flux.get_freq_sweep_info"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.get_freq_sweep_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_freq_sweep_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq_arr</span><span class="p">,</span> <span class="n">pow_arr</span><span class="p">,</span> <span class="n">pow_arr_arr</span><span class="p">,</span> <span class="n">gain_arr_arr</span><span class="p">):</span> 
+        <span class="n">min_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pow_arr</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">min_freq</span> <span class="o">=</span> <span class="n">freq_arr</span><span class="p">[</span><span class="n">min_loc</span><span class="p">]</span>
+        <span class="n">max_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pow_arr</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">max_freq</span> <span class="o">=</span> <span class="n">freq_arr</span><span class="p">[</span><span class="n">max_loc</span><span class="p">]</span>
+        
+        <span class="n">min_pow</span> <span class="o">=</span> <span class="n">pow_arr</span><span class="p">[</span><span class="n">min_loc</span><span class="p">]</span>
+        <span class="n">max_pow</span> <span class="o">=</span> <span class="n">pow_arr</span><span class="p">[</span><span class="n">max_loc</span><span class="p">]</span>
+        <span class="k">return</span><span class="p">([</span><span class="n">min_pow</span><span class="p">,</span> <span class="n">max_pow</span><span class="p">],</span> <span class="p">[</span><span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">])</span></div>
+    
+<div class="viewcode-block" id="Gain_Power_vs_Flux.plot_powers"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.plot_powers">[docs]</a>    <span class="k">def</span> <span class="nf">plot_powers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq_arr</span><span class="p">,</span> <span class="n">pow_arr</span><span class="p">,</span> <span class="n">pow_arr_arr</span><span class="p">,</span> <span class="n">gain_arr_arr</span><span class="p">,</span> <span class="n">cmin</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">cmax</span> <span class="o">=</span> <span class="mi">24</span><span class="p">):</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">))</span>
+        <span class="n">min_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pow_arr</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">pow_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">min_freq</span> <span class="o">=</span> <span class="n">freq_arr</span><span class="p">[</span><span class="n">min_loc</span><span class="p">]</span>
+        <span class="n">freq_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">freq_arr</span><span class="o">-</span><span class="n">freq_arr</span><span class="p">[</span><span class="n">min_loc</span><span class="p">])</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">freq_arr</span><span class="p">)</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">freq_arr</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">freq_arr</span><span class="p">)))</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span><span class="o">.</span><span class="n">hex2color</span><span class="p">(</span><span class="s1">&#39;#0000FF&#39;</span><span class="p">),</span> <span class="n">color</span><span class="o">.</span><span class="n">hex2color</span><span class="p">(</span><span class="s1">&#39;#FFFFFF&#39;</span><span class="p">),</span> <span class="n">color</span><span class="o">.</span><span class="n">hex2color</span><span class="p">(</span><span class="s1">&#39;#FF0000&#39;</span><span class="p">)]</span>
+        <span class="n">_cmap</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="s1">&#39;my_cmap&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="p">)</span>
+        <span class="n">_norm</span> <span class="o">=</span> <span class="n">color</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">24</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq_arr</span><span class="p">)):</span> 
+            <span class="n">x</span> <span class="o">=</span> <span class="n">freq_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">y_start</span> <span class="o">=</span> <span class="n">pow_arr_arr</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_end</span> <span class="o">=</span> <span class="n">pow_arr_arr</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># print(dx, x, y_start, y_end)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">gain_arr_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">-</span><span class="n">dx</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">y_start</span><span class="p">,</span> <span class="n">y_end</span><span class="p">],</span> <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">aspect</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">_norm</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">_cmap</span><span class="p">)</span>
+            
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freq_arr</span><span class="p">,</span> <span class="n">pow_arr</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Minimum 20dB Power vs Frequency Detuning&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Generator Detuning (Hz)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;P_20dB (dBm)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="c1"># plt.xticks(ticks = plt.xticks()[0]/1e6)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Min </span><span class="si">{</span><span class="n">pow_arr</span><span class="p">[</span><span class="n">min_loc</span><span class="p">]</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">min_freq</span><span class="o">/</span><span class="mf">1e9</span><span class="p">,</span> <span class="n">min_freq</span><span class="o">/</span><span class="mf">2e9</span><span class="si">}</span><span class="s2">GHz&quot;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Gain_Power_vs_Flux.sweep_min_power_and_saturation_vs_current"><a class="viewcode-back" href="../Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_min_power_and_saturation_vs_current">[docs]</a>    <span class="k">def</span> <span class="nf">sweep_min_power_and_saturation_vs_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_settings</span><span class="p">,</span> <span class="n">res_func</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">,</span> 
+                                                  <span class="n">stepsize</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">limit</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">target_gain</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> 
+                                                  <span class="n">saturation_sweep</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">vna_p_start</span> <span class="o">=</span> <span class="o">-</span><span class="mi">43</span><span class="p">,</span> <span class="n">vna_p_stop</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">vna_p_steps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">vna_p_avgs</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span> 
+        
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This creates a taco&#39;s worth of data for EACH current bias point within a range, starting from a known point</span>
+<span class="sd">        </span>
+<span class="sd">        In order to do this it needs a fitted fluxsweep, so that it can make a fair guess at the generator frequencies it should try at each current. </span>
+<span class="sd">        </span>
+<span class="sd">        steps:</span>
+<span class="sd">            - starting from a known working bias point, run a taco sweep</span>
+<span class="sd">            - acquire minimum power point (gen freq and power)_opt from first taco</span>
+<span class="sd">            - set VNA to gen_freq_opt/2 +- X_MHz span, num_points, etc</span>
+<span class="sd">            - move bias point by small, specified current step (generally &lt;0.5% of quanta)</span>
+<span class="sd">            - renormalize VNA</span>
+<span class="sd">            - repeat</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#timestamp </span>
+        <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="c1">#unpack inputs </span>
+        <span class="p">[</span><span class="n">c_start</span><span class="p">,</span> <span class="n">c_stop</span><span class="p">,</span> <span class="n">c_stepsize</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_settings</span>
+        <span class="p">[</span><span class="n">VNA_fcenter</span><span class="p">,</span> <span class="n">VNA_fspan</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA_avg_number</span><span class="p">,</span> <span class="n">VNA_fpower</span><span class="p">,</span> <span class="n">VNA_fpoints</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
+        <span class="p">[</span><span class="n">gen_freq_known</span><span class="p">,</span> <span class="n">gen_init_range</span><span class="p">,</span> <span class="n">gen_init_stepsize</span><span class="p">,</span> <span class="n">gen_pow_known</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+        <span class="c1">#generate current_arrays</span>
+        <span class="n">currents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">c_start</span><span class="p">,</span> <span class="n">c_stop</span><span class="p">,</span> <span class="n">c_stepsize</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current Array: </span><span class="si">{</span><span class="n">currents</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1">############run initial sweep</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="n">c_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">gen_freq_known</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">gen_pow_known</span><span class="p">)</span>
+        
+        <span class="c1">#change_VNA_settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">VNA_fcenter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">VNA_fspan</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">avgnum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_avg_number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">VNA_fpower</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">VNA_fpoints</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">renormalize</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_avg_number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">init_gen_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">gen_freq_known</span><span class="o">-</span><span class="n">gen_init_range</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">gen_freq_known</span><span class="o">+</span><span class="n">gen_init_range</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">gen_init_stepsize</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_after_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_min_gen_power_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">after_min_gen_freq_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">current</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">currents</span><span class="p">):</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">gen_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">gen_freq_known</span><span class="o">-</span><span class="n">gen_init_range</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">gen_freq_known</span><span class="o">+</span><span class="n">gen_init_range</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">gen_init_stepsize</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="c1">#remake the gen_freqs based on the fitted fluxsweep</span>
+                <span class="n">new_center_guess</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">res_func</span><span class="p">(</span><span class="n">current</span><span class="p">))</span><span class="o">*</span><span class="mi">2</span>
+                <span class="n">gen_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">new_center_guess</span><span class="o">-</span><span class="n">gen_init_range</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">new_center_guess</span><span class="o">+</span><span class="n">gen_init_range</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gen_freqs</span><span class="p">))</span>
+            <span class="n">datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweep_gain_vs_freq</span><span class="p">(</span><span class="n">gen_freqs</span><span class="p">,</span>  
+                                               <span class="n">stepsize</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                                               <span class="n">limit</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+                                               <span class="n">target_gain</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+                                               <span class="n">threshold</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                                               <span class="n">saturation_sweep</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                                               <span class="n">vna_p_start</span> <span class="o">=</span> <span class="n">vna_p_start</span><span class="p">,</span> 
+                                               <span class="n">vna_p_stop</span> <span class="o">=</span> <span class="n">vna_p_stop</span><span class="p">,</span>
+                                               <span class="n">vna_p_steps</span> <span class="o">=</span> <span class="n">vna_p_steps</span><span class="p">,</span> 
+                                               <span class="n">vna_p_avgs</span> <span class="o">=</span> <span class="n">vna_p_avgs</span><span class="p">)</span>
+            
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_powers</span><span class="p">(</span><span class="n">init_gen_freqs</span><span class="p">,</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+            <span class="p">[</span><span class="n">min_gen_pow</span><span class="p">,</span> <span class="n">max_gen_pow</span><span class="p">],</span> <span class="p">[</span><span class="n">min_gen_freq</span><span class="p">,</span> <span class="n">max_gen_freq</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_freq_sweep_info</span><span class="p">(</span><span class="n">init_gen_freqs</span><span class="p">,</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_after_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after_min_gen_power_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">min_gen_pow</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after_min_gen_freq_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">min_gen_freq</span><span class="p">)</span>
+            
+            <span class="c1">#adjust VNA window center based on minimum generator frequency, and set generator power according to the minimum power</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">min_gen_freq</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="n">min_gen_pow</span><span class="p">,</span> <span class="n">max_gen_pow</span><span class="p">]))</span>
+            <span class="c1">#renormalize</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">renormalize</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_avg_number</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> After current sweep </span><span class="si">{</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">currents</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">}</span><span class="s2"> percent completed&quot;</span><span class="p">)</span>
+            
+        
+        <span class="n">t_taken</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t_start</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mega TACO completed, time taken </span><span class="si">{</span><span class="n">t_taken</span><span class="o">/</span><span class="mi">60</span><span class="o">/</span><span class="mi">60</span><span class="si">}</span><span class="s2"> hours&quot;</span><span class="p">)</span></div></div>
+        
+        
+        
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Gain_Power_vs_Flux</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

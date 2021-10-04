@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pulse_Classes &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Classes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Pulse_Classes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Jul  2 11:45:55 2021</span>
+
+<span class="sd">@author: Hatlab_3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument_drivers.tektronix.AWG5014</span> <span class="kn">import</span> <span class="n">Tektronix_AWG5014</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span> <span class="nn">broadbean</span> <span class="k">as</span> <span class="nn">bb</span>
+<span class="kn">from</span> <span class="nn">broadbean.plotting</span> <span class="kn">import</span> <span class="n">plotter</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+
+<div class="viewcode-block" id="phase_shifter"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.phase_shifter">[docs]</a><span class="k">def</span> <span class="nf">phase_shifter</span><span class="p">(</span><span class="n">I_data</span><span class="p">,</span> <span class="n">Q_data</span><span class="p">,</span> <span class="n">phase_offset</span><span class="p">,</span> <span class="n">plot</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This will take I as the perfect channel and some phase offset sin(theta_imbalance) offsetting Q towards I</span>
+<span class="sd">    Assuming I to be the unit magnitude</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="n">Q_res</span> <span class="o">=</span> <span class="n">Q_data</span>
+    <span class="n">I_res</span> <span class="o">=</span> <span class="p">(</span><span class="n">I_data</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phase_offset</span><span class="p">)</span><span class="o">*</span><span class="n">Q_data</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phase_offset</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plot</span><span class="p">:</span> 
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Before phase correction: &quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">I_data</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Q_data</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;After phase correction: &quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">I_res</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Q_res</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">I_res</span></div>
+
+
+<div class="viewcode-block" id="cavity_response_finite_IF"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_response_finite_IF">[docs]</a><span class="k">def</span> <span class="nf">cavity_response_finite_IF</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">mod_freq</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span> 
+    <span class="n">imag</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">real</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;real&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">amp_scaling</span> <span class="o">=</span> <span class="n">amp</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">imag</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">real</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">cavity_response_I</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span><span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">):</span>
+        <span class="n">real</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;real&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">bb</span><span class="o">.</span><span class="n">PulseAtoms</span><span class="o">.</span><span class="n">sine</span><span class="p">(</span><span class="n">mod_freq</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">real</span><span class="o">*</span><span class="n">amp_scaling</span>
+    
+    <span class="k">def</span> <span class="nf">cavity_response_Q</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span><span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">):</span>
+        <span class="n">imag</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">bb</span><span class="o">.</span><span class="n">PulseAtoms</span><span class="o">.</span><span class="n">sine</span><span class="p">(</span><span class="n">mod_freq</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">imag</span><span class="o">*</span><span class="n">amp_scaling</span>
+
+    <span class="k">return</span> <span class="n">cavity_response_I</span><span class="p">,</span> <span class="n">cavity_response_Q</span></div>
+
+<div class="viewcode-block" id="cavity_response_with_correction"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_response_with_correction">[docs]</a><span class="k">def</span> <span class="nf">cavity_response_with_correction</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="c1">#find out what factor to scale the pulses by such that the voltage amplitude is the user input</span>
+    <span class="n">imag</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">real</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;real&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">amp_scaling</span> <span class="o">=</span> <span class="n">amp</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">imag</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">real</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    
+    <span class="k">def</span> <span class="nf">cavity_response_Q_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">):</span>
+        <span class="n">imag</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">imag</span><span class="o">*</span><span class="n">amp_scaling</span>
+    
+    <span class="k">def</span> <span class="nf">cavity_response_I_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="n">amp_corr</span><span class="p">,</span> <span class="n">phase_corr</span> <span class="o">=</span> <span class="n">phase_offset</span><span class="p">):</span>
+        <span class="n">real</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;real&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">scaled</span> <span class="o">=</span> <span class="n">real</span><span class="o">*</span><span class="n">amp_scaling</span>
+        <span class="n">amplitude_corrected</span> <span class="o">=</span> <span class="n">scaled</span><span class="o">*</span><span class="n">amp_corr</span>
+        <span class="n">Q_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">usecols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;imag&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">amp</span>
+        <span class="c1"># Q_data = np.ones(np.size(imag))</span>
+        <span class="n">phase_corrected</span> <span class="o">=</span> <span class="n">phase_shifter</span><span class="p">(</span><span class="n">amplitude_corrected</span><span class="p">,</span> <span class="n">Q_data</span><span class="p">,</span> <span class="n">phase_corr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">phase_corrected</span>
+    
+    <span class="k">return</span> <span class="n">cavity_response_I_bb</span><span class="p">,</span> <span class="n">cavity_response_Q_bb</span></div>
+
+<div class="viewcode-block" id="cavity_response_with_correction_and_phase_rotation"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_response_with_correction_and_phase_rotation">[docs]</a><span class="k">def</span> <span class="nf">cavity_response_with_correction_and_phase_rotation</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="n">cavity_response_I_bb</span><span class="p">,</span> <span class="n">cavity_response_Q_bb</span> <span class="o">=</span> <span class="n">cavity_response_with_correction</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="n">amp_corr</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="n">phase_offset</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="n">cavity_response_I_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">+</span><span class="n">cavity_response_Q_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="n">cavity_response_Q_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">-</span><span class="n">cavity_response_I_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="cavity_response_with_correction_and_phase_rotation_and_DC_offsets"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_response_with_correction_and_phase_rotation_and_DC_offsets">[docs]</a><span class="k">def</span> <span class="nf">cavity_response_with_correction_and_phase_rotation_and_DC_offsets</span><span class="p">(</span><span class="n">DC_offsets</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="n">cavity_response_I_bb</span><span class="p">,</span> <span class="n">cavity_response_Q_bb</span> <span class="o">=</span> <span class="n">cavity_response_with_correction</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="n">cavity_response_I_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">+</span><span class="n">cavity_response_Q_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">+</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="n">cavity_response_Q_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">-</span><span class="n">cavity_response_I_bb</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">SR</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">+</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<span class="c1">################ finite IF</span>
+
+<div class="viewcode-block" id="cavity_mimicking_pulse_class_IF"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class_IF">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">cavity_mimicking_pulse_class_IF</span><span class="p">:</span> 
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">AWG_inst</span><span class="p">:</span> <span class="n">Tektronix_AWG5014</span>
+    <span class="n">LO_frequency</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">mod_frequency</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">DC_offsets</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="n">ch_amplitudes</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="n">ch2_correction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">phase_correction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">amplitude</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">phase_rotation</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="c1"># filepaths: list</span>
+    <span class="n">sim_filepath_plus</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sim_filepath_minus</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">SR</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">only_plus</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">only_minus</span><span class="p">:</span> <span class="nb">bool</span>
+    
+<div class="viewcode-block" id="cavity_mimicking_pulse_class_IF.print_info"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class_IF.print_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phase Correction: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_correction</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Amplitude correction: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch2_correction</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="cavity_mimicking_pulse_class_IF.setup_pulse"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class_IF.setup_pulse">[docs]</a>    <span class="k">def</span> <span class="nf">setup_pulse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preview</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+        <span class="n">pulse_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span>
+        <span class="n">I0_channel</span><span class="p">,</span> <span class="n">Q0_channel</span> <span class="o">=</span> <span class="n">cavity_response_finite_IF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mod_frequency</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">)</span>
+        <span class="n">I1_channel</span><span class="p">,</span> <span class="n">Q1_channel</span> <span class="o">=</span> <span class="n">cavity_response_finite_IF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mod_frequency</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">preview</span><span class="p">:</span> 
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;G state&quot;</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">3000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_arr</span><span class="p">,</span> <span class="n">I0_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">3000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;I (G state)&quot;</span><span class="p">)</span>
+            <span class="c1"># ax.plot(t_arr, Qfunc(self.amplitude, self.sim_filepath_plus, 1e9, 4000), label = &#39;uncorrected G&#39;)</span>
+
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">3000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_arr</span><span class="p">,</span> <span class="n">Q0_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">3000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Q (G state)&quot;</span><span class="p">)</span>
+            <span class="c1"># ax.plot(t_arr, Qfunc(t_arr, self.sim_filepath_minus, 1e9, 3000), label = &#39;uncorrected E&#39;)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+            
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;E state&quot;</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">3000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_arr</span><span class="p">,</span> <span class="n">I1_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">3000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;I (E state)&quot;</span><span class="p">)</span>
+            <span class="c1"># ax.plot(t_arr, Qfunc(self.amplitude, self.sim_filepath_plus, 1e9, 4000), label = &#39;uncorrected G&#39;)</span>
+
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">3000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_arr</span><span class="p">,</span> <span class="n">Q1_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">3000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Q (E state)&quot;</span><span class="p">)</span>
+            <span class="c1"># ax.plot(t_arr, Qfunc(t_arr, self.sim_filepath_minus, 1e9, 3000), label = &#39;uncorrected E&#39;)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    
+        <span class="c1">#all in one box,</span>
+        <span class="n">wait_time</span> <span class="o">=</span> <span class="mf">1e-6</span>
+        <span class="n">rearm_time</span> <span class="o">=</span> <span class="mf">10e-6</span>
+        <span class="n">alazar_mkr_time</span> <span class="o">=</span> <span class="mf">50e-9</span>
+        <span class="n">pulse_dur</span> <span class="o">=</span> <span class="mf">3e-6</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="mf">300e-9</span>
+        <span class="c1">#make element just for waiting for the trigger vefore each pulse</span>
+        <span class="n">bpTrigWait</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpTrigWait</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="n">rearm_time</span><span class="p">)</span>
+        <span class="n">bpTrigWait</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        
+        <span class="c1">#make the I channel for -detuning:</span>
+        <span class="c1"># I0_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI0</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I0_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Ig&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="n">alazar_mkr_time</span><span class="p">)]</span>
+        
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        
+        <span class="c1">#make the Q channel for -detuning:</span>
+        <span class="c1"># Q0_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ0</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q0_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qg&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="n">alazar_mkr_time</span><span class="p">)]</span>
+        
+        <span class="c1">#make the I channel for +detuning:</span>
+        <span class="c1"># I1_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Ie&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="n">alazar_mkr_time</span><span class="p">)]</span>
+        
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        <span class="c1">#make the Q channel for +detuning:</span>
+        <span class="c1"># Q1_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qe&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="n">alazar_mkr_time</span><span class="p">)]</span>
+        
+        <span class="c1">##############################################</span>
+        <span class="c1">#put blueprints into elements</span>
+        <span class="n">waitEl</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">waitEl</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        <span class="n">waitEl</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        
+        <span class="n">CavEl1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl1</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI0</span><span class="p">)</span>
+        <span class="n">CavEl1</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ0</span><span class="p">)</span>
+        <span class="c1"># plotter(CavEl1)</span>
+        
+        <span class="n">CavEl2</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl2</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI1</span><span class="p">)</span>
+        <span class="n">CavEl2</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ1</span><span class="p">)</span>
+        <span class="c1"># plotter(CavEl2)</span>
+        
+        <span class="c1">###############################################</span>
+        <span class="c1">#put elements into sequence</span>
+        <span class="n">CavSeq</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Sequence</span><span class="p">()</span>
+        
+        <span class="c1">#good values to kill leakage?</span>
+        <span class="n">ch1_amplitude</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch_amplitudes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ch2_amplitude</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch_amplitudes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="n">ch1_amplitude</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_amp</span><span class="p">(</span><span class="n">ch2_amplitude</span><span class="p">)</span>
+        
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelAmplitude</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ch1_amplitude</span><span class="p">)</span>  <span class="c1"># Call signature: channel, amplitude (peak-to-peak)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelAmplitude</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">ch2_amplitude</span><span class="p">)</span>
+        <span class="c1"># CavSeq.setChannelOffset(1, self.AWG_inst.ch1_offset())</span>
+        <span class="c1">#you would do the above if you actually wanted samples to be the voltage you want, but we WANT an offset in to cancel leakage, so we enter 0</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelOffset</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelOffset</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1">#now we have to prep it for the AWG</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">CavEl1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">CavEl2</span><span class="p">)</span>
+        
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="c1"># plotter(CavSeq)</span>
+        
+        <span class="c1">#set the sequencing</span>
+        <span class="c1"># Here we repeat each element twice and then proceed to the next, wrapping over at the end</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_plus</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_minus</span><span class="p">:</span> 
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_minus</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_plus</span><span class="p">:</span> 
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">checkConsistency</span><span class="p">()</span>
+        
+        <span class="n">package</span> <span class="o">=</span> <span class="n">CavSeq</span><span class="o">.</span><span class="n">outputForAWGFile</span><span class="p">()</span>
+        <span class="n">package</span><span class="o">.</span><span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">make_send_and_load_awg_file</span><span class="p">(</span><span class="o">*</span><span class="n">package</span><span class="p">[:])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="cavity_mimicking_pulse_class"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">cavity_mimicking_pulse_class</span><span class="p">:</span> 
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">AWG_inst</span><span class="p">:</span> <span class="n">Tektronix_AWG5014</span>
+    <span class="n">LO_frequency</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="c1"># mod_frequency: float</span>
+    <span class="n">DC_offsets</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="n">ch2_correction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">phase_correction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">amplitude</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">phase_rotation</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">sim_filepath_plus</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sim_filepath_minus</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">SR</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">only_plus</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">only_minus</span><span class="p">:</span> <span class="nb">bool</span>
+    
+<div class="viewcode-block" id="cavity_mimicking_pulse_class.print_info"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class.print_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phase Correction: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_correction</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Amplitude correction: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch2_correction</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="cavity_mimicking_pulse_class.setup_pulse"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class.setup_pulse">[docs]</a>    <span class="k">def</span> <span class="nf">setup_pulse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preview</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+        <span class="n">pulse_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span>
+        <span class="n">Ifunc_corrected</span><span class="p">,</span> <span class="n">Qfunc_corrected</span> <span class="o">=</span> <span class="n">cavity_response_with_correction_and_phase_rotation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_rotation</span><span class="p">,</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch2_correction</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_correction</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">preview</span><span class="p">:</span> 
+            <span class="c1">#plot traces before correction</span>
+            <span class="n">Ifunc</span><span class="p">,</span> <span class="n">Qfunc</span> <span class="o">=</span> <span class="n">cavity_response_with_correction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_rotation</span><span class="p">)</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Pulses&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;uncorrected G&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc_corrected</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc_corrected</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">,</span><span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;corrected G&#39;</span><span class="p">)</span>
+            
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc</span><span class="p">(</span><span class="n">t_arr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;uncorrected E&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc_corrected</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc_corrected</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">,</span><span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;corrected E&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+        <span class="c1">#all in one box,</span>
+        <span class="n">wait_time</span> <span class="o">=</span> <span class="mf">1e-6</span>
+        <span class="n">rearm_time</span> <span class="o">=</span> <span class="mf">10e-6</span>
+        <span class="n">pulse_dur</span> <span class="o">=</span> <span class="mf">2e-6</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="mf">300e-9</span>
+        <span class="c1">#make element just for waiting for the trigger vefore each pulse</span>
+        <span class="n">bpTrigWait</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpTrigWait</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="n">rearm_time</span><span class="p">)</span>
+        <span class="n">bpTrigWait</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        
+        <span class="c1">#make the I channel for -detuning:</span>
+        <span class="n">I0_channel</span> <span class="o">=</span> <span class="n">Ifunc_corrected</span> <span class="c1"># args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI0</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I0_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Ig&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        
+        <span class="c1">#make the Q channel for -detuning:</span>
+        <span class="n">Q0_channel</span> <span class="o">=</span> <span class="n">Qfunc_corrected</span> <span class="c1"># args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ0</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q0_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_plus</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qg&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="c1">#make the I channel for +detuning:</span>
+        <span class="n">I1_channel</span> <span class="o">=</span> <span class="n">Ifunc_corrected</span> <span class="c1"># args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Ie&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        <span class="c1">#make the Q channel for +detuning:</span>
+        <span class="n">Q1_channel</span> <span class="o">=</span> <span class="n">Qfunc_corrected</span> <span class="c1"># args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_minus</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qe&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="c1">##############################################</span>
+        <span class="c1">#put blueprints into elements</span>
+        <span class="n">waitEl</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">waitEl</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        <span class="n">waitEl</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        
+        <span class="n">CavEl1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl1</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI0</span><span class="p">)</span>
+        <span class="n">CavEl1</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ0</span><span class="p">)</span>
+        <span class="c1"># plotter(CavEl1)</span>
+        
+        <span class="n">CavEl2</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl2</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI1</span><span class="p">)</span>
+        <span class="n">CavEl2</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ1</span><span class="p">)</span>
+        <span class="c1"># plotter(CavEl2)</span>
+        
+        <span class="c1">###############################################</span>
+        <span class="c1">#put elements into sequence</span>
+        <span class="n">CavSeq</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Sequence</span><span class="p">()</span>
+        
+        <span class="c1">#good values to kill leakage? </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelAmplitude</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">)</span>  <span class="c1"># Call signature: channel, amplitude (peak-to-peak)</span>
+        <span class="c1"># CavSeq.setChannelOffset(1, self.AWG_inst.ch1_offset())</span>
+        <span class="c1">#you would do the above if you actually wanted samples to be the voltage you want, but we WANT an offset in to cancel leakage, so we enter 0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_offset</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_offset</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelOffset</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelAmplitude</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">)</span>
+        <span class="c1"># CavSeq.setChannelOffset(2, self.AWG_inst.ch2_offset())</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelOffset</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1">#now we have to prep it for the AWG</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">CavEl1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">CavEl2</span><span class="p">)</span>
+        
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="c1"># plotter(CavSeq)</span>
+        
+        <span class="c1">#set the sequencing</span>
+        <span class="c1"># Here we repeat each element twice and then proceed to the next, wrapping over at the end</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_plus</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_minus</span><span class="p">:</span> 
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_minus</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">only_plus</span><span class="p">:</span> 
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">checkConsistency</span><span class="p">()</span>
+        
+        <span class="n">package</span> <span class="o">=</span> <span class="n">CavSeq</span><span class="o">.</span><span class="n">outputForAWGFile</span><span class="p">()</span>
+        <span class="n">package</span><span class="o">.</span><span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">make_send_and_load_awg_file</span><span class="p">(</span><span class="o">*</span><span class="n">package</span><span class="p">[:])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div></div>
+        
+<div class="viewcode-block" id="cavity_mimicking_pulse_class_3_state"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class_3_state">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">cavity_mimicking_pulse_class_3_state</span><span class="p">:</span> 
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">AWG_inst</span><span class="p">:</span> <span class="n">Tektronix_AWG5014</span>
+    <span class="n">LO_frequency</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="c1"># mod_frequency: float</span>
+    <span class="n">DC_offsets</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="n">ch2_correction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">phase_correction</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">amplitude</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">phase_rotation</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">sim_filepath_G</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sim_filepath_E</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sim_filepath_F</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">SR</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">only_plus</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">only_minus</span><span class="p">:</span> <span class="nb">bool</span>
+    
+<div class="viewcode-block" id="cavity_mimicking_pulse_class_3_state.print_info"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class_3_state.print_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phase Correction: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_correction</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Amplitude correction: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch2_correction</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="cavity_mimicking_pulse_class_3_state.setup_pulse"><a class="viewcode-back" href="../Pulse_Classes.html#Pulse_Classes.cavity_mimicking_pulse_class_3_state.setup_pulse">[docs]</a>    <span class="k">def</span> <span class="nf">setup_pulse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preview</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+        <span class="n">pulse_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span>
+        <span class="n">Ifunc_corrected</span><span class="p">,</span> <span class="n">Qfunc_corrected</span> <span class="o">=</span> <span class="n">cavity_response_with_correction_and_phase_rotation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_rotation</span><span class="p">,</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ch2_correction</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_correction</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">preview</span><span class="p">:</span> 
+            <span class="c1">#plot traces before correction</span>
+            <span class="n">Ifunc</span><span class="p">,</span> <span class="n">Qfunc</span> <span class="o">=</span> <span class="n">cavity_response_with_correction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">,</span> <span class="n">amp_corr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">phase_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_rotation</span><span class="p">)</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Pulses&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+            <span class="c1"># ax.plot(Ifunc(self.amplitude, self.sim_filepath_G, 1e9, 4000), Qfunc(self.amplitude, self.sim_filepath_G, 1e9, 4000), label = &#39;uncorrected G&#39;)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc_corrected</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_G</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc_corrected</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_G</span><span class="p">,</span><span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;corrected G&#39;</span><span class="p">)</span>
+            
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+            <span class="c1"># ax.plot(Ifunc(1, self.sim_filepath_E, 1e9, 4000), Qfunc(t_arr, self.sim_filepath_E, 1e9, 4000), label = &#39;uncorrected E&#39;)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc_corrected</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_E</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc_corrected</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_E</span><span class="p">,</span><span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;corrected E&#39;</span><span class="p">)</span>
+            
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4e-6</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+            <span class="c1"># ax.plot(Ifunc(1, self.sim_filepath_F, 1e9, 4000), Qfunc(t_arr, self.sim_filepath_F, 1e9, 4000), label = &#39;uncorrected F&#39;)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Ifunc_corrected</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_F</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">Qfunc_corrected</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_F</span><span class="p">,</span><span class="mf">1e9</span><span class="p">,</span> <span class="mi">4000</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;corrected F&#39;</span><span class="p">)</span>
+            
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+        <span class="c1">#all in one box,</span>
+        <span class="n">wait_time</span> <span class="o">=</span> <span class="mf">1e-6</span>
+        <span class="n">rearm_time</span> <span class="o">=</span> <span class="mf">15e-6</span>
+        <span class="n">pulse_dur</span> <span class="o">=</span> <span class="mf">2e-6</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="mf">300e-9</span>
+        <span class="c1">#make element just for waiting for the trigger vefore each pulse</span>
+        <span class="n">bpTrigWait</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpTrigWait</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="n">rearm_time</span><span class="p">)</span>
+        <span class="n">bpTrigWait</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="c1">#make same as above but with a dummy marker for setting off the alazar</span>
+        <span class="n">bpTrigWaitMkr</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpTrigWaitMkr</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="n">rearm_time</span><span class="p">)</span>
+        <span class="n">bpTrigWaitMkr</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpTrigWaitMkr</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        <span class="c1">#make the I channel for G:</span>
+        <span class="n">I0_channel</span> <span class="o">=</span> <span class="n">Ifunc_corrected</span> <span class="c1"># args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI0</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I0_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_G</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Ig&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="n">bpI0</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        
+        <span class="c1">#make the Q channel for G:</span>
+        <span class="n">Q0_channel</span> <span class="o">=</span> <span class="n">Qfunc_corrected</span> <span class="c1"># args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ0</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q0_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_G</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qg&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ0</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="c1">#make the I channel for E:</span>
+        <span class="n">I1_channel</span> <span class="o">=</span> <span class="n">Ifunc_corrected</span> <span class="c1"># args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_E</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Ie&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="n">bpI1</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        <span class="c1">#make the Q channel for E:</span>
+        <span class="n">Q1_channel</span> <span class="o">=</span> <span class="n">Qfunc_corrected</span> <span class="c1"># args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_E</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qe&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ1</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="c1">#make the I channel for F:</span>
+        <span class="n">I2_channel</span> <span class="o">=</span> <span class="n">Ifunc_corrected</span> <span class="c1"># args: ampl, filepath_to_cavity_sim</span>
+        <span class="n">bpI2</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpI2</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpI2</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpI2</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">I1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_F</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;If&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpI2</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpI2</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="n">bpI2</span><span class="o">.</span><span class="n">marker2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">wait_time</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span><span class="n">pulse_dur</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="p">)]</span>
+        
+        <span class="c1">#make the Q channel for F:</span>
+        <span class="n">Q2_channel</span> <span class="o">=</span> <span class="n">Qfunc_corrected</span> <span class="c1"># args: ampl,filepath_to_cavity_sim</span>
+        <span class="n">bpQ2</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">BluePrint</span><span class="p">()</span>
+        <span class="n">bpQ2</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        <span class="n">bpQ2</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">wait_time</span><span class="p">))</span>
+        <span class="n">bpQ2</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Q1_channel</span><span class="p">,</span> <span class="p">(</span><span class="n">pulse_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_filepath_F</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Qf&#39;</span><span class="p">,</span> <span class="n">dur</span><span class="o">=</span><span class="n">pulse_dur</span><span class="p">)</span>
+        <span class="n">bpQ2</span><span class="o">.</span><span class="n">insertSegment</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;waituntil&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wait_time</span><span class="o">+</span><span class="n">pulse_dur</span><span class="p">))</span>
+        <span class="n">bpQ2</span><span class="o">.</span><span class="n">marker1</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0e-6</span><span class="p">,</span><span class="mf">50e-9</span><span class="p">)]</span>
+        
+        <span class="c1">##############################################</span>
+        <span class="c1">#put blueprints into elements</span>
+        <span class="n">waitEl</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">waitEl</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        <span class="n">waitEl</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        
+        <span class="n">waitElMkr</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">waitElMkr</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bpTrigWaitMkr</span><span class="p">)</span>
+        <span class="n">waitElMkr</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">bpTrigWait</span><span class="p">)</span>
+        
+        <span class="n">CavEl1</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl1</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI0</span><span class="p">)</span>
+        <span class="n">CavEl1</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ0</span><span class="p">)</span>
+        <span class="c1"># plotter(CavEl1)</span>
+        
+        <span class="n">CavEl2</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl2</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI1</span><span class="p">)</span>
+        <span class="n">CavEl2</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ1</span><span class="p">)</span>
+        <span class="c1"># plotter(CavEl2)</span>
+        
+        <span class="n">CavEl3</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Element</span><span class="p">()</span>
+        <span class="n">CavEl3</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">bpI2</span><span class="p">)</span>
+        <span class="n">CavEl3</span><span class="o">.</span><span class="n">addBluePrint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">bpQ2</span><span class="p">)</span>
+        
+        <span class="c1">###############################################</span>
+        <span class="c1">#put elements into sequence</span>
+        <span class="n">CavSeq</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">Sequence</span><span class="p">()</span>
+        
+        <span class="c1">#good values to kill leakage? </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelAmplitude</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">)</span>  <span class="c1"># Call signature: channel, amplitude (peak-to-peak)</span>
+        <span class="c1"># CavSeq.setChannelOffset(1, self.AWG_inst.ch1_offset())</span>
+        <span class="c1">#you would do the above if you actually wanted samples to be the voltage you want, but we WANT an offset in to cancel leakage, so we enter 0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_offset</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_offset</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelOffset</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelAmplitude</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">)</span>
+        <span class="c1"># CavSeq.setChannelOffset(2, self.AWG_inst.ch2_offset())</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setChannelOffset</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1">#now we have to prep it for the AWG</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">waitElMkr</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">CavEl1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">CavEl2</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">CavEl3</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">waitEl</span><span class="p">)</span>
+        
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSR</span><span class="p">(</span><span class="mf">1e9</span><span class="p">)</span>
+        
+        
+        <span class="c1">#set the sequencing</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingTriggerWait</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">setSequencingGoto</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    
+        <span class="n">CavSeq</span><span class="o">.</span><span class="n">checkConsistency</span><span class="p">()</span>
+        <span class="n">plotter</span><span class="p">(</span><span class="n">CavSeq</span><span class="p">)</span>
+        <span class="n">package</span> <span class="o">=</span> <span class="n">CavSeq</span><span class="o">.</span><span class="n">outputForAWGFile</span><span class="p">()</span>
+        <span class="n">package</span><span class="o">.</span><span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">make_send_and_load_awg_file</span><span class="p">(</span><span class="o">*</span><span class="n">package</span><span class="p">[:])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_amp</span><span class="p">(</span><span class="mf">4.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DC_offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch1_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="o">.</span><span class="n">ch2_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Classes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

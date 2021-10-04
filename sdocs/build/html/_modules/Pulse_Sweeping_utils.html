@@ -1,0 +1,765 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pulse_Sweeping_utils &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Sweeping_utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Pulse_Sweeping_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Apr 29 09:40:12 2021</span>
+
+<span class="sd">@author: Ryan Kaufman</span>
+
+<span class="sd">Set up function module that can assist in loading pulse sequences into AWG</span>
+<span class="sd">and functionalizing Alazar acquiring</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">plottr.data</span> <span class="kn">import</span> <span class="n">datadict_storage</span> <span class="k">as</span> <span class="n">dds</span><span class="p">,</span> <span class="n">datadict</span> <span class="k">as</span> <span class="n">dd</span>
+
+<span class="kn">from</span> <span class="nn">instrument_drivers.alazar_utilities.controller.ATSChannelController</span> <span class="kn">import</span> <span class="n">ATSChannelController</span>
+<span class="kn">from</span> <span class="nn">instrument_drivers.alazar_utilities.controller.alazar_channel</span> <span class="kn">import</span> <span class="n">AlazarChannel</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">data_processing.signal_processing.Pulse_Processing</span> <span class="kn">import</span> <span class="n">demod</span><span class="p">,</span> <span class="n">phase_correction</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+    
+<div class="viewcode-block" id="Standard_Alazar_Config"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Standard_Alazar_Config">[docs]</a><span class="k">def</span> <span class="nf">Standard_Alazar_Config</span><span class="p">(</span><span class="n">alazar_inst</span><span class="p">,</span><span class="n">alazar_dataclass</span><span class="p">):</span>
+    <span class="n">alazar</span> <span class="o">=</span> <span class="n">alazar_inst</span>
+    <span class="n">ad</span> <span class="o">=</span> <span class="n">alazar_dataclass</span>
+    
+    <span class="k">with</span> <span class="n">alazar</span><span class="o">.</span><span class="n">syncing</span><span class="p">():</span>    
+        <span class="n">alazar</span><span class="o">.</span><span class="n">clock_source</span><span class="p">(</span><span class="s1">&#39;EXTERNAL_CLOCK_10MHz_REF&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">SR</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">decimation</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">coupling1</span><span class="p">(</span><span class="s1">&#39;AC&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">coupling2</span><span class="p">(</span><span class="s1">&#39;AC&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">channel_range1</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">ch1_range</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">channel_range2</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">ch2_range</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">impedance1</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">impedance2</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_operation</span><span class="p">(</span><span class="s1">&#39;TRIG_ENGINE_OP_J&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_engine1</span><span class="p">(</span><span class="s1">&#39;TRIG_ENGINE_J&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_source1</span><span class="p">(</span><span class="s1">&#39;EXTERNAL&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_slope1</span><span class="p">(</span><span class="s1">&#39;TRIG_SLOPE_POSITIVE&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_level1</span><span class="p">(</span><span class="mi">160</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_engine2</span><span class="p">(</span><span class="s1">&#39;TRIG_ENGINE_K&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_source2</span><span class="p">(</span><span class="s1">&#39;DISABLE&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_slope2</span><span class="p">(</span><span class="s1">&#39;TRIG_SLOPE_POSITIVE&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_level2</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">external_trigger_coupling</span><span class="p">(</span><span class="s1">&#39;DC&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">external_trigger_range</span><span class="p">(</span><span class="s1">&#39;ETR_1V&#39;</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">trigger_delay</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">timeout_ticks</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">aux_io_mode</span><span class="p">(</span><span class="s1">&#39;AUX_IN_AUXILIARY&#39;</span><span class="p">)</span> <span class="c1"># AUX_IN_TRIGGER_ENABLE for seq mode on</span>
+        <span class="n">alazar</span><span class="o">.</span><span class="n">aux_io_param</span><span class="p">(</span><span class="s1">&#39;NONE&#39;</span><span class="p">)</span> <span class="c1"># TRIG_SLOPE_POSITIVE for seq mode on</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Alazar Configured</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Create the acquisition controller which will take care of the data handling and tell it which </span>
+    <span class="c1"># alazar instrument to talk to. Explicitly pass the default options to the Alazar.</span>
+    <span class="c1"># Dont integrate over samples but avarage over records</span>
+
+    <span class="n">myctrl</span> <span class="o">=</span> <span class="n">ATSChannelController</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;my_controller&#39;</span><span class="p">,</span> <span class="n">alazar_name</span><span class="o">=</span><span class="s1">&#39;Alazar&#39;</span><span class="p">)</span>
+    <span class="n">myctrl</span><span class="o">.</span><span class="n">int_time</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">record_time</span><span class="p">)</span>
+    <span class="n">myctrl</span><span class="o">.</span><span class="n">int_delay</span><span class="p">(</span><span class="mf">0e-9</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Samples per record: &quot;</span><span class="p">,</span><span class="n">myctrl</span><span class="o">.</span><span class="n">samples_per_record</span><span class="p">())</span>
+    <span class="n">alazar</span><span class="o">.</span><span class="n">buffer_timeout</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">20000</span><span class="p">)</span>
+    <span class="n">rec_num</span> <span class="o">=</span> <span class="n">ad</span><span class="o">.</span><span class="n">record_num</span>
+    <span class="n">chan1</span> <span class="o">=</span> <span class="n">AlazarChannel</span><span class="p">(</span><span class="n">myctrl</span><span class="p">,</span> <span class="s1">&#39;ChanA&#39;</span><span class="p">,</span> <span class="n">demod</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">integrate_samples</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">average_records</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">average_buffers</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">chan1</span><span class="o">.</span><span class="n">alazar_channel</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    <span class="n">chan1</span><span class="o">.</span><span class="n">records_per_buffer</span><span class="p">(</span><span class="n">rec_num</span><span class="p">)</span>
+    <span class="n">chan1</span><span class="o">.</span><span class="n">num_averages</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">chan1</span><span class="o">.</span><span class="n">prepare_channel</span><span class="p">()</span>
+    
+    <span class="n">chan2</span> <span class="o">=</span> <span class="n">AlazarChannel</span><span class="p">(</span><span class="n">myctrl</span><span class="p">,</span> <span class="s1">&#39;ChanB&#39;</span><span class="p">,</span> <span class="n">demod</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">integrate_samples</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">average_records</span><span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">average_buffers</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">chan2</span><span class="o">.</span><span class="n">alazar_channel</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+    <span class="n">chan2</span><span class="o">.</span><span class="n">records_per_buffer</span><span class="p">(</span><span class="n">rec_num</span><span class="p">)</span>
+    <span class="n">chan2</span><span class="o">.</span><span class="n">num_averages</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">chan2</span><span class="o">.</span><span class="n">prepare_channel</span><span class="p">()</span>
+    
+    <span class="n">myctrl</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chan1</span><span class="p">)</span>
+    <span class="n">myctrl</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chan2</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">myctrl</span>        </div>
+
+<div class="viewcode-block" id="Phase_Parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Parameter">[docs]</a><span class="k">class</span> <span class="nc">Phase_Parameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cavity_mimicking_pulse_class</span><span class="p">):</span>
+        <span class="c1"># only name is required</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">cavity_mimicking_pulse_class</span><span class="o">.</span><span class="n">phase_rotation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span> <span class="o">=</span> <span class="n">cavity_mimicking_pulse_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;rad&#39;</span>
+
+    <span class="c1"># you must provide a get method, a set method, or both.</span>
+<div class="viewcode-block" id="Phase_Parameter.get_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Parameter.get_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">phase_rotation</span></div>
+
+<div class="viewcode-block" id="Phase_Parameter.set_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Parameter.set_raw">[docs]</a>    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">phase_rotation</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_and_load_awg_sequence</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="Phase_Parameter.create_and_load_awg_sequence"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Parameter.create_and_load_awg_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">create_and_load_awg_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">setup_pulse</span><span class="p">()</span></div></div>
+        
+<div class="viewcode-block" id="repitition_parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.repitition_parameter">[docs]</a><span class="k">class</span> <span class="nc">repitition_parameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="c1"># only name is required</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rep</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># you must provide a get method, a set method, or both.</span>
+<div class="viewcode-block" id="repitition_parameter.get_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.repitition_parameter.get_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rep</span></div>
+
+<div class="viewcode-block" id="repitition_parameter.set_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.repitition_parameter.set_raw">[docs]</a>    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rep</span> <span class="o">=</span> <span class="n">val</span></div></div>
+        
+<div class="viewcode-block" id="LO_Parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.LO_Parameter">[docs]</a><span class="k">class</span> <span class="nc">LO_Parameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">RefGen</span><span class="p">,</span> <span class="n">SigGen</span><span class="p">,</span> <span class="n">Modulation_freq</span><span class="p">):</span>
+        <span class="c1"># only name is required</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_LO_frequency</span> <span class="o">=</span> <span class="n">SigGen</span><span class="o">.</span><span class="n">frequency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SigGen</span> <span class="o">=</span> <span class="n">SigGen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RefGen</span> <span class="o">=</span> <span class="n">RefGen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mod_freq</span> <span class="o">=</span> <span class="n">Modulation_freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span>
+        
+    <span class="c1"># you must provide a get method, a set method, or both.</span>
+<div class="viewcode-block" id="LO_Parameter.get_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.LO_Parameter.get_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SigGen</span><span class="o">.</span><span class="n">frequency</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LO_Parameter.set_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.LO_Parameter.set_raw">[docs]</a>    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SigGen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RefGen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">val</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">mod_freq</span><span class="p">)</span></div></div>
+        
+<div class="viewcode-block" id="Voltage_Parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Voltage_Parameter">[docs]</a><span class="k">class</span> <span class="nc">Voltage_Parameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cavity_mimicking_pulse_class</span><span class="p">):</span>
+        <span class="c1"># only name is required</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_amplitude</span> <span class="o">=</span> <span class="n">cavity_mimicking_pulse_class</span><span class="o">.</span><span class="n">amplitude</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span> <span class="o">=</span> <span class="n">cavity_mimicking_pulse_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span>
+
+    <span class="c1"># you must provide a get method, a set method, or both.</span>
+<div class="viewcode-block" id="Voltage_Parameter.get_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Voltage_Parameter.get_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">amplitude</span></div>
+
+<div class="viewcode-block" id="Voltage_Parameter.set_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Voltage_Parameter.set_raw">[docs]</a>    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_and_load_awg_sequence</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="Voltage_Parameter.create_and_load_awg_sequence"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Voltage_Parameter.create_and_load_awg_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">create_and_load_awg_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">setup_pulse</span><span class="p">()</span></div></div>
+        
+<div class="viewcode-block" id="Phase_Correction_Parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Correction_Parameter">[docs]</a><span class="k">class</span> <span class="nc">Phase_Correction_Parameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cavity_mimicking_pulse_class</span><span class="p">):</span>
+        <span class="c1"># only name is required</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase_correction</span> <span class="o">=</span> <span class="n">cavity_mimicking_pulse_class</span><span class="o">.</span><span class="n">phase_correction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span> <span class="o">=</span> <span class="n">cavity_mimicking_pulse_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;rad&#39;</span>
+
+    <span class="c1"># you must provide a get method, a set method, or both.</span>
+<div class="viewcode-block" id="Phase_Correction_Parameter.get_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Correction_Parameter.get_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">phase_correction</span></div>
+
+<div class="viewcode-block" id="Phase_Correction_Parameter.set_raw"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Correction_Parameter.set_raw">[docs]</a>    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">phase_correction</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_and_load_awg_sequence</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="Phase_Correction_Parameter.create_and_load_awg_sequence"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Phase_Correction_Parameter.create_and_load_awg_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">create_and_load_awg_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_class</span><span class="o">.</span><span class="n">setup_pulse</span><span class="p">()</span></div></div>
+
+
+    
+<div class="viewcode-block" id="acquire_one_pulse"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.acquire_one_pulse">[docs]</a><span class="k">def</span> <span class="nf">acquire_one_pulse</span><span class="p">(</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="n">Alazar_controller</span><span class="p">,</span> <span class="n">mod_freq</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mod freq: </span><span class="si">{</span><span class="n">mod_freq</span><span class="si">}</span><span class="se">\n</span><span class="s2">Sample Rate: </span><span class="si">{</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">myctrl</span> <span class="o">=</span> <span class="n">Alazar_controller</span>
+    <span class="n">AWG</span> <span class="o">=</span> <span class="n">AWG_inst</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch1_m1_high</span><span class="p">(</span><span class="mf">1.8</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch1_m2_high</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch2_m1_high</span><span class="p">(</span><span class="mf">1.9</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch2_m2_high</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ch1data</span><span class="p">,</span> <span class="n">ch2data</span> <span class="o">=</span> <span class="n">myctrl</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="c1">#Demodulation</span>
+    <span class="n">mod_period</span> <span class="o">=</span> <span class="n">sample_rate</span><span class="o">//</span><span class="n">mod_freq</span>
+    <span class="n">arr_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ch1data</span><span class="p">))</span> <span class="c1">#same as ch2</span>
+    <span class="n">arr_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arr_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="n">mod_period</span><span class="p">)</span>
+    
+    <span class="n">sI</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rI</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rQ</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">ch1data_record</span><span class="p">,</span> <span class="n">ch2data_record</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ch1data</span><span class="p">,</span> <span class="n">ch2data</span><span class="p">)):</span>
+        
+        <span class="n">sI_row</span><span class="p">,</span><span class="n">sQ_row</span><span class="p">,</span><span class="n">rI_row</span><span class="p">,</span><span class="n">rQ_row</span> <span class="o">=</span> <span class="n">demod</span><span class="p">(</span><span class="n">ch1data_record</span><span class="p">,</span> <span class="n">ch2data_record</span><span class="p">)</span>
+        <span class="n">sI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sI_row</span><span class="p">)</span>
+        <span class="n">sQ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sQ_row</span><span class="p">)</span>
+        <span class="n">rI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rI_row</span><span class="p">)</span>
+        <span class="n">rQ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rQ_row</span><span class="p">)</span>
+        
+    <span class="n">sI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sI</span><span class="p">)</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sQ</span><span class="p">)</span>
+    <span class="n">rI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rI</span><span class="p">)</span>
+    <span class="n">rQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rQ</span><span class="p">)</span>
+    <span class="c1"># Phase correction</span>
+    <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">rI_trace</span><span class="p">,</span> <span class="n">rQ_trace</span> <span class="o">=</span> <span class="n">phase_correction</span><span class="p">(</span><span class="n">sI</span><span class="p">,</span> <span class="n">sQ</span><span class="p">,</span> <span class="n">rI</span><span class="p">,</span> <span class="n">rQ</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">rI_trace</span><span class="p">,</span> <span class="n">rQ_trace</span></div>
+
+<div class="viewcode-block" id="acquire_one_pulse_3_state"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.acquire_one_pulse_3_state">[docs]</a><span class="k">def</span> <span class="nf">acquire_one_pulse_3_state</span><span class="p">(</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="n">Alazar_controller</span><span class="p">,</span> <span class="n">mod_freq</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mod freq: </span><span class="si">{</span><span class="n">mod_freq</span><span class="si">}</span><span class="se">\n</span><span class="s2">Sample Rate: </span><span class="si">{</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">myctrl</span> <span class="o">=</span> <span class="n">Alazar_controller</span>
+    <span class="n">AWG</span> <span class="o">=</span> <span class="n">AWG_inst</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch1_m1_high</span><span class="p">(</span><span class="mf">1.8</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch1_m2_high</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch2_m1_high</span><span class="p">(</span><span class="mf">1.9</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch2_m2_high</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ch1data</span><span class="p">,</span> <span class="n">ch2data</span> <span class="o">=</span> <span class="n">myctrl</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="c1">#Demodulation</span>
+    <span class="n">mod_period</span> <span class="o">=</span> <span class="n">sample_rate</span><span class="o">//</span><span class="n">mod_freq</span>
+    <span class="n">arr_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ch1data</span><span class="p">))</span> <span class="c1">#same as ch2</span>
+    <span class="n">arr_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arr_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="n">mod_period</span><span class="p">)</span>
+    
+    <span class="n">sI</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rI</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rQ</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">ch1data_record</span><span class="p">,</span> <span class="n">ch2data_record</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ch1data</span><span class="p">,</span> <span class="n">ch2data</span><span class="p">)):</span>
+        
+        <span class="n">sI_row</span><span class="p">,</span><span class="n">sQ_row</span><span class="p">,</span><span class="n">rI_row</span><span class="p">,</span><span class="n">rQ_row</span> <span class="o">=</span> <span class="n">demod</span><span class="p">(</span><span class="n">ch1data_record</span><span class="p">,</span> <span class="n">ch2data_record</span><span class="p">)</span>
+        <span class="n">sI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sI_row</span><span class="p">)</span>
+        <span class="n">sQ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sQ_row</span><span class="p">)</span>
+        <span class="n">rI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rI_row</span><span class="p">)</span>
+        <span class="n">rQ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rQ_row</span><span class="p">)</span>
+        
+    <span class="n">sI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sI</span><span class="p">)</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sQ</span><span class="p">)</span>
+    <span class="n">rI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rI</span><span class="p">)</span>
+    <span class="n">rQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rQ</span><span class="p">)</span>
+    <span class="c1"># Phase correction</span>
+    <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">rI_trace</span><span class="p">,</span> <span class="n">rQ_trace</span> <span class="o">=</span> <span class="n">phase_correction</span><span class="p">(</span><span class="n">sI</span><span class="p">,</span> <span class="n">sQ</span><span class="p">,</span> <span class="n">rI</span><span class="p">,</span> <span class="n">rQ</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">rI_trace</span><span class="p">,</span> <span class="n">rQ_trace</span></div>
+
+<div class="viewcode-block" id="acquire_one_pulse_finite_IF"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.acquire_one_pulse_finite_IF">[docs]</a><span class="k">def</span> <span class="nf">acquire_one_pulse_finite_IF</span><span class="p">(</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="n">Alazar_controller</span><span class="p">,</span> <span class="n">mod_freq</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mod freq: </span><span class="si">{</span><span class="n">mod_freq</span><span class="si">}</span><span class="se">\n</span><span class="s2">Sample Rate: </span><span class="si">{</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">myctrl</span> <span class="o">=</span> <span class="n">Alazar_controller</span>
+    <span class="n">AWG</span> <span class="o">=</span> <span class="n">AWG_inst</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch1_m1_high</span><span class="p">(</span><span class="mf">1.8</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch1_m2_high</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch2_m1_high</span><span class="p">(</span><span class="mf">1.9</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">ch2_m2_high</span><span class="p">(</span><span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ch1data</span><span class="p">,</span> <span class="n">ch2data</span> <span class="o">=</span> <span class="n">myctrl</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+    <span class="n">AWG</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="c1">#Demodulation</span>
+    <span class="n">mod_period</span> <span class="o">=</span> <span class="n">sample_rate</span><span class="o">//</span><span class="n">mod_freq</span>
+    <span class="n">arr_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ch1data</span><span class="p">))</span> <span class="c1">#same as ch2</span>
+    <span class="n">arr_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arr_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="n">mod_period</span><span class="p">)</span>
+    
+    <span class="n">sI</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rI</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rQ</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">ch1data_record</span><span class="p">,</span> <span class="n">ch2data_record</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ch1data</span><span class="p">,</span> <span class="n">ch2data</span><span class="p">)):</span>
+        
+        <span class="n">sI_row</span><span class="p">,</span><span class="n">sQ_row</span><span class="p">,</span><span class="n">rI_row</span><span class="p">,</span><span class="n">rQ_row</span> <span class="o">=</span> <span class="n">demod</span><span class="p">(</span><span class="n">ch1data_record</span><span class="p">,</span> <span class="n">ch2data_record</span><span class="p">)</span>
+        <span class="n">sI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sI_row</span><span class="p">)</span>
+        <span class="n">sQ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sQ_row</span><span class="p">)</span>
+        <span class="n">rI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rI_row</span><span class="p">)</span>
+        <span class="n">rQ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rQ_row</span><span class="p">)</span>
+        
+    <span class="n">sI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sI</span><span class="p">)</span>
+    <span class="n">sQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sQ</span><span class="p">)</span>
+    <span class="n">rI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rI</span><span class="p">)</span>
+    <span class="n">rQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rQ</span><span class="p">)</span>
+    <span class="c1"># Phase correction</span>
+    <span class="c1"># sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)</span>
+
+    <span class="k">return</span> <span class="n">sI</span><span class="p">,</span> <span class="n">sQ</span><span class="p">,</span> <span class="n">rI</span><span class="p">,</span> <span class="n">rQ</span></div>
+
+<div class="viewcode-block" id="acquire_one_pulse_set"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.acquire_one_pulse_set">[docs]</a><span class="k">def</span> <span class="nf">acquire_one_pulse_set</span><span class="p">(</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="n">Alazar_controller</span><span class="p">,</span> <span class="n">mod_freq</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">num_pulsetypes</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+    <span class="c1"># print(f&quot;Mod freq: {mod_freq}\nSample Rate: {sample_rate}&quot;)</span>
+    <span class="c1"># myctrl = Alazar_controller</span>
+    <span class="c1"># AWG = AWG_inst</span>
+    <span class="c1"># AWG.ch1_m1_high(1.8)</span>
+    <span class="c1"># AWG.ch1_m2_high(2.5)</span>
+    <span class="c1"># AWG.ch2_m1_high(1.9)</span>
+    <span class="c1"># AWG.ch2_m2_high(2.5)</span>
+    <span class="c1"># AWG.run()</span>
+    <span class="c1"># time.sleep(1)</span>
+    <span class="c1"># ch1data, ch2data = myctrl.channels.data()</span>
+    <span class="c1"># AWG.stop()</span>
+    <span class="c1"># #Demodulation</span>
+    <span class="c1"># mod_period = sample_rate//mod_freq</span>
+    <span class="c1"># arr_shape = list(np.shape(ch1data)) #same as ch2</span>
+    <span class="c1"># arr_shape[1] = int(arr_shape[1]//mod_period)</span>
+    
+    <span class="c1"># sI = []</span>
+    <span class="c1"># sQ = []</span>
+    <span class="c1"># rI = []</span>
+    <span class="c1"># rQ = []</span>
+    
+    <span class="c1"># for i, (ch1data_record, ch2data_record) in enumerate(zip(ch1data, ch2data)):</span>
+        
+    <span class="c1">#     sI_row,sQ_row,rI_row,rQ_row = demod(ch1data_record, ch2data_record)</span>
+    <span class="c1">#     sI.append(sI_row)</span>
+    <span class="c1">#     sQ.append(sQ_row)</span>
+    <span class="c1">#     rI.append(rI_row)</span>
+    <span class="c1">#     rQ.append(rQ_row)</span>
+        
+    <span class="c1"># sI = np.array(sI)</span>
+    <span class="c1"># sQ = np.array(sQ)</span>
+    <span class="c1"># rI = np.array(rI)</span>
+    <span class="c1"># rQ = np.array(rQ)</span>
+    <span class="c1"># # Phase correction</span>
+    <span class="c1"># sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)</span>
+
+    <span class="c1"># return sI_c, sQ_c, rI_trace, rQ_trace</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Pulse_Sweep"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep">[docs]</a><span class="k">class</span> <span class="nc">Pulse_Sweep</span><span class="p">():</span> 
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">AWG</span><span class="p">,</span> 
+                 <span class="n">AWG_Config</span><span class="p">,</span> 
+                 <span class="n">Alazar_ctrl</span><span class="p">,</span> 
+                 <span class="n">Alazar_config</span><span class="p">,</span> 
+                 <span class="n">Sig_Gen</span><span class="p">,</span> 
+                 <span class="n">Ref_Gen</span><span class="p">):</span> 
+        
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Implicit in this file is the external interferometer, these components</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename_prepend</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span> <span class="o">=</span> <span class="n">AWG</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_ctrl</span> <span class="o">=</span> <span class="n">Alazar_ctrl</span>
+        <span class="c1"># self.Alazar_ctrl = Standard_Alazar_Config(Alazar, Alazar_config)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span> <span class="o">=</span> <span class="n">Alazar_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span> <span class="o">=</span> <span class="n">AWG_Config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span> <span class="o">=</span> <span class="n">Sig_Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span> <span class="o">=</span> <span class="n">Ref_Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        
+<div class="viewcode-block" id="Pulse_Sweep.add_independent_parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep.add_independent_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_independent_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ind_par_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        will take input in form of </span>
+<span class="sd">        ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span> <span class="o">=</span> <span class="kc">True</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep.filename_func"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep.filename_func">[docs]</a>    <span class="k">def</span> <span class="nf">filename_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val_dict</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes in a dictionary where the parameters are the keys, and the vals are the setpoints</span>
+<span class="sd">        eg {SigGen.power: dict(&#39;name&#39; = str, &#39;val&#39; = float))}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_prepend</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">filename</span> <span class="o">+=</span> <span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filename</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep.pre_measurement_operation"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep.pre_measurement_operation">[docs]</a>    <span class="k">def</span> <span class="nf">pre_measurement_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes in a dictionary where the parameters are the keys, and the vals are the setpoints</span>
+<span class="sd">        eg {name: dict(parameter = SigGen.power, &#39;val&#39; = float))} </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">val</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">](</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Setting </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="se">\n</span><span class="s1">via </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Pulse_Sweep.post_measurement_operation"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep.post_measurement_operation">[docs]</a>    <span class="k">def</span> <span class="nf">post_measurement_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Measurement </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> completed</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep.sweep"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep.sweep">[docs]</a>    <span class="k">def</span> <span class="nf">sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DATADIR</span><span class="p">,</span> <span class="n">savemode</span> <span class="o">=</span> <span class="s1">&#39;seperate&#39;</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Independent parameter not yet set. Run set_independent_parameter method&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">savemode</span> <span class="o">==</span> <span class="s1">&#39;seperate&#39;</span><span class="p">:</span> 
+            <span class="sd">&#39;&#39;&#39;zip all the combos of parameters, names, units, and values to </span>
+<span class="sd">            iterate over, we want ONE loop to rule them all</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">ind_par_names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ind_par_parameters</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ind_par_vals</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ind_par_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span><span class="p">:</span> 
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">info_dict</span> <span class="ow">in</span> <span class="n">ind_par_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+                    <span class="n">ind_par_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">ind_par_parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
+                    <span class="n">ind_par_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;vals&#39;</span><span class="p">])</span>
+                
+            <span class="c1">################</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">ind_par_vals</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span><span class="p">):</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="p">[</span><span class="n">ind_par_names</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parameter</span> <span class="o">=</span> <span class="n">ind_par_parameters</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> 
+                                                           <span class="n">val</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                
+                <span class="n">dep_var_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">time</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;ns&#39;</span><span class="p">),</span>
+                                    <span class="n">record_num</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;num&#39;</span><span class="p">),</span>
+                                    <span class="n">I_plus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_plus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">I_minus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_minus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">)</span>
+                                    <span class="p">)</span>
+                
+                <span class="c1">####################### Set up the datadict</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span><span class="o">**</span><span class="n">dep_var_dict</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pre_measurement_operation</span><span class="p">()</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="p">)</span>
+                
+                
+                <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                    <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">ref_I</span><span class="p">,</span> <span class="n">ref_Q</span> <span class="o">=</span> <span class="n">acquire_one_pulse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_ctrl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span><span class="o">.</span><span class="n">Mod_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span><span class="o">.</span><span class="n">SR</span><span class="p">)</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">sI_c</span><span class="p">))</span>
+                    <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="c1">#evenly divided amongst I_plus and I_minus</span>
+                    <span class="n">time_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span><span class="o">.</span><span class="n">SR</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span><span class="o">.</span><span class="n">Mod_freq</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                            <span class="n">record_num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">*</span><span class="n">time_step</span><span class="p">,</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="n">I_plus</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_plus</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">I_minus</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_minus</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                            <span class="p">)</span>
+                    
+                <span class="bp">self</span><span class="o">.</span><span class="n">post_measurement_operation</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div></div>
+        
+<div class="viewcode-block" id="Pulse_Sweep_finite_IF"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF">[docs]</a><span class="k">class</span> <span class="nc">Pulse_Sweep_finite_IF</span><span class="p">():</span> 
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">AWG</span><span class="p">,</span> 
+                 <span class="n">AWG_Config</span><span class="p">,</span> 
+                 <span class="n">Alazar_ctrl</span><span class="p">,</span> 
+                 <span class="n">Alazar_config</span><span class="p">,</span> 
+                 <span class="n">Sig_Gen</span><span class="p">,</span> 
+                 <span class="n">Ref_Gen</span><span class="p">):</span> 
+        
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Implicit in this file is the external interferometer, these components</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename_prepend</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span> <span class="o">=</span> <span class="n">AWG</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_ctrl</span> <span class="o">=</span> <span class="n">Alazar_ctrl</span>
+        <span class="c1"># self.Alazar_ctrl = Standard_Alazar_Config(Alazar, Alazar_config)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span> <span class="o">=</span> <span class="n">Alazar_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span> <span class="o">=</span> <span class="n">AWG_Config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span> <span class="o">=</span> <span class="n">Sig_Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span> <span class="o">=</span> <span class="n">Ref_Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        
+<div class="viewcode-block" id="Pulse_Sweep_finite_IF.add_independent_parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.add_independent_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_independent_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ind_par_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        will take input in form of </span>
+<span class="sd">        ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span> <span class="o">=</span> <span class="kc">True</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep_finite_IF.filename_func"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.filename_func">[docs]</a>    <span class="k">def</span> <span class="nf">filename_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val_dict</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes in a dictionary where the parameters are the keys, and the vals are the setpoints</span>
+<span class="sd">        eg {SigGen.power: dict(&#39;name&#39; = str, &#39;val&#39; = float))}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_prepend</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">filename</span> <span class="o">+=</span> <span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filename</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep_finite_IF.pre_measurement_operation"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.pre_measurement_operation">[docs]</a>    <span class="k">def</span> <span class="nf">pre_measurement_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes in a dictionary where the parameters are the keys, and the vals are the setpoints</span>
+<span class="sd">        eg {name: dict(parameter = SigGen.power, &#39;val&#39; = float))} </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">val</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">](</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Setting </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="se">\n</span><span class="s1">via </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Pulse_Sweep_finite_IF.post_measurement_operation"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.post_measurement_operation">[docs]</a>    <span class="k">def</span> <span class="nf">post_measurement_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Measurement </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> completed</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep_finite_IF.sweep"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_finite_IF.sweep">[docs]</a>    <span class="k">def</span> <span class="nf">sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DATADIR</span><span class="p">,</span> <span class="n">savemode</span> <span class="o">=</span> <span class="s1">&#39;seperate&#39;</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Independent parameter not yet set. Run set_independent_parameter method&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">savemode</span> <span class="o">==</span> <span class="s1">&#39;seperate&#39;</span><span class="p">:</span> 
+            <span class="sd">&#39;&#39;&#39;zip all the combos of parameters, names, units, and values to </span>
+<span class="sd">            iterate over, we want ONE loop to rule them all</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">ind_par_names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ind_par_parameters</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ind_par_vals</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ind_par_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span><span class="p">:</span> 
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">info_dict</span> <span class="ow">in</span> <span class="n">ind_par_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+                    <span class="n">ind_par_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">ind_par_parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
+                    <span class="n">ind_par_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;vals&#39;</span><span class="p">])</span>
+                
+            <span class="c1">################</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">ind_par_vals</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span><span class="p">):</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="p">[</span><span class="n">ind_par_names</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parameter</span> <span class="o">=</span> <span class="n">ind_par_parameters</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> 
+                                                           <span class="n">val</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                
+                <span class="n">dep_var_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">time</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;ns&#39;</span><span class="p">),</span>
+                                    <span class="n">record_num</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;num&#39;</span><span class="p">),</span>
+                                    <span class="n">I_plus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_plus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">I_minus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_minus</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">)</span>
+                                    <span class="p">)</span>
+                
+                <span class="c1">####################### Set up the datadict</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span><span class="o">**</span><span class="n">dep_var_dict</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pre_measurement_operation</span><span class="p">()</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="p">)</span>
+                
+                
+                <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                    
+                    <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">ref_I</span><span class="p">,</span> <span class="n">ref_Q</span> <span class="o">=</span> <span class="n">acquire_one_pulse_finite_IF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_ctrl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span><span class="o">.</span><span class="n">Mod_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span><span class="o">.</span><span class="n">SR</span><span class="p">)</span>
+                    
+                    
+                    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">sI_c</span><span class="p">))</span>
+                    <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="c1">#evenly divided amongst I_plus and I_minus</span>
+                    <span class="n">time_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span><span class="o">.</span><span class="n">SR</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span><span class="o">.</span><span class="n">Mod_freq</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                            <span class="n">record_num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">*</span><span class="n">time_step</span><span class="p">,</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="n">I_plus</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_plus</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">I_minus</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_minus</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                            <span class="p">)</span>
+                    
+                <span class="bp">self</span><span class="o">.</span><span class="n">post_measurement_operation</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Pulse_Sweep_3_state"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_3_state">[docs]</a><span class="k">class</span> <span class="nc">Pulse_Sweep_3_state</span><span class="p">():</span> 
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">AWG</span><span class="p">,</span> 
+                 <span class="n">AWG_Config</span><span class="p">,</span> 
+                 <span class="n">Alazar_ctrl</span><span class="p">,</span> 
+                 <span class="n">Alazar_config</span><span class="p">,</span> 
+                 <span class="n">Sig_Gen</span><span class="p">,</span> 
+                 <span class="n">Ref_Gen</span><span class="p">):</span> 
+        
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Implicit in this file is the external interferometer, these components</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename_prepend</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span> <span class="o">=</span> <span class="n">AWG</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_ctrl</span> <span class="o">=</span> <span class="n">Alazar_ctrl</span>
+        <span class="c1"># self.Alazar_ctrl = Standard_Alazar_Config(Alazar, Alazar_config)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span> <span class="o">=</span> <span class="n">Alazar_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span> <span class="o">=</span> <span class="n">AWG_Config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span> <span class="o">=</span> <span class="n">Sig_Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span> <span class="o">=</span> <span class="n">Ref_Gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        
+<div class="viewcode-block" id="Pulse_Sweep_3_state.add_independent_parameter"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_3_state.add_independent_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_independent_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ind_par_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        will take input in form of </span>
+<span class="sd">        ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span> <span class="o">=</span> <span class="kc">True</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep_3_state.filename_func"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_3_state.filename_func">[docs]</a>    <span class="k">def</span> <span class="nf">filename_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val_dict</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes in a dictionary where the parameters are the keys, and the vals are the setpoints</span>
+<span class="sd">        eg {SigGen.power: dict(&#39;name&#39; = str, &#39;val&#39; = float))}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_prepend</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">filename</span> <span class="o">+=</span> <span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filename</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep_3_state.pre_measurement_operation"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_3_state.pre_measurement_operation">[docs]</a>    <span class="k">def</span> <span class="nf">pre_measurement_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes in a dictionary where the parameters are the keys, and the vals are the setpoints</span>
+<span class="sd">        eg {name: dict(parameter = SigGen.power, &#39;val&#39; = float))} </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">val</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">](</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Setting </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="se">\n</span><span class="s1">via </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;parameter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Pulse_Sweep_3_state.post_measurement_operation"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_3_state.post_measurement_operation">[docs]</a>    <span class="k">def</span> <span class="nf">post_measurement_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">sig_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Measurement </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> completed</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Pulse_Sweep_3_state.sweep"><a class="viewcode-back" href="../Pulse_Sweeping_utils.html#Pulse_Sweeping_utils.Pulse_Sweep_3_state.sweep">[docs]</a>    <span class="k">def</span> <span class="nf">sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DATADIR</span><span class="p">,</span> <span class="n">savemode</span> <span class="o">=</span> <span class="s1">&#39;seperate&#39;</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_ind_par_set</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Independent parameter not yet set. Run set_independent_parameter method&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">savemode</span> <span class="o">==</span> <span class="s1">&#39;seperate&#39;</span><span class="p">:</span> 
+            <span class="sd">&#39;&#39;&#39;zip all the combos of parameters, names, units, and values to </span>
+<span class="sd">            iterate over, we want ONE loop to rule them all</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">ind_par_names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ind_par_parameters</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ind_par_vals</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ind_par_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind_par_dict_arr</span><span class="p">:</span> 
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">info_dict</span> <span class="ow">in</span> <span class="n">ind_par_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+                    <span class="n">ind_par_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">ind_par_parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
+                    <span class="n">ind_par_vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_par_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;vals&#39;</span><span class="p">])</span>
+                
+            <span class="c1">################</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">ind_par_vals</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_arr</span><span class="p">):</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="p">[</span><span class="n">ind_par_names</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parameter</span> <span class="o">=</span> <span class="n">ind_par_parameters</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> 
+                                                           <span class="n">val</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                
+                <span class="n">dep_var_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">time</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;ns&#39;</span><span class="p">),</span>
+                                    <span class="n">record_num</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;num&#39;</span><span class="p">),</span>
+                                    <span class="n">I_G</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_G</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">I_E</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_E</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span> 
+                                    <span class="n">I_F</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">),</span>
+                                    <span class="n">Q_F</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;record_num&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span> <span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">)</span>
+                                    <span class="p">)</span>
+                
+                <span class="c1">####################### Set up the datadict</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span><span class="o">**</span><span class="n">dep_var_dict</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pre_measurement_operation</span><span class="p">()</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setpoint_dict</span><span class="p">)</span>
+                
+                
+                <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                    <span class="n">sI_c</span><span class="p">,</span> <span class="n">sQ_c</span><span class="p">,</span> <span class="n">ref_I</span><span class="p">,</span> <span class="n">ref_Q</span> <span class="o">=</span> <span class="n">acquire_one_pulse_3_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">AWG_inst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_ctrl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span><span class="o">.</span><span class="n">Mod_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span><span class="o">.</span><span class="n">SR</span><span class="p">)</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">sI_c</span><span class="p">))</span>
+                    <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">3</span><span class="p">)</span> <span class="c1">#evenly divided amongst I_plus and I_minus</span>
+                    <span class="n">time_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Alazar_config</span><span class="o">.</span><span class="n">SR</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AWG_Config</span><span class="o">.</span><span class="n">Mod_freq</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                            <span class="n">record_num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">*</span><span class="n">time_step</span><span class="p">,</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="n">I_G</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_G</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">I_E</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_E</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">I_F</span> <span class="o">=</span> <span class="n">sI_c</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                            <span class="n">Q_F</span> <span class="o">=</span> <span class="n">sQ_c</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                            <span class="p">)</span>
+                    
+                <span class="bp">self</span><span class="o">.</span><span class="n">post_measurement_operation</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div></div>
+    
+    
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Sweeping_utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Gain_Power_vs_Flux module &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pump_flux_scanning module" href="Pump_flux_scanning.html" />
+    <link rel="prev" title="Duffing_Test module" href="Duffing_Test.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Pump_flux_scanning.html" title="Pump_flux_scanning module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Duffing_Test.html" title="Duffing_Test module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Gain_Power_vs_Flux module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-Gain_Power_vs_Flux">
+<span id="gain-power-vs-flux-module"></span><h1>Gain_Power_vs_Flux module<a class="headerlink" href="#module-Gain_Power_vs_Flux" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Nov 10 09:30:44 2020</p>
+<p>&#64;author: Ryan Kaufman, Wolfgang Pfaff</p>
+<dl class="simple">
+<dt>Purpose:</dt><dd><p>Repository for well-established sweeps</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Gain_Power_vs_Flux.</span></span><span class="sig-name descname"><span class="pre">Gain_Power_vs_Flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_att</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_att</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Record 20dB gain power change wrt flux</p>
+<dl>
+<dt>Procedure:</dt><dd><ul class="simple">
+<li><p>Start with a minimal-power 20dB gain point at a certain flux</p></li>
+<li><p>program steps current by curr_step</p></li>
+<li><p>program sweeps generator frequency within given range with same power</p></li>
+</ul>
+<p>(smoothing on?) to find highest power frequency
+- program slowly increases or decreases power to reach 20dB gain maximum
+- if 20dB cannot be achieved, NaN value is given for pump_power and
+trace is saved, otherwise program records pump frequency, power,
+and saves VNA amplitude trace at given current
+- repeat until current array is exhausted</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.analyze_trace">
+<span class="sig-name descname"><span class="pre">analyze_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_width_minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.analyze_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.analyze_trace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.find_gain">
+<span class="sig-name descname"><span class="pre">find_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.find_gain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.find_gain" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>avg_number</strong> (<em>int</em>) – number of VNA averages taken</p></li>
+<li><p><strong>window</strong> (<em>float</em>) – frequency range in Hz where we average over to get the effective gain</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>gain</strong> – calculated gain of a trace</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.find_gain_W">
+<span class="sig-name descname"><span class="pre">find_gain_W</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peak_width_minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.find_gain_W"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.find_gain_W" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.get_freq_sweep_info">
+<span class="sig-name descname"><span class="pre">get_freq_sweep_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pow_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pow_arr_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_arr_arr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.get_freq_sweep_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.get_freq_sweep_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.plot_powers">
+<span class="sig-name descname"><span class="pre">plot_powers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pow_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pow_arr_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_arr_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.plot_powers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.plot_powers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.saturation_sweep">
+<span class="sig-name descname"><span class="pre">saturation_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bias_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_stop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_num_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_avgs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.saturation_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.saturation_sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.save_gain_datapoint">
+<span class="sig-name descname"><span class="pre">save_gain_datapoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_gain_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_phase_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.save_gain_datapoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.save_gain_datapoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>loads information into the class’s stored datadict.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.save_saturation_datapoint">
+<span class="sig-name descname"><span class="pre">save_saturation_datapoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_input_powers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gains</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.save_saturation_datapoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.save_saturation_datapoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads information about the saturation power found for a given 20dB-ish gain point.
+Goal is to have (Gain) vs (bias current, generator detuning, vna_power) plot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.set_VNA_to_freq_sweep">
+<span class="sig-name descname"><span class="pre">set_VNA_to_freq_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fcenter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fspan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.set_VNA_to_freq_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.set_VNA_to_freq_sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_gain_vs_freq">
+<span class="sig-name descname"><span class="pre">sweep_gain_vs_freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gen_freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stepsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saturation_sweep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_avgs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_width_minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_tracking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max_point'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_detuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.sweep_gain_vs_freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_gain_vs_freq" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>VNA</strong> (<em>Instrument</em>) – </p></li>
+<li><p><strong>Gen</strong> (<em>Instrument</em>) – </p></li>
+<li><p><strong>gen_freqs</strong> (<em>ndarray</em>) – list of possible frequencies to try for reaching 20dB gain</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_min_power_and_saturation_vs_current">
+<span class="sig-name descname"><span class="pre">sweep_min_power_and_saturation_vs_current</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stepsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saturation_sweep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_avgs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.sweep_min_power_and_saturation_vs_current"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_min_power_and_saturation_vs_current" title="Permalink to this definition">¶</a></dt>
+<dd><p>This creates a taco’s worth of data for EACH current bias point within a range, starting from a known point</p>
+<p>In order to do this it needs a fitted fluxsweep, so that it can make a fair guess at the generator frequencies it should try at each current.</p>
+<dl class="simple">
+<dt>steps:</dt><dd><ul class="simple">
+<li><p>starting from a known working bias point, run a taco sweep</p></li>
+<li><p>acquire minimum power point (gen freq and power)_opt from first taco</p></li>
+<li><p>set VNA to gen_freq_opt/2 +- X_MHz span, num_points, etc</p></li>
+<li><p>move bias point by small, specified current step (generally &lt;0.5% of quanta)</p></li>
+<li><p>renormalize VNA</p></li>
+<li><p>repeat</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_power_for_gain">
+<span class="sig-name descname"><span class="pre">sweep_power_for_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stepsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saturation_sweep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_avgs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_width_minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_tracking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max_point'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_detuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#Gain_Power_vs_Flux.sweep_power_for_gain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.Gain_Power_vs_Flux.sweep_power_for_gain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.dB2power">
+<span class="sig-prename descclassname"><span class="pre">Gain_Power_vs_Flux.</span></span><span class="sig-name descname"><span class="pre">dB2power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dB</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#dB2power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.dB2power" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.find_peak">
+<span class="sig-prename descclassname"><span class="pre">Gain_Power_vs_Flux.</span></span><span class="sig-name descname"><span class="pre">find_peak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#find_peak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.find_peak" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.power2dB">
+<span class="sig-prename descclassname"><span class="pre">Gain_Power_vs_Flux.</span></span><span class="sig-name descname"><span class="pre">power2dB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#power2dB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.power2dB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Gain_Power_vs_Flux.smoothen">
+<span class="sig-prename descclassname"><span class="pre">Gain_Power_vs_Flux.</span></span><span class="sig-name descname"><span class="pre">smoothen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Gain_Power_vs_Flux.html#smoothen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Gain_Power_vs_Flux.smoothen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Duffing_Test.html"
+                        title="previous chapter">Duffing_Test module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Pump_flux_scanning.html"
+                        title="next chapter">Pump_flux_scanning module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Gain_Power_vs_Flux.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Pump_flux_scanning.html" title="Pump_flux_scanning module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Duffing_Test.html" title="Duffing_Test module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Gain_Power_vs_Flux module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

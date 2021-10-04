@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Helper_Functions &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Helper_Functions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Helper_Functions</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Nov 12 10:56:06 2020</span>
+
+<span class="sd">@author: Ryan Kaufman</span>
+
+<span class="sd">purpose: Contain general helper functions that are useful for all instruments</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span> 
+
+<div class="viewcode-block" id="adjust"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.adjust">[docs]</a><span class="k">def</span> <span class="nf">adjust</span><span class="p">(</span><span class="n">Param1</span><span class="p">,</span> <span class="n">stepsize1</span><span class="p">):</span> 
+    <span class="n">in_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">while</span> <span class="n">in_string</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;q&quot;</span> <span class="p">:</span>
+        <span class="c1">#have to use &quot;q&quot; to stop, can use left and right brackets to adjust stepsize up/down</span>
+        <span class="n">in_string</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param1</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: a for down, d for up (stepsize: </span><span class="si">{</span><span class="n">stepsize1</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">Enter to submit, q to quit&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> 
+            <span class="n">Param1</span><span class="p">(</span><span class="n">Param1</span><span class="p">()</span><span class="o">-</span><span class="n">stepsize1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param1</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Param1</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span> 
+            <span class="n">Param1</span><span class="p">(</span><span class="n">Param1</span><span class="p">()</span><span class="o">+</span><span class="n">stepsize1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param1</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Param1</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;q&quot;</span><span class="p">:</span> 
+            <span class="k">break</span></div>
+
+<div class="viewcode-block" id="adjust_2"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.adjust_2">[docs]</a><span class="k">def</span> <span class="nf">adjust_2</span><span class="p">(</span><span class="n">Params</span><span class="p">,</span> <span class="n">stepsizes</span><span class="p">):</span> 
+    <span class="p">[</span><span class="n">Param1</span><span class="p">,</span> <span class="n">Param2</span><span class="p">]</span> <span class="o">=</span> <span class="n">Params</span>
+    <span class="p">[</span><span class="n">stepsize1</span><span class="p">,</span> <span class="n">stepsize2</span><span class="p">]</span> <span class="o">=</span> <span class="n">stepsizes</span>
+    <span class="n">in_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">while</span> <span class="n">in_string</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;q&quot;</span> <span class="p">:</span>
+        <span class="c1">#have to use &quot;q&quot; to stop, can use left and right brackets to adjust stepsize up/down</span>
+        <span class="n">in_string</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param1</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: a for down, d for up</span><span class="se">\n</span><span class="si">{</span><span class="n">Param2</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: [ for down, ] for up </span><span class="se">\n</span><span class="s2">Enter to submit, q to quit</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> 
+            <span class="n">Param1</span><span class="p">(</span><span class="n">Param1</span><span class="p">()</span><span class="o">-</span><span class="n">stepsize1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param1</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Param1</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span> 
+            <span class="n">Param1</span><span class="p">(</span><span class="n">Param1</span><span class="p">()</span><span class="o">+</span><span class="n">stepsize1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param1</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Param1</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;[&quot;</span><span class="p">:</span> 
+            <span class="n">Param2</span><span class="p">(</span><span class="n">Param2</span><span class="p">()</span><span class="o">-</span><span class="n">stepsize2</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param2</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Param2</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;]&quot;</span><span class="p">:</span> 
+            <span class="n">Param2</span><span class="p">(</span><span class="n">Param2</span><span class="p">()</span><span class="o">+</span><span class="n">stepsize2</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Param2</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Param2</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">in_string</span> <span class="o">==</span> <span class="s2">&quot;q&quot;</span><span class="p">:</span> 
+            <span class="k">break</span></div>
+        
+
+    
+<div class="viewcode-block" id="shift_array_relative_to_middle"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.shift_array_relative_to_middle">[docs]</a><span class="k">def</span> <span class="nf">shift_array_relative_to_middle</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">div_factor</span> <span class="o">=</span> <span class="mf">1e6</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">array</span><span class="o">-</span><span class="n">array</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)])</span><span class="o">/</span><span class="n">div_factor</span></div>
+
+<div class="viewcode-block" id="get_name_from_path"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.get_name_from_path">[docs]</a><span class="k">def</span> <span class="nf">get_name_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="log_normalize_to_row"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.log_normalize_to_row">[docs]</a><span class="k">def</span> <span class="nf">log_normalize_to_row</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">y_norm_val</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span> 
+    
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Takes in the inputs to a pcolor plot and normalizes each jth column in the 2d array to (i,j) value</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="n">norm_row</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">normed_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+            <span class="c1"># print(f&#39;{i}th row: {row}&#39;)</span>
+            <span class="n">normed_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="o">-</span><span class="n">norm_row</span><span class="p">)</span>
+        <span class="c1"># print(normed_arr)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">normed_arr</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">y_norm_val</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="n">array_norm_row_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_norm_val</span><span class="p">,</span> <span class="n">atol</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">array_norm_row_index</span><span class="p">)</span></div>
+<div class="viewcode-block" id="log_normalize_up_to_row"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.log_normalize_up_to_row">[docs]</a><span class="k">def</span> <span class="nf">log_normalize_up_to_row</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">y_norm_val</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span> 
+    
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Takes in the inputs to a pcolor plot and normalizes each jth column in the 2d array to (i,j) value</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">norm_row</span><span class="p">):</span>
+        <span class="n">normed_arr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+            <span class="c1"># print(f&#39;{i}th row: {row}&#39;)</span>
+            <span class="n">normed_arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="o">-</span><span class="n">norm_row</span><span class="p">)</span>
+        <span class="c1"># print(normed_arr)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">normed_arr</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">y_norm_val</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> 
+        <span class="n">array_norm_row_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_norm_val</span><span class="p">,</span> <span class="n">atol</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">norm_block</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">array_norm_row_index</span><span class="p">]</span>
+        <span class="n">norm_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">norm_block</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">norm_arr</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="select_closest_to_target"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.select_closest_to_target">[docs]</a><span class="k">def</span> <span class="nf">select_closest_to_target</span><span class="p">(</span><span class="n">x_arr</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">arr_target_val</span><span class="p">):</span> 
+    <span class="n">best_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr_target_val</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">x_arr</span><span class="p">[</span><span class="n">best_idx</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="find_all_ddh5"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.find_all_ddh5">[docs]</a><span class="k">def</span> <span class="nf">find_all_ddh5</span><span class="p">(</span><span class="n">cwd</span><span class="p">):</span> 
+    <span class="n">dirs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="n">filepaths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span> 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">subs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="p">:</span> 
+                <span class="nb">print</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sub</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ddh5&#39;</span><span class="p">:</span>  
+                    <span class="n">filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">sub</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="k">for</span> <span class="n">subsub</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">sub</span><span class="p">):</span> 
+                        <span class="k">if</span> <span class="n">subsub</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ddh5&#39;</span><span class="p">:</span>  
+                            <span class="n">filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">sub</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">subsub</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> <span class="c1">#usually because the files are one directory higher than you&#39;d expect</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ddh5&#39;</span><span class="p">:</span>  
+                    <span class="n">filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filepaths</span></div>
+    
+<div class="viewcode-block" id="load_instrument"><a class="viewcode-back" href="../Helper_Functions.html#Helper_Functions.load_instrument">[docs]</a><span class="k">def</span> <span class="nf">load_instrument</span><span class="p">(</span><span class="n">inst_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span> 
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">inst_class</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">inst</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>    </div>
+
+    
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Helper_Functions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

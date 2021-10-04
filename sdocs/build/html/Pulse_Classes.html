@@ -1,0 +1,412 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Pulse_Classes module &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pulse_Sweeping_utils module" href="Pulse_Sweeping_utils.html" />
+    <link rel="prev" title="Pump_Scanning module" href="Pump_Scanning.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Pulse_Sweeping_utils.html" title="Pulse_Sweeping_utils module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Pump_Scanning.html" title="Pump_Scanning module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Classes module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-Pulse_Classes">
+<span id="pulse-classes-module"></span><h1>Pulse_Classes module<a class="headerlink" href="#module-Pulse_Classes" title="Permalink to this headline">¶</a></h1>
+<p>Created on Fri Jul  2 11:45:55 2021</p>
+<p>&#64;author: Hatlab_3</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_mimicking_pulse_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LO_frequency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DC_offsets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch2_correction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_correction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_rotation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_plus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_minus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SR</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_plus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_minus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.AWG_inst">
+<span class="sig-name descname"><span class="pre">AWG_inst</span></span><em class="property"><span class="pre">:</span> <span class="pre">qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.AWG_inst" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.DC_offsets">
+<span class="sig-name descname"><span class="pre">DC_offsets</span></span><em class="property"><span class="pre">:</span> <span class="pre">tuple</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.DC_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.LO_frequency">
+<span class="sig-name descname"><span class="pre">LO_frequency</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.LO_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.SR">
+<span class="sig-name descname"><span class="pre">SR</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.SR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.amplitude">
+<span class="sig-name descname"><span class="pre">amplitude</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.amplitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.ch2_correction">
+<span class="sig-name descname"><span class="pre">ch2_correction</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.ch2_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.npts">
+<span class="sig-name descname"><span class="pre">npts</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.npts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.only_minus">
+<span class="sig-name descname"><span class="pre">only_minus</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.only_minus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.only_plus">
+<span class="sig-name descname"><span class="pre">only_plus</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.only_plus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.phase_correction">
+<span class="sig-name descname"><span class="pre">phase_correction</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.phase_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.phase_rotation">
+<span class="sig-name descname"><span class="pre">phase_rotation</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.phase_rotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.print_info">
+<span class="sig-name descname"><span class="pre">print_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class.print_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.print_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.setup_pulse">
+<span class="sig-name descname"><span class="pre">setup_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class.setup_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.setup_pulse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.sim_filepath_minus">
+<span class="sig-name descname"><span class="pre">sim_filepath_minus</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.sim_filepath_minus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class.sim_filepath_plus">
+<span class="sig-name descname"><span class="pre">sim_filepath_plus</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class.sim_filepath_plus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_mimicking_pulse_class_3_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LO_frequency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DC_offsets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch2_correction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_correction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_rotation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_G</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_E</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_F</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SR</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_plus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_minus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class_3_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.AWG_inst">
+<span class="sig-name descname"><span class="pre">AWG_inst</span></span><em class="property"><span class="pre">:</span> <span class="pre">qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.AWG_inst" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.DC_offsets">
+<span class="sig-name descname"><span class="pre">DC_offsets</span></span><em class="property"><span class="pre">:</span> <span class="pre">tuple</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.DC_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.LO_frequency">
+<span class="sig-name descname"><span class="pre">LO_frequency</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.LO_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.SR">
+<span class="sig-name descname"><span class="pre">SR</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.SR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.amplitude">
+<span class="sig-name descname"><span class="pre">amplitude</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.amplitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.ch2_correction">
+<span class="sig-name descname"><span class="pre">ch2_correction</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.ch2_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.npts">
+<span class="sig-name descname"><span class="pre">npts</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.npts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.only_minus">
+<span class="sig-name descname"><span class="pre">only_minus</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.only_minus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.only_plus">
+<span class="sig-name descname"><span class="pre">only_plus</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.only_plus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.phase_correction">
+<span class="sig-name descname"><span class="pre">phase_correction</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.phase_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.phase_rotation">
+<span class="sig-name descname"><span class="pre">phase_rotation</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.phase_rotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.print_info">
+<span class="sig-name descname"><span class="pre">print_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class_3_state.print_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.print_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.setup_pulse">
+<span class="sig-name descname"><span class="pre">setup_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class_3_state.setup_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.setup_pulse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.sim_filepath_E">
+<span class="sig-name descname"><span class="pre">sim_filepath_E</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.sim_filepath_E" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.sim_filepath_F">
+<span class="sig-name descname"><span class="pre">sim_filepath_F</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.sim_filepath_F" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_3_state.sim_filepath_G">
+<span class="sig-name descname"><span class="pre">sim_filepath_G</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_3_state.sim_filepath_G" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_mimicking_pulse_class_IF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AWG_inst</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LO_frequency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_frequency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DC_offsets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch_amplitudes</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch2_correction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_correction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_rotation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_plus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_filepath_minus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SR</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_plus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_minus</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class_IF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.AWG_inst">
+<span class="sig-name descname"><span class="pre">AWG_inst</span></span><em class="property"><span class="pre">:</span> <span class="pre">qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.AWG_inst" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.DC_offsets">
+<span class="sig-name descname"><span class="pre">DC_offsets</span></span><em class="property"><span class="pre">:</span> <span class="pre">tuple</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.DC_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.LO_frequency">
+<span class="sig-name descname"><span class="pre">LO_frequency</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.LO_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.SR">
+<span class="sig-name descname"><span class="pre">SR</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.SR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.amplitude">
+<span class="sig-name descname"><span class="pre">amplitude</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.amplitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.ch2_correction">
+<span class="sig-name descname"><span class="pre">ch2_correction</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.ch2_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.ch_amplitudes">
+<span class="sig-name descname"><span class="pre">ch_amplitudes</span></span><em class="property"><span class="pre">:</span> <span class="pre">tuple</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.ch_amplitudes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.mod_frequency">
+<span class="sig-name descname"><span class="pre">mod_frequency</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.mod_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.npts">
+<span class="sig-name descname"><span class="pre">npts</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.npts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.only_minus">
+<span class="sig-name descname"><span class="pre">only_minus</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.only_minus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.only_plus">
+<span class="sig-name descname"><span class="pre">only_plus</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.only_plus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.phase_correction">
+<span class="sig-name descname"><span class="pre">phase_correction</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.phase_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.phase_rotation">
+<span class="sig-name descname"><span class="pre">phase_rotation</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.phase_rotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.print_info">
+<span class="sig-name descname"><span class="pre">print_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class_IF.print_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.print_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.setup_pulse">
+<span class="sig-name descname"><span class="pre">setup_pulse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preview</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_mimicking_pulse_class_IF.setup_pulse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.setup_pulse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.sim_filepath_minus">
+<span class="sig-name descname"><span class="pre">sim_filepath_minus</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.sim_filepath_minus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_mimicking_pulse_class_IF.sim_filepath_plus">
+<span class="sig-name descname"><span class="pre">sim_filepath_plus</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#Pulse_Classes.cavity_mimicking_pulse_class_IF.sim_filepath_plus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_response_finite_IF">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_response_finite_IF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_response_finite_IF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_response_finite_IF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_response_with_correction">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_response_with_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_corr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_response_with_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_response_with_correction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_response_with_correction_and_phase_rotation">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_response_with_correction_and_phase_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_corr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_response_with_correction_and_phase_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_response_with_correction_and_phase_rotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Classes.cavity_response_with_correction_and_phase_rotation_and_DC_offsets">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">cavity_response_with_correction_and_phase_rotation_and_DC_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DC_offsets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_corr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#cavity_response_with_correction_and_phase_rotation_and_DC_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.cavity_response_with_correction_and_phase_rotation_and_DC_offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Pulse_Classes.phase_shifter">
+<span class="sig-prename descclassname"><span class="pre">Pulse_Classes.</span></span><span class="sig-name descname"><span class="pre">phase_shifter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Pulse_Classes.html#phase_shifter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Pulse_Classes.phase_shifter" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will take I as the perfect channel and some phase offset sin(theta_imbalance) offsetting Q towards I
+Assuming I to be the unit magnitude</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Pump_Scanning.html"
+                        title="previous chapter">Pump_Scanning module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Pulse_Sweeping_utils.html"
+                        title="next chapter">Pulse_Sweeping_utils module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Pulse_Classes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Pulse_Sweeping_utils.html" title="Pulse_Sweeping_utils module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Pump_Scanning.html" title="Pump_Scanning module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pulse_Classes module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

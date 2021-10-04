@@ -431,11 +431,6 @@ class Gain_Power_vs_Flux():
         # plt.xticks(ticks = plt.xticks()[0]/1e6)
         print(f"Min {pow_arr[min_loc]} at {min_freq/1e9, min_freq/2e9}GHz")
         
-        
-def 
-    
-    
-    
     
     
     

@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pump_flux_scanning &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pump_flux_scanning</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Pump_flux_scanning</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Jan  6 14:10:14 2021</span>
+
+<span class="sd">@author: Hatlab_3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">plottr.data</span> <span class="kn">import</span> <span class="n">datadict_storage</span> <span class="k">as</span> <span class="n">dds</span><span class="p">,</span> <span class="n">datadict</span> <span class="k">as</span> <span class="n">dd</span>
+<span class="kn">from</span> <span class="nn">plottr.data.datadict_storage</span> <span class="kn">import</span> <span class="n">all_datadicts_from_hdf5</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<div class="viewcode-block" id="PS_dc"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.PS_dc">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PS_dc</span><span class="p">:</span> 
+    <span class="n">datadir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">VNA</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">VNA_pstart</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">VNA_pstop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">VNA_ppoints</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">VNA_avgs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">VNA_att</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">VNA_detuning</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1e6</span>
+    
+    <span class="n">Gen</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">Gen_pstart</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>
+    <span class="n">Gen_pstop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">Gen_ppoints</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span>
+    <span class="n">Gen_detuning</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gen_att</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="n">CS</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">c_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">c_stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">c_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">c_ramp_rate</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="n">fs_fit_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    
+<div class="viewcode-block" id="PS_dc.configure"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.PS_dc.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#calculate the resonant_frequencies at each current using the fs_fit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_points</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fs_fit_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_fs_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs_fit_path</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_fit_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currents</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Gen_freqs</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">res_freqs</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">Gen_detuning</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA_cw_freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen_freqs</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_detuning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen_powers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gen_pstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen_pstop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen_ppoints</span><span class="p">)</span>
+        
+        <span class="c1">#set VNA to power sweep mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">sweep_type</span><span class="p">(</span><span class="s1">&#39;POW&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">res_freqs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">math</span><span class="p">(</span><span class="s1">&#39;NORM&#39;</span><span class="p">)</span> <span class="c1">#turning math off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">power_start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_pstart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">power_stop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_pstop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_ppoints</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">avgnum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA_avgs</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="PS_dc.ETA"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.PS_dc.ETA">[docs]</a>    <span class="k">def</span> <span class="nf">ETA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">time_per_combo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">sweep_time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ETA: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">time_per_combo</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">avgnum</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Gen_ppoints</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">c_points</span><span class="o">/</span><span class="mi">60</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"> hours&quot;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="PS_dc.read_fs_data"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.PS_dc.read_fs_data">[docs]</a>    <span class="k">def</span> <span class="nf">read_fs_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs_filepath</span><span class="p">,</span> <span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">all_datadicts_from_hdf5</span><span class="p">(</span><span class="n">fs_filepath</span><span class="p">)</span>
+        <span class="n">res_freqs</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&#39;base_resonant_frequency&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data_vals</span><span class="p">(</span><span class="s1">&#39;base_resonant_frequency&#39;</span><span class="p">)</span>
+        <span class="n">currents</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&#39;base_resonant_frequency&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data_vals</span><span class="p">(</span><span class="s1">&#39;current&#39;</span><span class="p">)</span>
+        <span class="n">fs_fit_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">currents</span><span class="p">,</span> <span class="n">res_freqs</span><span class="p">,</span> <span class="n">interpolation</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fs_fit_func</span></div>
+    
+<div class="viewcode-block" id="PS_dc.preview"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.PS_dc.preview">[docs]</a>    <span class="k">def</span> <span class="nf">preview</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs_fit_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currents</span><span class="p">),</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;resonant frequencies&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currents</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">fs_fit_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currents</span><span class="p">),</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span><span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;2X resonant frequencies&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gen_freqs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Generator frequencies&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;current (A)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Frequency(Hz)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Preview&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span></div></div>
+        
+    
+<div class="viewcode-block" id="Pump_flux_scan"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.Pump_flux_scan">[docs]</a><span class="k">class</span> <span class="nc">Pump_flux_scan</span><span class="p">():</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PS_dc</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">dc</span> <span class="o">=</span> <span class="n">PS_dc</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">),</span>
+            <span class="n">vna_input_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+            <span class="c1"># vna_frequency = dict(unit=&#39;Hz&#39;),</span>
+            
+            <span class="n">gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+            <span class="n">gen_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+            
+            <span class="n">vna_return_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">,</span> <span class="s1">&#39;vna_input_power&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+            <span class="n">vna_phase</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">,</span> <span class="s1">&#39;vna_input_power&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;gen_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Degrees&#39;</span><span class="p">),</span> 
+
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;creating files&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="fm">__enter__</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;file created&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Pump_flux_scan.save_data"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.Pump_flux_scan.save_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">vna_pows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span>
+        <span class="n">size_match</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">vna_pows</span><span class="p">))</span>
+        <span class="n">vna_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">VNA_avgs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">current</span><span class="p">()</span><span class="o">*</span><span class="n">size_match</span><span class="p">,</span> 
+            <span class="n">vna_input_power</span> <span class="o">=</span> <span class="n">vna_pows</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">VNA_att</span><span class="p">,</span> 
+            <span class="c1"># vna_frequency = self.dc.VNA.fcenter()*size_match, </span>
+            <span class="n">gen_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">()</span><span class="o">*</span><span class="n">size_match</span><span class="p">,</span>
+            <span class="n">gen_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">()</span><span class="o">*</span><span class="n">size_match</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen_att</span><span class="p">,</span>
+            
+            <span class="n">vna_return_power</span> <span class="o">=</span> <span class="n">vna_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">vna_phase</span> <span class="o">=</span> <span class="n">vna_data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Pump_flux_scan.measure"><a class="viewcode-back" href="../Pump_flux_scanning.html#Pump_flux_scanning.Pump_flux_scan.measure">[docs]</a>    <span class="k">def</span> <span class="nf">measure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bias_current</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">currents</span><span class="p">):</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">CS</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="n">bias_current</span><span class="p">,</span> <span class="n">ramp_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">c_ramp_rate</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">VNA_cw_freqs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen_freqs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">gen_power</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">gen_powers</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">gen_power</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_data</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;--------------------</span><span class="se">\n</span><span class="s1">PROGRESS: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">dc</span><span class="o">.</span><span class="n">c_points</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete</span><span class="se">\n</span><span class="s1">---------------------&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sweep, completed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+            
+            
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Pump_flux_scanning</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

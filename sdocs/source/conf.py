@@ -14,6 +14,10 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules'))
 sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules\\VNA'))
+sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules\\Adaptive_Sweeps'))
+sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules\\AWG_and_Alazar'))
+sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules\\Quantum_Machines'))
+
 
 # -- Project information -----------------------------------------------------
 
