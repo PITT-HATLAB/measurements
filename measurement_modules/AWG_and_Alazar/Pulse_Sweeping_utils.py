@@ -25,8 +25,9 @@ def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
     ad = alazar_dataclass
     
     with alazar.syncing():    
-        alazar.clock_source('EXTERNAL_CLOCK_10MHz_REF')
-        alazar.sample_rate(ad.SR)
+        alazar.clock_source('INTERNAL_CLOCK')
+        # alazar.clock_source('EXTERNAL_CLOCK_10MHz_REF')
+        alazar.sample_rate(1000000000)
         alazar.decimation(1)
         alazar.coupling1('AC')
         alazar.coupling2('AC')
@@ -37,14 +38,14 @@ def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
         alazar.trigger_operation('TRIG_ENGINE_OP_J')
         alazar.trigger_engine1('TRIG_ENGINE_J')
         alazar.trigger_source1('EXTERNAL')
-        alazar.trigger_slope1('TRIG_SLOPE_POSITIVE')
-        alazar.trigger_level1(160)
+        alazar.trigger_slope1('TRIG_SLOPE_NEGATIVE')
+        alazar.trigger_level1(150)
         alazar.trigger_engine2('TRIG_ENGINE_K')
         alazar.trigger_source2('DISABLE')
         alazar.trigger_slope2('TRIG_SLOPE_POSITIVE')
         alazar.trigger_level2(128)
         alazar.external_trigger_coupling('DC')
-        alazar.external_trigger_range('ETR_1V')
+        alazar.external_trigger_range('ETR_5V')
         alazar.trigger_delay(0)
         alazar.timeout_ticks(0)
         alazar.aux_io_mode('AUX_IN_AUXILIARY') # AUX_IN_TRIGGER_ENABLE for seq mode on
@@ -172,10 +173,6 @@ def acquire_one_pulse(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug 
     print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
     myctrl = Alazar_controller
     AWG = AWG_inst
-    AWG.ch1_m1_high(1.8)
-    AWG.ch1_m2_high(2.5)
-    AWG.ch2_m1_high(1.9)
-    AWG.ch2_m2_high(2.5)
     AWG.run()
     time.sleep(1)
     ch1data, ch2data = myctrl.channels.data()

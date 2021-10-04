@@ -496,6 +496,7 @@ class cavity_mimicking_pulse_class_3_state:
         rearm_time = 15e-6
         pulse_dur = 2e-6
         buffer = 300e-9
+        mkr_high_time = 80e-9
         #make element just for waiting for the trigger vefore each pulse
         bpTrigWait = bb.BluePrint()
         bpTrigWait.insertSegment(1, 'waituntil', rearm_time)
@@ -504,7 +505,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpTrigWaitMkr = bb.BluePrint()
         bpTrigWaitMkr.insertSegment(1, 'waituntil', rearm_time)
         bpTrigWaitMkr.setSR(1e9)
-        bpTrigWaitMkr.marker1 = [(0e-6,50e-9)]
+        bpTrigWaitMkr.marker1 = [(0e-6,mkr_high_time)]
         #make the I channel for G:
         I0_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
         bpI0 = bb.BluePrint()
@@ -512,7 +513,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpI0.insertSegment(1, 'waituntil', (wait_time))
         bpI0.insertSegment(2, I0_channel, (pulse_voltage, self.sim_filepath_G), name='Ig', dur=pulse_dur)
         bpI0.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpI0.marker1 = [(0e-6,50e-9)]
+        bpI0.marker1 = [(0e-6,mkr_high_time)]
         
         bpI0.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
         
@@ -524,7 +525,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ0.insertSegment(1, 'waituntil', (wait_time))
         bpQ0.insertSegment(2, Q0_channel, (pulse_voltage, self.sim_filepath_G), name='Qg', dur=pulse_dur)
         bpQ0.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpQ0.marker1 = [(0e-6,50e-9)]
+        bpQ0.marker1 = [(0e-6,mkr_high_time)]
         
         #make the I channel for E:
         I1_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
@@ -533,7 +534,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpI1.insertSegment(1, 'waituntil', (wait_time))
         bpI1.insertSegment(2, I1_channel, (pulse_voltage, self.sim_filepath_E), name='Ie', dur=pulse_dur)
         bpI1.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpI1.marker1 = [(0e-6,50e-9)]
+        bpI1.marker1 = [(0e-6,mkr_high_time)]
         
         bpI1.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
         
@@ -544,7 +545,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ1.insertSegment(1, 'waituntil', (wait_time))
         bpQ1.insertSegment(2, Q1_channel, (pulse_voltage, self.sim_filepath_E), name='Qe', dur=pulse_dur)
         bpQ1.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpQ1.marker1 = [(0e-6,50e-9)]
+        bpQ1.marker1 = [(0e-6,mkr_high_time)]
         
         #make the I channel for F:
         I2_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
@@ -553,7 +554,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpI2.insertSegment(1, 'waituntil', (wait_time))
         bpI2.insertSegment(2, I1_channel, (pulse_voltage, self.sim_filepath_F), name='If', dur=pulse_dur)
         bpI2.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpI2.marker1 = [(0e-6,50e-9)]
+        bpI2.marker1 = [(0e-6,mkr_high_time)]
         
         bpI2.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
         
@@ -564,7 +565,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ2.insertSegment(1, 'waituntil', (wait_time))
         bpQ2.insertSegment(2, Q1_channel, (pulse_voltage, self.sim_filepath_F), name='Qf', dur=pulse_dur)
         bpQ2.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpQ2.marker1 = [(0e-6,50e-9)]
+        bpQ2.marker1 = [(0e-6,mkr_high_time)]
         
         ##############################################
         #put blueprints into elements
@@ -607,27 +608,35 @@ class cavity_mimicking_pulse_class_3_state:
         # CavSeq.setChannelOffset(2, self.AWG_inst.ch2_offset())
         CavSeq.setChannelOffset(2, 0)
         
+        self.AWG_inst.ch1_m1_high(2.5)
+        self.AWG_inst.ch1_m2_high(2.5)
+        self.AWG_inst.ch2_m1_high(1.9)
+        self.AWG_inst.ch2_m2_high(2.5)
+        
         #now we have to prep it for the AWG
         CavSeq.addElement(1, waitElMkr)
-        CavSeq.addElement(2, CavEl1)
-        CavSeq.addElement(3, waitEl)
-        CavSeq.addElement(4, CavEl2)
-        CavSeq.addElement(5, waitEl)
-        CavSeq.addElement(6, CavEl3)
-        CavSeq.addElement(7, waitEl)
+        CavSeq.addElement(2, waitEl)
+        CavSeq.addElement(3, CavEl1)
+        CavSeq.addElement(4, waitEl)
+        CavSeq.addElement(5, CavEl2)
+        CavSeq.addElement(6, waitEl)
+        CavSeq.addElement(7, CavEl3)
+        CavSeq.addElement(8, waitEl)
         
         CavSeq.setSR(1e9)
         
         
         #set the sequencing
         CavSeq.setSequencingTriggerWait(1, 1)
-        CavSeq.setSequencingTriggerWait(2, 0)
-        CavSeq.setSequencingTriggerWait(3, 1)
-        CavSeq.setSequencingTriggerWait(4, 0)
-        CavSeq.setSequencingTriggerWait(5, 1)
-        CavSeq.setSequencingTriggerWait(6, 0)
-        CavSeq.setSequencingTriggerWait(7, 1)
-        CavSeq.setSequencingGoto(7, 2)
+        CavSeq.setSequencingTriggerWait(2, 1)
+        CavSeq.setSequencingNumberOfRepetitions(2, 150)
+        CavSeq.setSequencingTriggerWait(3, 0)
+        CavSeq.setSequencingTriggerWait(4, 1)
+        CavSeq.setSequencingTriggerWait(5, 0)
+        CavSeq.setSequencingTriggerWait(6, 1)
+        CavSeq.setSequencingTriggerWait(7, 0)
+        CavSeq.setSequencingTriggerWait(8, 1)
+        CavSeq.setSequencingGoto(8, 3)
     
         CavSeq.checkConsistency()
         plotter(CavSeq)

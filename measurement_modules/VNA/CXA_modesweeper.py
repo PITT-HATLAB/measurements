@@ -35,14 +35,14 @@ Gen_settings = [Gen, fstart, fstop, fpoints]
 Spec_frequency_sweep(DATADIR, name, CXA_settings, Gen_settings)
 
 #%% power sweep
-DATADIR = r'Z:\Data\00_Calibrations\RT Equipment calibrations\XMW_interferometer_rev2_qubit_drive'
-name = r'Qubit_drive_module_LO_pwr_vs_sideband_with_splitter_4' 
+DATADIR = r'Z:\Data\00_Calibrations\RT Equipment calibrations\XMW_interferometer_rev2_cavity_drive'
+name = r'cavity_drive_module_LO_pwr_vs_sideband_isolation_LO_12dBm' 
 
-CXA_fcenter = 6015000000.0
+CXA_fcenter = 7.5e9
 CXA_fspan = 150e6
 CXA_avgs = 100
 
-SC4.frequency(6015000000.0)
+SC4.frequency(7.5e9)
 Gen = SC4
 pstart = -5
 pstop = 15

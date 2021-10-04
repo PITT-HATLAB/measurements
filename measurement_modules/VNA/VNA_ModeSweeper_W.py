@@ -28,7 +28,7 @@ from dataclasses import dataclass
 #%% fluxsweep
 
 DATADIR = r'Z:\Data\SH_5B1_4141\fluxsweep\SNAIL'
-name='YROKO_sweep_half_quanta'
+name='YROKO_sweep_half_quanta_A_mode'
 #instruments
 VNA = pVNA
 CS = YROKO1
@@ -173,12 +173,12 @@ saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings)
 from measurement_modules.Adaptive_Sweeps.Pump_flux_scanning import PS_dc, Pump_flux_scan
 dc = PS_dc(
     datadir = r'Z:\Data\SH_5B1_4141\pump_scanning', 
-    name = 'First_tests',
+    name = 'A_mode_10dB_att',
     VNA = pVNA,
     VNA_pstart = -43,
     VNA_pstop =  -10,
-    VNA_ppoints = 200,
-    VNA_avgs = 50,
+    VNA_ppoints = 500,
+    VNA_avgs = 30,
     VNA_att = 50,
     VNA_detuning = 0.1e6,
     
@@ -187,15 +187,15 @@ dc = PS_dc(
     Gen_pstop =  19,
     Gen_ppoints = 31,
     Gen_detuning = 0,
-    Gen_att = 20,
+    Gen_att = 0,
     
     CS = YROKO1,
-    c_start = -4e-3,
+    c_start = -3e-3,
     c_stop = -5e-3,
-    c_points = 10,
+    c_points = 20,
     c_ramp_rate = None,
     
-    fs_fit_path = r'Z:/Data/SH_5B1_4141/fluxsweep/SNAIL/fits/2021-09-21/2021-09-21_0001_SH_5B1_YROKO_fit/2021-09-21_0001_SH_5B1_YROKO_fit.ddh5',
+    fs_fit_path = r'Z:/Data/SH_5B1_4141/fluxsweep/A_mode/fits/2021-09-22/2021-09-22_0001_SH_5B1_YROKO_fit_A_mode/2021-09-22_0001_SH_5B1_YROKO_fit_A_mode.ddh5',
     )
 
 #%%
