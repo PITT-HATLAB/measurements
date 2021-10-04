@@ -26,7 +26,6 @@ from pyglet import event
 # structs according to
 # http://msdn.microsoft.com/en-gb/library/windows/desktop/ee417001%28v=vs.85%29.aspx
 
-
 class XINPUT_GAMEPAD(ctypes.Structure):
     _fields_ = [
         ('buttons', ctypes.c_ushort),  # wButtons

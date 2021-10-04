@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple_Sweeps &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simple_Sweeps</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Simple_Sweeps</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Dec 17 12:44:49 2020</span>
+
+<span class="sd">@author: Ryan Kaufman</span>
+
+<span class="sd">A repostory for functional 1-parameter sweeps that produce either a 2d image or a 1d lineplot</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
+<span class="c1">#from plottr.data import datadict_storage as dds, datadict as dd</span>
+
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="Flux_Sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Flux_Sweep">[docs]</a><span class="k">def</span> <span class="nf">Flux_Sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">CS_settings</span><span class="p">,</span> <span class="n">ramp_rate</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    
+    <span class="p">[</span><span class="n">VNA</span><span class="p">,</span> <span class="n">VNA_fcenter</span><span class="p">,</span> <span class="n">VNA_fspan</span><span class="p">,</span> <span class="n">VNA_fpoints</span><span class="p">,</span> <span class="n">VNA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
+    <span class="p">[</span><span class="n">CS</span><span class="p">,</span> <span class="n">c_start</span><span class="p">,</span> <span class="n">c_stop</span><span class="p">,</span> <span class="n">c_points</span><span class="p">]</span> <span class="o">=</span> <span class="n">CS_settings</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">VNA_fcenter</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">VNA_fspan</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">VNA_fpoints</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">avgnum</span><span class="p">(</span><span class="n">VNA_avgs</span><span class="p">)</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">),</span>
+        <span class="n">frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">,</span> <span class="s1">&#39;frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+        <span class="n">phase</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">,</span> <span class="s1">&#39;frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Degrees&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+    
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">current_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">c_start</span><span class="p">,</span><span class="n">c_stop</span><span class="p">,</span><span class="n">c_points</span><span class="p">):</span>
+            <span class="n">CS</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="n">current_val</span><span class="p">,</span> <span class="n">ramp_rate</span> <span class="o">=</span> <span class="n">ramp_rate</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">vnadata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">VNA_avgs</span><span class="p">))</span> <span class="c1">#2xN array, N in [1601, 1000]</span>
+    
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">current</span> <span class="o">=</span> <span class="n">current_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">vnadata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">phase</span> <span class="o">=</span> <span class="n">vnadata</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">c_points</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span></div>
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="Spec_sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Spec_sweep">[docs]</a><span class="k">def</span> <span class="nf">Spec_sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">CXA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span> 
+    <span class="p">[</span><span class="n">CXA</span><span class="p">,</span> <span class="n">CXA_fcenter</span><span class="p">,</span> <span class="n">CXA_fspan</span><span class="p">,</span> <span class="n">CXA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">CXA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">fstart</span><span class="p">,</span> <span class="n">fstop</span><span class="p">,</span> <span class="n">fpoints</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">Gen_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;CXA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+    <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">CXA_fcenter</span><span class="p">)</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">CXA_fspan</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">f_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">fstart</span><span class="p">,</span><span class="n">fstop</span><span class="p">,</span><span class="n">fpoints</span><span class="p">):</span>
+            <span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f_val</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">CXA</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">count</span> <span class="o">=</span> <span class="n">CXA_avgs</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">pows</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># original writer cmd that failed on array size change</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">Gen_freq</span> <span class="o">=</span> <span class="n">f_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">pows</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">fpoints</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="Spec_frequency_sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Spec_frequency_sweep">[docs]</a><span class="k">def</span> <span class="nf">Spec_frequency_sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">CXA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span> 
+    <span class="p">[</span><span class="n">CXA</span><span class="p">,</span> <span class="n">CXA_fcenter</span><span class="p">,</span> <span class="n">CXA_fspan</span><span class="p">,</span> <span class="n">CXA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">CXA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">fstart</span><span class="p">,</span> <span class="n">fstop</span><span class="p">,</span> <span class="n">fpoints</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">Gen_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;CXA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+    <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">CXA_fcenter</span><span class="p">)</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">CXA_fspan</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">f_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">fstart</span><span class="p">,</span><span class="n">fstop</span><span class="p">,</span><span class="n">fpoints</span><span class="p">):</span>
+            <span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f_val</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">CXA</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">count</span> <span class="o">=</span> <span class="n">CXA_avgs</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">pows</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># original writer cmd that failed on array size change</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">Gen_freq</span> <span class="o">=</span> <span class="n">f_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">pows</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">fpoints</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+    
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="Spec_power_sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Spec_power_sweep">[docs]</a><span class="k">def</span> <span class="nf">Spec_power_sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">CXA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span> 
+    <span class="p">[</span><span class="n">CXA</span><span class="p">,</span> <span class="n">CXA_fcenter</span><span class="p">,</span> <span class="n">CXA_fspan</span><span class="p">,</span> <span class="n">CXA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">CXA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">pstart</span><span class="p">,</span> <span class="n">pstop</span><span class="p">,</span> <span class="n">ppoints</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">Gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;CXA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+    <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">CXA_fcenter</span><span class="p">)</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">CXA_fspan</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">pstart</span><span class="p">,</span><span class="n">pstop</span><span class="p">,</span><span class="n">ppoints</span><span class="p">):</span>
+            <span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">p_val</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">CXA</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">count</span> <span class="o">=</span> <span class="n">CXA_avgs</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">pows</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># original writer cmd that failed on array size change</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">Gen_power</span> <span class="o">=</span> <span class="n">p_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">pows</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">ppoints</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+<span class="c1">#%% 2 Tone Test for measuring IIP3</span>
+
+<div class="viewcode-block" id="Two_Tone"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Two_Tone">[docs]</a><span class="k">def</span> <span class="nf">Two_Tone</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">CXA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span> 
+    
+    <span class="p">[</span><span class="n">CXA</span><span class="p">,</span> <span class="n">CXA_fcenter</span><span class="p">,</span> <span class="n">CXA_fspan</span><span class="p">,</span> <span class="n">CXA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">CXA_settings</span>
+    <span class="p">[</span><span class="n">Gen1</span><span class="p">,</span> <span class="n">Gen2</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">pstart</span><span class="p">,</span> <span class="n">pstop</span><span class="p">,</span> <span class="n">ppoints</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">Gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;CXA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+    <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">CXA_fcenter</span><span class="p">)</span>
+    <span class="n">CXA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">CXA_fspan</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gen1</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span>
+    <span class="n">Gen2</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f2</span><span class="p">)</span>
+    <span class="n">Gen1</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Gen2</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">pstart</span><span class="p">,</span><span class="n">pstop</span><span class="p">,</span><span class="n">ppoints</span><span class="p">):</span>
+            <span class="n">Gen1</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">p_val</span><span class="p">)</span>
+            <span class="n">Gen2</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">p_val</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">CXA</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">count</span> <span class="o">=</span> <span class="n">CXA_avgs</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">pows</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># original writer cmd that failed on array size change</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">Gen_power</span> <span class="o">=</span> <span class="n">p_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">CXA_frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">pows</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">ppoints</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">Gen1</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">Gen2</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+    
+    
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="Frequency_Sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Frequency_Sweep">[docs]</a><span class="k">def</span> <span class="nf">Frequency_Sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span>
+    
+    <span class="p">[</span><span class="n">VNA</span><span class="p">,</span> <span class="n">VNA_fcenter</span><span class="p">,</span> <span class="n">VNA_fspan</span><span class="p">,</span> <span class="n">VNA_fpoints</span><span class="p">,</span> <span class="n">VNA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">fstart</span><span class="p">,</span> <span class="n">fstop</span><span class="p">,</span> <span class="n">fpoints</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">Gen_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">VNA_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;VNA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+        <span class="n">phase</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;VNA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Degrees&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">VNA_fcenter</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">VNA_fspan</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">VNA_fpoints</span><span class="p">)</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> 
+    <span class="n">VNA</span><span class="o">.</span><span class="n">renormalize</span><span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="n">VNA_avgs</span><span class="p">)</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">f_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">fstart</span><span class="p">,</span><span class="n">fstop</span><span class="p">,</span><span class="n">fpoints</span><span class="p">):</span>
+            <span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f_val</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">vnadata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">VNA_avgs</span><span class="p">))</span> <span class="c1">#2xN array, N in [1601, 1000]</span>
+            
+            <span class="c1"># original writer cmd that failed on array size change</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">Gen_freq</span> <span class="o">=</span> <span class="n">f_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">VNA_frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">vnadata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">phase</span> <span class="o">=</span> <span class="n">vnadata</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">fpoints</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="Power_Sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Power_Sweep">[docs]</a><span class="k">def</span> <span class="nf">Power_Sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">,</span> <span class="n">renorm</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span> 
+    
+    <span class="p">[</span><span class="n">VNA</span><span class="p">,</span> <span class="n">VNA_fcenter</span><span class="p">,</span> <span class="n">VNA_fspan</span><span class="p">,</span> <span class="n">VNA_fpoints</span><span class="p">,</span> <span class="n">VNA_avgs</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">p_start</span><span class="p">,</span> <span class="n">p_stop</span><span class="p">,</span> <span class="n">p_points</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="n">Gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">VNA_frequency</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;VNA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span> 
+        <span class="n">phase</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;VNA_frequency&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Degrees&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">VNA_fcenter</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fspan</span><span class="p">(</span><span class="n">VNA_fspan</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">renorm</span><span class="p">:</span> 
+        <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">VNA</span><span class="o">.</span><span class="n">renormalize</span><span class="p">(</span><span class="n">VNA_avgs</span><span class="p">)</span>
+        <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p_val</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">p_start</span><span class="p">,</span><span class="n">p_stop</span><span class="p">,</span><span class="n">p_points</span><span class="p">):</span>
+            <span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">p_val</span><span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span> <span class="c1">#1XN array, N in [1601,1000]</span>
+            <span class="n">vnadata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">VNA_avgs</span><span class="p">))</span> <span class="c1">#2xN array, N in [1601, 1000]</span>
+            
+            <span class="c1"># original writer cmd that failed on array size change</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                    <span class="n">Gen_power</span> <span class="o">=</span> <span class="n">p_val</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freqs</span><span class="p">)),</span>
+                    <span class="n">VNA_frequency</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">,</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="n">vnadata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">phase</span> <span class="o">=</span> <span class="n">vnadata</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">p_points</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="si">}</span><span class="s1"> percent  complete&#39;</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">try</span><span class="p">:</span> 
+        <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> 
+        <span class="n">Gen</span><span class="o">.</span><span class="n">rfout</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+<span class="c1">#%%</span>
+
+<div class="viewcode-block" id="Saturation_freq_Sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.Saturation_freq_Sweep">[docs]</a><span class="k">def</span> <span class="nf">Saturation_freq_Sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span> 
+    <span class="c1">#take a VNA trace, and perform a saturation sweep at each point in the sweep</span>
+    <span class="p">[</span><span class="n">VNA</span><span class="p">,</span> <span class="n">vna_avgs</span><span class="p">,</span> <span class="n">vna_cw_start</span><span class="p">,</span> <span class="n">vna_cw_stop</span><span class="p">,</span> <span class="n">vna_cw_points</span><span class="p">,</span> <span class="n">vna_p_start</span><span class="p">,</span> <span class="n">vna_p_stop</span><span class="p">,</span> <span class="n">vna_p_pts</span><span class="p">,</span> <span class="n">vna_att</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power</span><span class="p">,</span> <span class="n">gen_att</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    
+    <span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">gen_freq</span><span class="p">)</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">gen_power</span><span class="p">)</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1">#change sweep type on VNA before changing powers</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">sweep_type</span><span class="p">(</span><span class="s1">&#39;POW&#39;</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">math</span><span class="p">(</span><span class="s1">&#39;NORM&#39;</span><span class="p">)</span> <span class="c1">#turn math off</span>
+
+    <span class="n">VNA</span><span class="o">.</span><span class="n">power_start</span><span class="p">(</span><span class="n">vna_p_start</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">power_stop</span><span class="p">(</span><span class="n">vna_p_stop</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">vna_p_pts</span><span class="p">)</span>
+    
+    <span class="n">sat_data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="c1">## saturation data</span>
+        <span class="n">sat_gen_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">sat_gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">sat_vna_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">sat_vna_powers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">sat_gain</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sat_gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_powers&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">sat_phases</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sat_gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_powers&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">sat_data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    
+    <span class="n">vna_cw_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">vna_cw_start</span><span class="p">,</span> <span class="n">vna_cw_stop</span><span class="p">,</span> <span class="n">vna_cw_points</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;creating file&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">sat_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="c1">#average</span>
+        <span class="k">for</span> <span class="n">cw_freq</span> <span class="ow">in</span> <span class="n">vna_cw_freqs</span><span class="p">:</span> 
+            <span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">cw_freq</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vna_avgs</span><span class="p">)</span>
+            <span class="n">gains</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">pows</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                <span class="n">sat_gen_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_freq</span><span class="p">],</span>
+                <span class="n">sat_gen_power</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_power</span><span class="o">-</span><span class="n">gen_att</span><span class="p">],</span>
+                <span class="n">sat_vna_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">cw_freq</span><span class="p">],</span>
+                <span class="n">sat_vna_powers</span> <span class="o">=</span> <span class="n">pows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">vna_att</span><span class="p">,</span>
+                <span class="n">sat_gain</span> <span class="o">=</span> <span class="n">gains</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">sat_phases</span> <span class="o">=</span> <span class="n">phases</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="p">)</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+        
+<span class="c1">#%%</span>
+<div class="viewcode-block" id="saturation_gen_power_sweep"><a class="viewcode-back" href="../Simple_Sweeps.html#Simple_Sweeps.saturation_gen_power_sweep">[docs]</a><span class="k">def</span> <span class="nf">saturation_gen_power_sweep</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">Gen_settings</span><span class="p">):</span> 
+    <span class="c1">#take a VNA trace, and perform a saturation sweep at each point in the sweep</span>
+    <span class="p">[</span><span class="n">VNA</span><span class="p">,</span> <span class="n">vna_cw_freq</span><span class="p">,</span> <span class="n">vna_avgs</span><span class="p">,</span> <span class="n">vna_p_start</span><span class="p">,</span> <span class="n">vna_p_stop</span><span class="p">,</span> <span class="n">vna_p_pts</span><span class="p">,</span> <span class="n">vna_att</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
+    <span class="p">[</span><span class="n">Gen</span><span class="p">,</span> <span class="n">gen_freq</span><span class="p">,</span> <span class="n">gen_power_start</span><span class="p">,</span> <span class="n">gen_power_stop</span><span class="p">,</span> <span class="n">gen_power_points</span><span class="p">,</span> <span class="n">gen_att</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_settings</span>
+    
+    <span class="n">Gen</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">gen_freq</span><span class="p">)</span>
+    <span class="c1">#change sweep type on VNA before changing powers</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">sweep_type</span><span class="p">(</span><span class="s1">&#39;POW&#39;</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">fcenter</span><span class="p">(</span><span class="n">vna_cw_freq</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">math</span><span class="p">(</span><span class="s1">&#39;NORM&#39;</span><span class="p">)</span> <span class="c1">#turn math off</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">power_start</span><span class="p">(</span><span class="n">vna_p_start</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">power_stop</span><span class="p">(</span><span class="n">vna_p_stop</span><span class="p">)</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">num_points</span><span class="p">(</span><span class="n">vna_p_pts</span><span class="p">)</span>
+    
+    <span class="n">sat_data</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">DataDict</span><span class="p">(</span>
+        <span class="c1">## saturation data</span>
+        <span class="n">sat_gen_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">sat_gen_power</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">sat_vna_freq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">),</span>
+        <span class="n">sat_vna_powers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">sat_gain</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sat_gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_powers&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">),</span>
+        <span class="n">sat_phases</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sat_gen_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_gen_power&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_freq&#39;</span><span class="p">,</span> <span class="s1">&#39;sat_vna_powers&#39;</span><span class="p">],</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">sat_data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+    
+    <span class="n">gen_powers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">gen_power_start</span><span class="p">,</span> <span class="n">gen_power_stop</span><span class="p">,</span> <span class="n">gen_power_points</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;creating file&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">dds</span><span class="o">.</span><span class="n">DDH5Writer</span><span class="p">(</span><span class="n">DATADIR</span><span class="p">,</span> <span class="n">sat_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="c1">#average</span>
+        <span class="k">for</span> <span class="n">gen_power</span> <span class="ow">in</span> <span class="n">gen_powers</span><span class="p">:</span> 
+            <span class="n">data</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">vna_avgs</span><span class="p">)</span>
+            <span class="n">gains</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">phases</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">pows</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">getSweepData</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+                <span class="n">sat_gen_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_freq</span><span class="p">],</span>
+                <span class="n">sat_gen_power</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_power</span><span class="o">-</span><span class="n">gen_att</span><span class="p">],</span>
+                <span class="n">sat_vna_freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">vna_cw_freq</span><span class="p">],</span>
+                <span class="n">sat_vna_powers</span> <span class="o">=</span> <span class="n">pows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">vna_att</span><span class="p">,</span>
+                <span class="n">sat_gain</span> <span class="o">=</span> <span class="n">gains</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">sat_phases</span> <span class="o">=</span> <span class="n">phases</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="p">)</span>
+    <span class="n">Gen</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simple_Sweeps</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controller_Module &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Controller_Module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Controller_Module</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Nov 13 10:43:30 2020</span>
+
+<span class="sd">@author: Hatlab_3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A module for getting input from Microsoft XBox 360 controllers via the XInput library on Windows.</span>
+<span class="sd">Adapted from Jason R. Coombs&#39; code here:</span>
+<span class="sd">http://pydoc.net/Python/jaraco.input/1.0.1/jaraco.input.win32.xinput/</span>
+<span class="sd">under the MIT licence terms</span>
+<span class="sd">Upgraded to Python 3</span>
+<span class="sd">Modified to add deadzones, reduce noise, and support vibration</span>
+<span class="sd">Only req is Pyglet 1.2alpha1 or higher:</span>
+<span class="sd">pip install --upgrade http://pyglet.googlecode.com/archive/tip.zip </span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">itemgetter</span><span class="p">,</span> <span class="n">attrgetter</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">count</span><span class="p">,</span> <span class="n">starmap</span>
+<span class="kn">from</span> <span class="nn">pyglet</span> <span class="kn">import</span> <span class="n">event</span>
+
+<span class="c1"># structs according to</span>
+<span class="c1"># http://msdn.microsoft.com/en-gb/library/windows/desktop/ee417001%28v=vs.85%29.aspx</span>
+
+<div class="viewcode-block" id="XINPUT_GAMEPAD"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XINPUT_GAMEPAD">[docs]</a><span class="k">class</span> <span class="nc">XINPUT_GAMEPAD</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;buttons&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ushort</span><span class="p">),</span>  <span class="c1"># wButtons</span>
+        <span class="p">(</span><span class="s1">&#39;left_trigger&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">),</span>  <span class="c1"># bLeftTrigger</span>
+        <span class="p">(</span><span class="s1">&#39;right_trigger&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">),</span>  <span class="c1"># bLeftTrigger</span>
+        <span class="p">(</span><span class="s1">&#39;l_thumb_x&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_short</span><span class="p">),</span>  <span class="c1"># sThumbLX</span>
+        <span class="p">(</span><span class="s1">&#39;l_thumb_y&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_short</span><span class="p">),</span>  <span class="c1"># sThumbLY</span>
+        <span class="p">(</span><span class="s1">&#39;r_thumb_x&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_short</span><span class="p">),</span>  <span class="c1"># sThumbRx</span>
+        <span class="p">(</span><span class="s1">&#39;r_thumb_y&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_short</span><span class="p">),</span>  <span class="c1"># sThumbRy</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="XINPUT_STATE"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XINPUT_STATE">[docs]</a><span class="k">class</span> <span class="nc">XINPUT_STATE</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;packet_number&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulong</span><span class="p">),</span>  <span class="c1"># dwPacketNumber</span>
+        <span class="p">(</span><span class="s1">&#39;gamepad&#39;</span><span class="p">,</span> <span class="n">XINPUT_GAMEPAD</span><span class="p">),</span>  <span class="c1"># Gamepad</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="XINPUT_VIBRATION"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XINPUT_VIBRATION">[docs]</a><span class="k">class</span> <span class="nc">XINPUT_VIBRATION</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;wLeftMotorSpeed&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ushort</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;wRightMotorSpeed&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ushort</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="XINPUT_BATTERY_INFORMATION"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XINPUT_BATTERY_INFORMATION">[docs]</a><span class="k">class</span> <span class="nc">XINPUT_BATTERY_INFORMATION</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;BatteryType&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;BatteryLevel&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">)]</span></div>
+
+<span class="n">xinput</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">xinput1_4</span>
+<span class="c1">#xinput = ctypes.windll.xinput9_1_0  # this is the Win 8 version ?</span>
+<span class="c1"># xinput1_2, xinput1_1 (32-bit Vista SP1)</span>
+<span class="c1"># xinput1_3 (64-bit Vista SP1)</span>
+
+
+<div class="viewcode-block" id="struct_dict"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.struct_dict">[docs]</a><span class="k">def</span> <span class="nf">struct_dict</span><span class="p">(</span><span class="n">struct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    take a ctypes.Structure and return its field/value pairs</span>
+<span class="sd">    as a dict.</span>
+<span class="sd">    &gt;&gt;&gt; &#39;buttons&#39; in struct_dict(XINPUT_GAMEPAD)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; struct_dict(XINPUT_GAMEPAD)[&#39;buttons&#39;].__class__.__name__</span>
+<span class="sd">    &#39;CField&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">get_pair</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">field_type</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">field_type</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">field_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">get_pair</span><span class="p">,</span> <span class="n">struct</span><span class="o">.</span><span class="n">_fields_</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="get_bit_values"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.get_bit_values">[docs]</a><span class="k">def</span> <span class="nf">get_bit_values</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get bit values as a list for a given number</span>
+<span class="sd">    &gt;&gt;&gt; get_bit_values(1) == [0]*31 + [1]</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; get_bit_values(0xDEADBEEF)</span>
+<span class="sd">    [1L, 1L, 0L, 1L, 1L, 1L, 1L, 0L, 1L, 0L, 1L, 0L, 1L, 1L, 0L, 1L, 1L, 0L, 1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 1L]</span>
+<span class="sd">    You may override the default word size of 32-bits to match your actual</span>
+<span class="sd">    application.</span>
+<span class="sd">    &gt;&gt;&gt; get_bit_values(0x3, 2)</span>
+<span class="sd">    [1L, 1L]</span>
+<span class="sd">    &gt;&gt;&gt; get_bit_values(0x3, 4)</span>
+<span class="sd">    [0L, 0L, 1L, 1L]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gen_bit_values</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    <span class="c1"># 0-pad the most significant bit</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">))</span> <span class="o">+</span> <span class="n">res</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="gen_bit_values"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.gen_bit_values">[docs]</a><span class="k">def</span> <span class="nf">gen_bit_values</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a zero or one for each bit of a numeric value up to the most</span>
+<span class="sd">    significant 1 bit, beginning with the least significant bit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">number</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">number</span> <span class="o">&amp;</span> <span class="mh">0x1</span>
+        <span class="n">number</span> <span class="o">&gt;&gt;=</span> <span class="mi">1</span></div>
+
+<span class="n">ERROR_DEVICE_NOT_CONNECTED</span> <span class="o">=</span> <span class="mi">1167</span>
+<span class="n">ERROR_SUCCESS</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<div class="viewcode-block" id="XInputJoystick"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick">[docs]</a><span class="k">class</span> <span class="nc">XInputJoystick</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">EventDispatcher</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    XInputJoystick</span>
+<span class="sd">    A stateful wrapper, using pyglet event model, that binds to one</span>
+<span class="sd">    XInput device and dispatches events when states change.</span>
+<span class="sd">    Example:</span>
+<span class="sd">    controller_one = XInputJoystick(0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">max_devices</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_number</span><span class="p">,</span> <span class="n">normalize_axes</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">values</span><span class="p">[</span><span class="s1">&#39;self&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">XInputJoystick</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">received_packets</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missed_packets</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Set the method that will be called to normalize</span>
+        <span class="c1">#  the values for analog axis.</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">translate_identity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate_using_data_size</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translate</span> <span class="o">=</span> <span class="n">choices</span><span class="p">[</span><span class="n">normalize_axes</span><span class="p">]</span>
+
+<div class="viewcode-block" id="XInputJoystick.translate_using_data_size"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.translate_using_data_size">[docs]</a>    <span class="k">def</span> <span class="nf">translate_using_data_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">data_size</span><span class="p">):</span>
+        <span class="c1"># normalizes analog data to [0,1] for unsigned data</span>
+        <span class="c1">#  and [-0.5,0.5] for signed data</span>
+        <span class="n">data_bits</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">data_size</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">data_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.translate_identity"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.translate_identity">[docs]</a>    <span class="k">def</span> <span class="nf">translate_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">data_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.get_state"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;Get the state of the controller represented by this object&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">XINPUT_STATE</span><span class="p">()</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">xinput</span><span class="o">.</span><span class="n">XInputGetState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_number</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="n">ERROR_SUCCESS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">state</span>
+        <span class="k">if</span> <span class="n">res</span> <span class="o">!=</span> <span class="n">ERROR_DEVICE_NOT_CONNECTED</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;Unknown error </span><span class="si">%d</span><span class="s2"> attempting to get state of device </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device_number</span><span class="p">))</span></div>
+        <span class="c1"># else return None (device is not connected)</span>
+
+<div class="viewcode-block" id="XInputJoystick.is_connected"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.is_connected">[docs]</a>    <span class="k">def</span> <span class="nf">is_connected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.enumerate_devices"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.enumerate_devices">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">enumerate_devices</span><span class="p">():</span>
+        <span class="s2">&quot;Returns the devices that are connected&quot;</span>
+        <span class="n">devices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">map</span><span class="p">(</span><span class="n">XInputJoystick</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">XInputJoystick</span><span class="o">.</span><span class="n">max_devices</span><span class="p">))))</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_connected</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.set_vibration"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.set_vibration">[docs]</a>    <span class="k">def</span> <span class="nf">set_vibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left_motor</span><span class="p">,</span> <span class="n">right_motor</span><span class="p">):</span>
+        <span class="s2">&quot;Control the speed of both motors seperately&quot;</span>
+        <span class="c1"># Set up function argument types and return type</span>
+        <span class="n">XInputSetState</span> <span class="o">=</span> <span class="n">xinput</span><span class="o">.</span><span class="n">XInputSetState</span>
+        <span class="n">XInputSetState</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">XINPUT_VIBRATION</span><span class="p">)]</span>
+        <span class="n">XInputSetState</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span>
+
+        <span class="n">vibration</span> <span class="o">=</span> <span class="n">XINPUT_VIBRATION</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">left_motor</span> <span class="o">*</span> <span class="mi">65535</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">right_motor</span> <span class="o">*</span> <span class="mi">65535</span><span class="p">))</span>
+        <span class="n">XInputSetState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_number</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">vibration</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.get_battery_information"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.get_battery_information">[docs]</a>    <span class="k">def</span> <span class="nf">get_battery_information</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;Get battery type &amp; charge level&quot;</span>
+        <span class="n">BATTERY_DEVTYPE_GAMEPAD</span> <span class="o">=</span> <span class="mh">0x00</span>
+        <span class="n">BATTERY_DEVTYPE_HEADSET</span> <span class="o">=</span> <span class="mh">0x01</span>
+        <span class="c1"># Set up function argument types and return type</span>
+        <span class="n">XInputGetBatteryInformation</span> <span class="o">=</span> <span class="n">xinput</span><span class="o">.</span><span class="n">XInputGetBatteryInformation</span>
+        <span class="n">XInputGetBatteryInformation</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">XINPUT_BATTERY_INFORMATION</span><span class="p">)]</span>
+        <span class="n">XInputGetBatteryInformation</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span> 
+
+        <span class="n">battery</span> <span class="o">=</span> <span class="n">XINPUT_BATTERY_INFORMATION</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">XInputGetBatteryInformation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_number</span><span class="p">,</span> <span class="n">BATTERY_DEVTYPE_GAMEPAD</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">battery</span><span class="p">))</span>
+
+        <span class="c1">#define BATTERY_TYPE_DISCONNECTED       0x00</span>
+        <span class="c1">#define BATTERY_TYPE_WIRED              0x01</span>
+        <span class="c1">#define BATTERY_TYPE_ALKALINE           0x02</span>
+        <span class="c1">#define BATTERY_TYPE_NIMH               0x03</span>
+        <span class="c1">#define BATTERY_TYPE_UNKNOWN            0xFF</span>
+        <span class="c1">#define BATTERY_LEVEL_EMPTY             0x00</span>
+        <span class="c1">#define BATTERY_LEVEL_LOW               0x01</span>
+        <span class="c1">#define BATTERY_LEVEL_MEDIUM            0x02</span>
+        <span class="c1">#define BATTERY_LEVEL_FULL              0x03</span>
+        <span class="n">batt_type</span> <span class="o">=</span> <span class="s2">&quot;Unknown&quot;</span> <span class="k">if</span> <span class="n">battery</span><span class="o">.</span><span class="n">BatteryType</span> <span class="o">==</span> <span class="mh">0xFF</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;Disconnected&quot;</span><span class="p">,</span> <span class="s2">&quot;Wired&quot;</span><span class="p">,</span> <span class="s2">&quot;Alkaline&quot;</span><span class="p">,</span><span class="s2">&quot;Nimh&quot;</span><span class="p">][</span><span class="n">battery</span><span class="o">.</span><span class="n">BatteryType</span><span class="p">]</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Empty&quot;</span><span class="p">,</span> <span class="s2">&quot;Low&quot;</span><span class="p">,</span> <span class="s2">&quot;Medium&quot;</span><span class="p">,</span> <span class="s2">&quot;Full&quot;</span><span class="p">][</span><span class="n">battery</span><span class="o">.</span><span class="n">BatteryLevel</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">batt_type</span><span class="p">,</span> <span class="n">level</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.dispatch_events"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.dispatch_events">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;The main event loop for a joystick&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;Joystick </span><span class="si">%d</span><span class="s2"> is not connected&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">device_number</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">packet_number</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="o">.</span><span class="n">packet_number</span><span class="p">:</span>
+            <span class="c1"># state has changed, handle the change</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_packet_count</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_changed_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span> <span class="o">=</span> <span class="n">state</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.update_packet_count"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.update_packet_count">[docs]</a>    <span class="k">def</span> <span class="nf">update_packet_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="s2">&quot;Keep track of received and missed packets for performance tuning&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">received_packets</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">missed_packets</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">packet_number</span> <span class="o">-</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="o">.</span><span class="n">packet_number</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">missed_packets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_event</span><span class="p">(</span><span class="s1">&#39;on_missed_packet&#39;</span><span class="p">,</span> <span class="n">missed_packets</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missed_packets</span> <span class="o">+=</span> <span class="n">missed_packets</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.handle_changed_state"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.handle_changed_state">[docs]</a>    <span class="k">def</span> <span class="nf">handle_changed_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="s2">&quot;Dispatch various events as a result of the state changing&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_event</span><span class="p">(</span><span class="s1">&#39;on_state_changed&#39;</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_axis_events</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_button_events</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.dispatch_axis_events"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.dispatch_axis_events">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch_axis_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="c1"># axis fields are everything but the buttons</span>
+        <span class="n">axis_fields</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">XINPUT_GAMEPAD</span><span class="o">.</span><span class="n">_fields_</span><span class="p">)</span>
+        <span class="n">axis_fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;buttons&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="nb">type</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">axis_fields</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">old_val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="o">.</span><span class="n">gamepad</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">gamepad</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="n">data_size</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
+            <span class="n">old_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">old_val</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)</span>
+            <span class="n">new_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">new_val</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)</span>
+
+            <span class="c1"># an attempt to add deadzones and dampen noise</span>
+            <span class="c1"># done by feel rather than following http://msdn.microsoft.com/en-gb/library/windows/desktop/ee417001%28v=vs.85%29.aspx#dead_zone</span>
+            <span class="c1"># ags, 2014-07-01</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">old_val</span> <span class="o">!=</span> <span class="n">new_val</span> <span class="ow">and</span> <span class="p">(</span><span class="n">new_val</span> <span class="o">&gt;</span> <span class="mf">0.08000000000000000</span> <span class="ow">or</span> <span class="n">new_val</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.08000000000000000</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">old_val</span> <span class="o">-</span> <span class="n">new_val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.00000000500000000</span><span class="p">)</span> <span class="ow">or</span>
+               <span class="p">(</span><span class="n">axis</span> <span class="o">==</span> <span class="s1">&#39;right_trigger&#39;</span> <span class="ow">or</span> <span class="n">axis</span> <span class="o">==</span> <span class="s1">&#39;left_trigger&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">new_val</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">old_val</span> <span class="o">-</span> <span class="n">new_val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.00000000500000000</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_event</span><span class="p">(</span><span class="s1">&#39;on_axis&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">new_val</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.dispatch_button_events"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.dispatch_button_events">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch_button_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">gamepad</span><span class="o">.</span><span class="n">buttons</span> <span class="o">^</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_state</span><span class="o">.</span><span class="n">gamepad</span><span class="o">.</span><span class="n">buttons</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="n">get_bit_values</span><span class="p">(</span><span class="n">changed</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">buttons_state</span> <span class="o">=</span> <span class="n">get_bit_values</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">gamepad</span><span class="o">.</span><span class="n">buttons</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">changed</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">buttons_state</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">button_numbers</span> <span class="o">=</span> <span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">changed_buttons</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="p">(</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">changed</span><span class="p">,</span> <span class="n">button_numbers</span><span class="p">,</span> <span class="n">buttons_state</span><span class="p">))))</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="n">starmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dispatch_button_event</span><span class="p">,</span> <span class="n">changed_buttons</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.dispatch_button_event"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.dispatch_button_event">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch_button_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">pressed</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_event</span><span class="p">(</span><span class="s1">&#39;on_button&#39;</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">pressed</span><span class="p">)</span></div>
+
+    <span class="c1"># stub methods for event handlers</span>
+<div class="viewcode-block" id="XInputJoystick.on_state_changed"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.on_state_changed">[docs]</a>    <span class="k">def</span> <span class="nf">on_state_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.on_axis"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.on_axis">[docs]</a>    <span class="k">def</span> <span class="nf">on_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.on_button"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.on_button">[docs]</a>    <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">pressed</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="XInputJoystick.on_missed_packet"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.XInputJoystick.on_missed_packet">[docs]</a>    <span class="k">def</span> <span class="nf">on_missed_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+<span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">XInputJoystick</span><span class="o">.</span><span class="n">register_event_type</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s1">&#39;on_state_changed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;on_axis&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;on_button&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;on_missed_packet&#39;</span><span class="p">,</span>
+<span class="p">]))</span>
+
+
+<div class="viewcode-block" id="determine_optimal_sample_rate"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.determine_optimal_sample_rate">[docs]</a><span class="k">def</span> <span class="nf">determine_optimal_sample_rate</span><span class="p">(</span><span class="n">joystick</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Poll the joystick slowly (beginning at 1 sample per second)</span>
+<span class="sd">    and monitor the packet stream for missed packets, indicating</span>
+<span class="sd">    that the sample rate is too slow to avoid missing packets.</span>
+<span class="sd">    Missed packets will translate to a lost information about the</span>
+<span class="sd">    joystick state.</span>
+<span class="sd">    As missed packets are registered, increase the sample rate until</span>
+<span class="sd">    the target reliability is reached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># in my experience, you want to probe at 200-2000Hz for optimal</span>
+    <span class="c1">#  performance</span>
+    <span class="k">if</span> <span class="n">joystick</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">joystick</span> <span class="o">=</span> <span class="n">XInputJoystick</span><span class="o">.</span><span class="n">enumerate_devices</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">j</span> <span class="o">=</span> <span class="n">joystick</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Move the joystick or generate button events characteristic of your app&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hit Ctrl-C or press button 6 (&lt;, Back) to quit.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># here I use the joystick object to store some state data that</span>
+    <span class="c1">#  would otherwise not be in scope in the event handlers</span>
+
+    <span class="c1"># begin at 1Hz and work up until missed messages are eliminated</span>
+    <span class="n">j</span><span class="o">.</span><span class="n">probe_frequency</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Hz</span>
+    <span class="n">j</span><span class="o">.</span><span class="n">quit</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">j</span><span class="o">.</span><span class="n">target_reliability</span> <span class="o">=</span> <span class="o">.</span><span class="mi">99</span>  <span class="c1"># okay to lose 1 in 100 messages</span>
+
+    <span class="nd">@j</span><span class="o">.</span><span class="n">event</span>
+    <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="n">pressed</span><span class="p">):</span>
+        <span class="c1"># flag the process to quit if the &lt; button (&#39;back&#39;) is pressed.</span>
+        <span class="n">j</span><span class="o">.</span><span class="n">quit</span> <span class="o">=</span> <span class="p">(</span><span class="n">button</span> <span class="o">==</span> <span class="mi">6</span> <span class="ow">and</span> <span class="n">pressed</span><span class="p">)</span>
+
+    <span class="nd">@j</span><span class="o">.</span><span class="n">event</span>
+    <span class="k">def</span> <span class="nf">on_missed_packet</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;missed </span><span class="si">%(number)d</span><span class="s1"> packets&#39;</span> <span class="o">%</span> <span class="nb">vars</span><span class="p">())</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">received_packets</span> <span class="o">+</span> <span class="n">j</span><span class="o">.</span><span class="n">missed_packets</span>
+        <span class="n">reliability</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">received_packets</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reliability</span> <span class="o">&lt;</span> <span class="n">j</span><span class="o">.</span><span class="n">target_reliability</span><span class="p">:</span>
+            <span class="n">j</span><span class="o">.</span><span class="n">missed_packets</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">received_packets</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">j</span><span class="o">.</span><span class="n">probe_frequency</span> <span class="o">*=</span> <span class="mf">1.5</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">j</span><span class="o">.</span><span class="n">quit</span><span class="p">:</span>
+        <span class="n">j</span><span class="o">.</span><span class="n">dispatch_events</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">j</span><span class="o">.</span><span class="n">probe_frequency</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final probe frequency was </span><span class="si">%s</span><span class="s2"> Hz&quot;</span> <span class="o">%</span> <span class="n">j</span><span class="o">.</span><span class="n">probe_frequency</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sample_first_joystick"><a class="viewcode-back" href="../Controller_Module.html#Controller_Module.sample_first_joystick">[docs]</a><span class="k">def</span> <span class="nf">sample_first_joystick</span><span class="p">(</span><span class="n">Params</span><span class="p">,</span> <span class="n">stepsizes</span><span class="p">,</span> <span class="n">cycle_Buttons</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">act_Param</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">change_Axes</span><span class="o">=</span> <span class="p">[</span><span class="s1">&#39;left_trigger&#39;</span><span class="p">,</span><span class="s1">&#39;right_trigger&#39;</span><span class="p">],</span> <span class="n">change_Buttons</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="n">stepsize_change_buttons</span> <span class="o">=</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="n">debug_Button</span> <span class="o">=</span> <span class="mi">9</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Grab 1st available gamepad, logging changes to the screen.</span>
+<span class="sd">    L &amp; R analogue triggers set the vibration motor speed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">[</span><span class="n">stepsizedown</span><span class="p">,</span> <span class="n">stepsizeup</span><span class="p">]</span> <span class="o">=</span> <span class="n">stepsize_change_buttons</span>
+    <span class="p">[</span><span class="n">ax_down</span><span class="p">,</span> <span class="n">ax_up</span><span class="p">]</span> <span class="o">=</span> <span class="n">change_Axes</span>
+    <span class="n">quit_Button</span> <span class="o">=</span> <span class="mi">14</span>
+    <span class="n">debug</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial_Index: </span><span class="si">{</span><span class="n">act_Param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">Bump</span><span class="p">(</span><span class="n">Param</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span> 
+        <span class="n">Param</span><span class="p">(</span><span class="n">Param</span><span class="p">()</span><span class="o">+</span><span class="n">step</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Param</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> += </span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">Param</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">Param</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="n">joysticks</span> <span class="o">=</span> <span class="n">XInputJoystick</span><span class="o">.</span><span class="n">enumerate_devices</span><span class="p">()</span>
+    <span class="n">device_numbers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">attrgetter</span><span class="p">(</span><span class="s1">&#39;device_number&#39;</span><span class="p">),</span> <span class="n">joysticks</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;found </span><span class="si">%d</span><span class="s1"> devices: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">joysticks</span><span class="p">),</span> <span class="n">device_numbers</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">joysticks</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">j</span> <span class="o">=</span> <span class="n">joysticks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;using </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="o">.</span><span class="n">device_number</span><span class="p">)</span>
+
+    <span class="n">battery</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">get_battery_information</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">battery</span><span class="p">)</span>
+
+    <span class="nd">@j</span><span class="o">.</span><span class="n">event</span>
+    <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="n">pressed</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">debug</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span> 
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;button </span><span class="si">{</span><span class="n">button</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">pressed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">nonlocal</span> <span class="n">act_Param</span>
+        <span class="k">if</span> <span class="n">pressed</span> <span class="o">==</span><span class="mi">1</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">stepsizeup</span><span class="p">:</span> 
+                <span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span> <span class="o">*=</span><span class="mi">10</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> stepsize = </span><span class="si">{</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">stepsizedown</span><span class="p">:</span> 
+                <span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span> <span class="o">/=</span><span class="mi">10</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> stepsize = </span><span class="si">{</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">cycle_Buttons</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">act_Param</span> <span class="o">=</span> <span class="p">(</span><span class="n">act_Param</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">Params</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Active Parameter: </span><span class="si">{</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">Value: </span><span class="si">{</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]()</span><span class="si">}</span><span class="se">\n</span><span class="s1">Stepsize = </span><span class="si">{</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">cycle_Buttons</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">act_Param</span> <span class="o">=</span> <span class="p">(</span><span class="n">act_Param</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">Params</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Active Parameter: </span><span class="si">{</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s1">Value: </span><span class="si">{</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]()</span><span class="si">}</span><span class="se">\n</span><span class="s1">Stepsize = </span><span class="si">{</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">change_Buttons</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">Bump</span><span class="p">(</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">],</span> <span class="o">-</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">change_Buttons</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">Bump</span><span class="p">(</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">],</span> <span class="o">+</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span> <span class="n">debug_Button</span><span class="p">:</span>
+                <span class="n">debug</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="ow">not</span> <span class="n">debug</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Debug mode </span><span class="si">{</span><span class="nb">bool</span><span class="p">(</span><span class="n">debug</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">button</span> <span class="o">==</span><span class="n">quit_Button</span><span class="p">:</span> 
+                <span class="k">raise</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Quitting Controller&quot;</span><span class="p">))</span>
+            
+
+    <span class="n">left_speed</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">right_speed</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@j</span><span class="o">.</span><span class="n">event</span>
+    <span class="k">def</span> <span class="nf">on_axis</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
+        <span class="k">nonlocal</span> <span class="n">act_Param</span>
+        <span class="n">left_speed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">right_speed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="n">change_Axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">left_speed</span> <span class="o">=</span> <span class="n">value</span><span class="o">*</span><span class="mf">1.5</span>
+                <span class="k">try</span><span class="p">:</span> 
+                    <span class="n">Bump</span><span class="p">(</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">],</span> <span class="o">-</span><span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="o">*</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span> 
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;non-int input for int variable, use change_buttons instead&quot;</span><span class="p">)</span>
+                
+            <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="n">change_Axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">right_speed</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">try</span><span class="p">:</span> 
+                    <span class="n">Bump</span><span class="p">(</span><span class="n">Params</span><span class="p">[</span><span class="n">act_Param</span><span class="p">],</span> <span class="n">stepsizes</span><span class="p">[</span><span class="n">act_Param</span><span class="p">]</span><span class="o">*</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span> 
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;non-int input for int variable, use change_buttons instead&quot;</span><span class="p">)</span>
+            
+        <span class="n">j</span><span class="o">.</span><span class="n">set_vibration</span><span class="p">(</span><span class="n">left_speed</span><span class="p">,</span> <span class="n">right_speed</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
+        
+        
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">j</span><span class="o">.</span><span class="n">dispatch_events</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">01</span><span class="p">)</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sample_first_joystick</span><span class="p">()</span>
+    <span class="c1"># determine_optimal_sample_rate()</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">cycle_Button = 10, change_Axes= </span>
+<span class="sd">[&#39;left_trigger&#39;,&#39;right_trigger&#39;], stepsize_change_buttons = [13, 16], Parameters = [&#39;Param1&#39;, &#39;Param2&#39;], [&#39;stepsize1&#39;, &#39;stepsize2&#39;]</span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Controller_Module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
+    </div>
+  </body>
+</html>

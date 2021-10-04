@@ -77,7 +77,7 @@ def get_mode(cwd, device_name, mode_name, averages = None):
         f.close()
     return savedir+'\\'+name, fcenter
 #%% test
-        mode_path = get_mode(cwd+r'\modes', dev_name, 'Aref')
+mode_path = get_mode(cwd+r'\modes', dev_name, 'Aref')
 
 #%%
     

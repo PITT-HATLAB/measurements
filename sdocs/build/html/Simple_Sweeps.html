@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>Simple_Sweeps module &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Controller_Module module" href="Controller_Module.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Controller_Module.html" title="Controller_Module module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simple_Sweeps module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-Simple_Sweeps">
+<span id="simple-sweeps-module"></span><h1>Simple_Sweeps module<a class="headerlink" href="#module-Simple_Sweeps" title="Permalink to this headline">¶</a></h1>
+<p>Created on Thu Dec 17 12:44:49 2020</p>
+<p>&#64;author: Ryan Kaufman</p>
+<p>A repostory for functional 1-parameter sweeps that produce either a 2d image or a 1d lineplot</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Flux_Sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Flux_Sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CS_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ramp_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Flux_Sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Flux_Sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Frequency_Sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Frequency_Sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Frequency_Sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Frequency_Sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Power_Sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Power_Sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Power_Sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Power_Sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Saturation_freq_Sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Saturation_freq_Sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Saturation_freq_Sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Saturation_freq_Sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Spec_frequency_sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Spec_frequency_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CXA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Spec_frequency_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Spec_frequency_sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Spec_power_sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Spec_power_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CXA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Spec_power_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Spec_power_sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Spec_sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Spec_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CXA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Spec_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Spec_sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.Two_Tone">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">Two_Tone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CXA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#Two_Tone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.Two_Tone" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Simple_Sweeps.saturation_gen_power_sweep">
+<span class="sig-prename descclassname"><span class="pre">Simple_Sweeps.</span></span><span class="sig-name descname"><span class="pre">saturation_gen_power_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATADIR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">VNA_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gen_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Simple_Sweeps.html#saturation_gen_power_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Simple_Sweeps.saturation_gen_power_sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Controller_Module.html"
+                        title="previous chapter">Controller_Module module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Simple_Sweeps.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Controller_Module.html" title="Controller_Module module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simple_Sweeps module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
+    </div>
+  </body>
+</html>
