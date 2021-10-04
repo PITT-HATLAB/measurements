@@ -12,6 +12,7 @@ Welcome to Hatlab Measurements's documentation!
 
    Controller_Module
    Simple_Sweeps
+   pydataclasses
 
 Indices and tables
 ==================

@@ -1,0 +1,7 @@
+dataclasses module
+=====================
+
+.. automodule:: dataclasses
+   :members:
+   :undoc-members:
+   :show-inheritance:

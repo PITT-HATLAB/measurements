@@ -14,7 +14,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules'))
 sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules\\VNA'))
-sys.path.insert(0, os.path.abspath('..\\..\\measurement_modules\\old'))
 
 # -- Project information -----------------------------------------------------
 

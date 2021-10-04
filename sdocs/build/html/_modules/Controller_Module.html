@@ -347,7 +347,7 @@
     <span class="c1"># begin at 1Hz and work up until missed messages are eliminated</span>
     <span class="n">j</span><span class="o">.</span><span class="n">probe_frequency</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Hz</span>
     <span class="n">j</span><span class="o">.</span><span class="n">quit</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">j</span><span class="o">.</span><span class="n">target_reliability</span> <span class="o">=</span> <span class="o">.</span><span class="mi">99</span>  <span class="c1"># okay to lose 1 in 100 messages</span>
+    <span class="n">j</span><span class="o">.</span><span class="n">target_reliability</span> <span class="o">=</span> <span class="mf">.99</span>  <span class="c1"># okay to lose 1 in 100 messages</span>
 
     <span class="nd">@j</span><span class="o">.</span><span class="n">event</span>
     <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="n">pressed</span><span class="p">):</span>
@@ -460,7 +460,7 @@
 
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">j</span><span class="o">.</span><span class="n">dispatch_events</span><span class="p">()</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">01</span><span class="p">)</span></div>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.01</span><span class="p">)</span></div>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">sample_first_joystick</span><span class="p">()</span>
@@ -481,7 +481,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -507,7 +507,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, Boris Mesits.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>

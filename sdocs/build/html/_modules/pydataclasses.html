@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pydataclasses &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pydataclasses</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pydataclasses</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Mar  9 09:47:58 2021</span>
+
+<span class="sd">@author: Ryan Kaufman</span>
+
+<span class="sd">Goal: Create dataclasses for various sweeps that make passing parameters into and out of sweeps faster and safer than lists</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux</span> <span class="kn">import</span> <span class="n">Gain_Power_vs_Flux</span>
+<div class="viewcode-block" id="Alazar_Channel_config"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.Alazar_Channel_config">[docs]</a><span class="k">class</span> <span class="nc">Alazar_Channel_config</span><span class="p">():</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">ch1_range</span> <span class="o">=</span> <span class="mf">0.4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ch2_range</span> <span class="o">=</span> <span class="mf">0.4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_time</span> <span class="o">=</span> <span class="mf">4e-6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SR</span> <span class="o">=</span> <span class="mf">1e9</span></div>
+<div class="viewcode-block" id="AWG_Config"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.AWG_Config">[docs]</a><span class="k">class</span> <span class="nc">AWG_Config</span><span class="p">():</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">Sig_freq</span> <span class="o">=</span> <span class="mf">1e10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Mod_freq</span> <span class="o">=</span> <span class="mf">50e6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ref_freq</span> <span class="o">=</span> <span class="mf">1e10</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">Mod_freq</span></div>
+
+<div class="viewcode-block" id="GPF_dataclass"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">GPF_dataclass</span><span class="p">:</span> 
+    <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">inst_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="n">bias_current</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">vna_att</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">gen_att</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1">#SigGen settings</span>
+    <span class="n">gen_freqs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1">#VNA settings</span>
+    <span class="n">vna_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">vna_stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+        
+    <span class="n">vna_points</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1601</span>
+    <span class="n">vna_avg_number</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">vna_power</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">43</span>
+    
+    <span class="c1">#power sweep VNA settings</span>
+    <span class="n">vna_p_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">43</span>
+    <span class="n">vna_p_stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">vna_p_steps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1600</span>
+    <span class="n">vna_p_avgs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span>
+    
+    <span class="n">gen_freq_start_set</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">gen_freq_stop_set</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    
+<div class="viewcode-block" id="GPF_dataclass.set_start"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.set_start">[docs]</a>    <span class="k">def</span> <span class="nf">set_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">vna_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstart</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vna_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen_power_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start_set</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;CS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">current</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="GPF_dataclass.goto_stop"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.goto_stop">[docs]</a>    <span class="k">def</span> <span class="nf">goto_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gen_freq_offset</span> <span class="o">=</span> <span class="mf">30e6</span><span class="p">,</span> <span class="n">gen_power_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_set</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_stop</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_power_stop</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> 
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start_set</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start</span><span class="o">+</span><span class="n">gen_freq_offset</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_power_start</span> <span class="o">-</span> <span class="n">gen_power_offset</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Set start first&#39;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="GPF_dataclass.set_stop"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.set_stop">[docs]</a>    <span class="k">def</span> <span class="nf">set_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gen_pts</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">gen_power_offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">vna_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstart</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vna_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gen_power_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_set</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start_set</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">gen_freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_stop</span><span class="p">,</span> <span class="n">gen_pts</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;set start first&#39;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="GPF_dataclass.goto_start"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.goto_start">[docs]</a>    <span class="k">def</span> <span class="nf">goto_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;CS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bias_current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_power_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_freq_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstart</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vna_start</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="GPF_dataclass.print_info"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.print_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="GPF_dataclass.init_sweep_class"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.init_sweep_class">[docs]</a>    <span class="k">def</span> <span class="nf">init_sweep_class</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GP_F</span> <span class="o">=</span> <span class="n">Gain_Power_vs_Flux</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;CS&#39;</span><span class="p">],</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">],</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">],</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">cwd</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> 
+                                       <span class="n">gen_att</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_att</span><span class="p">,</span> 
+                                       <span class="n">vna_att</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vna_att</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="GPF_dataclass.renormalize"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.renormalize">[docs]</a>    <span class="k">def</span> <span class="nf">renormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power</span> <span class="o">=</span> <span class="o">-</span><span class="mi">43</span><span class="p">,</span> <span class="n">avgnum</span> <span class="o">=</span> <span class="mi">50</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">goto_start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># self.inst_dict[&#39;VNA&#39;].smoothing(1)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">renormalize</span><span class="p">(</span><span class="n">avgnum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vna_power</span><span class="p">)</span>
+        <span class="c1"># self.inst_dict[&#39;VNA&#39;].smoothing(0)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;Gen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+        
+        
+<div class="viewcode-block" id="GPF_dataclass.set_sweep_settings"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.set_sweep_settings">[docs]</a>    <span class="k">def</span> <span class="nf">set_sweep_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                           <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> 
+                           <span class="n">vna_avgs</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> 
+                           <span class="n">stepsize</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> 
+                           <span class="n">block_size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                           <span class="n">limit</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+                           <span class="n">target_gain</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+                           <span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> 
+                           <span class="n">gain_tracking</span> <span class="o">=</span> <span class="s1">&#39;max_point&#39;</span><span class="p">,</span> 
+                           <span class="n">gain_detuning</span> <span class="o">=</span> <span class="mf">500e3</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="n">peak_width_minimum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vna_avgs</span> <span class="o">=</span> <span class="n">vna_avgs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stepsize</span> <span class="o">=</span> <span class="n">stepsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span> <span class="o">=</span> <span class="n">block_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_gain</span> <span class="o">=</span> <span class="n">target_gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_configured</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_tracking</span> <span class="o">=</span> <span class="n">gain_tracking</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain_detuning</span> <span class="o">=</span> <span class="n">gain_detuning</span></div>
+        
+<div class="viewcode-block" id="GPF_dataclass.sweep"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.sweep">[docs]</a>    <span class="k">def</span> <span class="nf">sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_sweep_class</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;CS&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">change_current</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstart</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vna_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inst_dict</span><span class="p">[</span><span class="s1">&#39;VNA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fstop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vna_stop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renormalize</span><span class="p">(</span><span class="n">power</span> <span class="o">=</span> <span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="n">avgnum</span> <span class="o">=</span> <span class="mi">40</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GP_F</span><span class="o">.</span><span class="n">VNA_avg_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vna_avgs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GP_F</span><span class="o">.</span><span class="n">sweep_gain_vs_freq</span><span class="p">(</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">gen_freqs</span><span class="p">,</span> 
+                                   <span class="n">stepsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepsize</span><span class="p">,</span> 
+                                   <span class="n">block_size</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span> <span class="n">block_size</span><span class="p">,</span>
+                                   <span class="n">limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">,</span>
+                                   <span class="n">target_gain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_gain</span><span class="p">,</span>
+                                   <span class="n">threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span>
+                                   <span class="n">saturation_sweep</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">vna_p_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vna_p_start</span><span class="p">,</span> 
+                                   <span class="n">vna_p_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vna_p_stop</span><span class="p">,</span> 
+                                   <span class="n">vna_p_steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vna_p_steps</span><span class="p">,</span> 
+                                   <span class="n">vna_p_avgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vna_p_avgs</span><span class="p">,</span> 
+                                   <span class="n">peak_width_minimum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peak_width_minimum</span><span class="p">,</span> 
+                                   <span class="n">gain_tracking</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gain_tracking</span><span class="p">,</span> 
+                                   <span class="n">gain_detuning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gain_detuning</span><span class="p">)</span></div>
+<div class="viewcode-block" id="GPF_dataclass.queue"><a class="viewcode-back" href="../pydataclasses.html#pydataclasses.GPF_dataclass.queue">[docs]</a>    <span class="k">def</span> <span class="nf">queue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweep</span></div></div>
+        
+        
+        
+        
+        
+        
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pydataclasses</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>

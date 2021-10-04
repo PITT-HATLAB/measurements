@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pydataclasses module &#8212; Hatlab Measurements 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Simple_Sweeps module" href="Simple_Sweeps.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Simple_Sweeps.html" title="Simple_Sweeps module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pydataclasses module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-pydataclasses">
+<span id="pydataclasses-module"></span><h1>pydataclasses module<a class="headerlink" href="#module-pydataclasses" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Mar  9 09:47:58 2021</p>
+<p>&#64;author: Ryan Kaufman</p>
+<p>Goal: Create dataclasses for various sweeps that make passing parameters into and out of sweeps faster and safer than lists</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pydataclasses.AWG_Config">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pydataclasses.</span></span><span class="sig-name descname"><span class="pre">AWG_Config</span></span><a class="reference internal" href="_modules/pydataclasses.html#AWG_Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.AWG_Config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pydataclasses.Alazar_Channel_config">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pydataclasses.</span></span><span class="sig-name descname"><span class="pre">Alazar_Channel_config</span></span><a class="reference internal" href="_modules/pydataclasses.html#Alazar_Channel_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.Alazar_Channel_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pydataclasses.</span></span><span class="sig-name descname"><span class="pre">GPF_dataclass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cwd</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inst_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias_current</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_att</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_att</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_freqs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1601</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_avg_number</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_power</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">-</span> <span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">-</span> <span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_steps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_p_avgs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_freq_start_set</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_freq_stop_set</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.bias_current">
+<span class="sig-name descname"><span class="pre">bias_current</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.bias_current" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.cwd">
+<span class="sig-name descname"><span class="pre">cwd</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.cwd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.gen_att">
+<span class="sig-name descname"><span class="pre">gen_att</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.gen_att" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.gen_freq_start_set">
+<span class="sig-name descname"><span class="pre">gen_freq_start_set</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.gen_freq_start_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.gen_freq_stop_set">
+<span class="sig-name descname"><span class="pre">gen_freq_stop_set</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.gen_freq_stop_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.gen_freqs">
+<span class="sig-name descname"><span class="pre">gen_freqs</span></span><em class="property"><span class="pre">:</span> <span class="pre">numpy.ndarray</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.gen_freqs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.goto_start">
+<span class="sig-name descname"><span class="pre">goto_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.goto_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.goto_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.goto_stop">
+<span class="sig-name descname"><span class="pre">goto_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gen_freq_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_power_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.goto_stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.goto_stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.init_sweep_class">
+<span class="sig-name descname"><span class="pre">init_sweep_class</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.init_sweep_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.init_sweep_class" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.inst_dict">
+<span class="sig-name descname"><span class="pre">inst_dict</span></span><em class="property"><span class="pre">:</span> <span class="pre">dict</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.inst_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.print_info">
+<span class="sig-name descname"><span class="pre">print_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.print_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.print_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.queue">
+<span class="sig-name descname"><span class="pre">queue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.queue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.queue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.renormalize">
+<span class="sig-name descname"><span class="pre">renormalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avgnum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.renormalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.renormalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.set_start">
+<span class="sig-name descname"><span class="pre">set_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.set_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.set_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.set_stop">
+<span class="sig-name descname"><span class="pre">set_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gen_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_power_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.set_stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.set_stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.set_sweep_settings">
+<span class="sig-name descname"><span class="pre">set_sweep_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peak_width_minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vna_avgs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stepsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_tracking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max_point'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_detuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.set_sweep_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.set_sweep_settings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.sweep">
+<span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pydataclasses.html#GPF_dataclass.sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pydataclasses.GPF_dataclass.sweep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_att">
+<span class="sig-name descname"><span class="pre">vna_att</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_att" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_avg_number">
+<span class="sig-name descname"><span class="pre">vna_avg_number</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">10</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_avg_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_p_avgs">
+<span class="sig-name descname"><span class="pre">vna_p_avgs</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">100</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_p_avgs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_p_start">
+<span class="sig-name descname"><span class="pre">vna_p_start</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">-43</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_p_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_p_steps">
+<span class="sig-name descname"><span class="pre">vna_p_steps</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">1600</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_p_steps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_p_stop">
+<span class="sig-name descname"><span class="pre">vna_p_stop</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_p_stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_points">
+<span class="sig-name descname"><span class="pre">vna_points</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">1601</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_power">
+<span class="sig-name descname"><span class="pre">vna_power</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">-43</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_power" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_start">
+<span class="sig-name descname"><span class="pre">vna_start</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pydataclasses.GPF_dataclass.vna_stop">
+<span class="sig-name descname"><span class="pre">vna_stop</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#pydataclasses.GPF_dataclass.vna_stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Simple_Sweeps.html"
+                        title="previous chapter">Simple_Sweeps module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pydataclasses.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Simple_Sweeps.html" title="Simple_Sweeps module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Hatlab Measurements 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pydataclasses module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Boris Mesits.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+    </div>
+  </body>
+</html>
