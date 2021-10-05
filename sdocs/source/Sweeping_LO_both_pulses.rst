@@ -1,5 +1,5 @@
-Sweeping_LO_both_pulses module
-==========================================
+Sweeping_LO_both_pulses 
+=======================
 
 .. automodule:: Sweeping_LO_both_pulses
    :members:

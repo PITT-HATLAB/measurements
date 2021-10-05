@@ -1,5 +1,5 @@
-Controller_Module module
-==========================================
+Controller_Module 
+=================
 
 .. automodule:: Controller_Module
    :members:

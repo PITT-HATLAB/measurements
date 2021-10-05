@@ -1,5 +1,5 @@
-Duffing_Test module
-==========================================
+Duffing_Test 
+============
 
 .. automodule:: Duffing_Test
    :members:

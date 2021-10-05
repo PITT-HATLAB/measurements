@@ -1,33 +1,79 @@
 from os import walk
 import os
+from subprocess import check_output
 
-rst_path = r'C:/Users/datataker2/Documents/GitHub/measurements/sdocs/source/'
-code_path = r'C:/Users/datataker2/Documents/GitHub/measurements/measurement_modules/'
+
+def delete_rst(rst_path):
+    
+    for (dirpath, dirnames, filenames) in walk(rst_path):
         
-files = []
-dirs = []
+        for filename in filenames:
+            
+            if (filename != 'conf.py'):
+                
+                os.remove(rst_path + filename)
+    
 
-
-def write_rst(filename,indexrst):
+def write_rst(filename,indexrst,rst_path,dirpath):
     
     if filename[-3:] == '.py':
         
         if filename != '__init__.py':
         
             filename = filename[:-3]
-        
-            rst_path = r'C:/Users/datataker2/Documents/GitHub/measurements/sdocs/source/'
-            code_path = r'C:/Users/datataker2/Documents/GitHub/measurements/measurement_modules/'
-            print(filename)
+            
             
             f = open(rst_path + filename + '.rst', "w",encoding='utf8')
             f.write(filename)
-            f.write(''' module\n==========================================\n\n.. automodule:: ''')
+            f.write(' \n' + '='*len(filename) + '\n\n.. automodule:: ')
             f.write(filename)
             f.write('''\n   :members:\n   :undoc-members:\n   :show-inheritance:''')
             indexrst.write('   ' + filename + '\n')
 
-def begin_indexrst():
+def write_rst_dir(dirname,indexrst,depth):
+
+    if dirname != '__pycache__' and dirname != '.ipynb_checkpoints':   
+        
+        indexrst.write('\n')
+        
+        if (depth == 0):
+            indexrst.write('#'*len(dirname) + '\n')
+            
+        if (depth == 1):
+            indexrst.write('*'*len(dirname) + '\n')
+        
+        if (depth == 2):
+            indexrst.write('='*len(dirname) + '\n')
+            
+        if (depth == 3):
+            indexrst.write('-'*len(dirname) + '\n')
+            
+        if (depth >= 4):
+            indexrst.write('^'*len(dirname) + '\n')
+
+        indexrst.write(dirname + '\n')
+        
+
+        if (depth == 0):
+            indexrst.write('#'*len(dirname) + '\n\n')
+            
+        if (depth == 1):
+            indexrst.write('*'*len(dirname) + '\n\n')
+        
+        if (depth == 2):
+            indexrst.write('='*len(dirname) + '\n\n')
+            
+        if (depth == 3):
+            indexrst.write('-'*len(dirname) + '\n\n')
+            
+        if (depth >= 4):
+            indexrst.write('^'*len(dirname) + '\n\n')
+            
+        indexrst.write('''.. toctree::
+   :maxdepth: 5
+   :caption: Contents:\n\n''')
+
+def begin_indexrst(rst_path):
     
     indexrst = open(rst_path + 'index.rst', "w", encoding='utf8')
     
@@ -36,12 +82,12 @@ def begin_indexrst():
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Welcome to Hatlab Measurements's documentation!
-===============================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 5
-   :caption: Contents:''')
+   :maxdepth: 1''')
     indexrst.write('\n')
     indexrst.write('\n')
     return indexrst
@@ -59,22 +105,50 @@ Indices and tables
     
     indexrst.close()
         
-def recursive_walk(path):
+def recursive_walk(code_path,rst_path,indexrst,depth):
     
-    indexrst = begin_indexrst()
-    
-    for (dirpath, dirnames, filenames) in walk(path):
+
+    for (dirpath, dirnames, filenames) in walk(code_path):
         
+
         for filename in filenames:
             
-            write_rst(filename,indexrst)
-        
-        if (len(dirpath) > 0):
+            if (dirpath[-1] == '/'):
+                
+                write_rst(filename,indexrst,rst_path,dirpath+' '+str(depth))
+                
+        if (len(dirnames) > 0):
             
             for dirname in dirnames:
                 
-                recursive_walk(path+r'dirname/')
+                if (dirpath[-1] == '/'):
                 
-    finish_indexrst(indexrst)
+                    write_rst_dir(dirname,indexrst,depth)
+                                    
+                    recursive_walk(code_path+dirname+'/',rst_path,indexrst,depth+1)
 
-recursive_walk(code_path)
+
+if __name__ == '__main__':
+
+    rst_path = r'C:/Users/datataker2/Documents/GitHub/measurements/sdocs/source/'
+    code_path = r'C:/Users/datataker2/Documents/GitHub/measurements/measurement_modules/'
+    sdocs_path = 'C:\\Users\\datataker2\\Documents\\GitHub\\measurements\\sdocs\\'
+    
+    files = []
+    dirs = []
+
+    delete_rst(rst_path)
+    
+    depth = 0
+    
+    indexrst = begin_indexrst(rst_path)
+    try:
+        recursive_walk(code_path,rst_path,indexrst,depth)
+        finish_indexrst(indexrst)
+    except:
+        indexrst.close()
+        
+    check_output('dir ' + sdocs_path, shell=True)
+    print('Writing .rst files...')
+    print(check_output('make clean ' + sdocs_path, shell=True))
+    print(check_output('make html ' + sdocs_path, shell=True))

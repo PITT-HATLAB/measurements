@@ -1,5 +1,5 @@
-MultiAcquisition_both_pulses module
-==========================================
+MultiAcquisition_both_pulses 
+============================
 
 .. automodule:: MultiAcquisition_both_pulses
    :members:

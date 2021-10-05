@@ -1,5 +1,5 @@
-pydataclasses module
-==========================================
+pydataclasses 
+=============
 
 .. automodule:: pydataclasses
    :members:

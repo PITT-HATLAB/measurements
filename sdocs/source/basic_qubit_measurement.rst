@@ -1,5 +1,5 @@
-basic_qubit_measurement module
-==========================================
+basic_qubit_measurement 
+=======================
 
 .. automodule:: basic_qubit_measurement
    :members:

@@ -1,5 +1,5 @@
-Pump_flux_scanning module
-==========================================
+Pump_flux_scanning 
+==================
 
 .. automodule:: Pump_flux_scanning
    :members:

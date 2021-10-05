@@ -1,5 +1,5 @@
-Pi_pulse_tuneup module
-==========================================
+Pi_pulse_tuneup 
+===============
 
 .. automodule:: Pi_pulse_tuneup
    :members:

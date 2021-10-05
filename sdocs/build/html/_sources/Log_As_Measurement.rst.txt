@@ -1,5 +1,5 @@
-Log_As_Measurement module
-==========================================
+Log_As_Measurement 
+==================
 
 .. automodule:: Log_As_Measurement
    :members:

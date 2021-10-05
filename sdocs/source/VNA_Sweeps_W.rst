@@ -1,5 +1,5 @@
-VNA_Sweeps_W module
-==========================================
+VNA_Sweeps_W 
+============
 
 .. automodule:: VNA_Sweeps_W
    :members:

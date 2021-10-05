@@ -1,5 +1,5 @@
-MultiAcquisition module
-==========================================
+MultiAcquisition 
+================
 
 .. automodule:: MultiAcquisition
    :members:

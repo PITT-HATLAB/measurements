@@ -1,5 +1,5 @@
-mixer_tuning module
-==========================================
+mixer_tuning 
+============
 
 .. automodule:: mixer_tuning
    :members:

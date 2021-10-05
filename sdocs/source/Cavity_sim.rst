@@ -1,5 +1,5 @@
-Cavity_sim module
-==========================================
+Cavity_sim 
+==========
 
 .. automodule:: Cavity_sim
    :members:

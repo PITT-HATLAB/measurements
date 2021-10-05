@@ -11,8 +11,36 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
 class Duffing_Test():
-    
+    '''
+    Parameters
+    ----------
+    DATADIR : TYPE
+        DESCRIPTION.
+    name : TYPE
+        DESCRIPTION.
+    VNA_settings : TYPE
+        DESCRIPTION.
+    CS_settings : TYPE
+        DESCRIPTION.
+    Gen_Settings : TYPE
+        DESCRIPTION.
+    fs_fit_filepath : fit_fluxsweep
+        This is an object that references a datadict with fluxsweep data
+        that has already been fitted.
+    mode_kappa : TYPE, optional
+        DESCRIPTION. The default is 15e7.
+    mode_side : TYPE, optional
+        DESCRIPTION. The default is 4.
+    ramp_rate : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    None.
+    '''
     def __init__(self, DATADIR, name, VNA_settings, CS_settings, Gen_Settings, fs_fit_filepath, mode_kappa = 15e7, mode_side = 4, ramp_rate = None): 
+        
+        
         [self.VNA, self.VNA_fstart, self.VNA_fstop, self.VNA_fpoints, self.VNA_avgs, self.VNA_power] = VNA_settings
         [self.CS, self.c_start, self.c_stop, self.c_points] = CS_settings
         [self.Gen, self.p_start, self.p_stop, self.p_points, self.attn] = Gen_Settings

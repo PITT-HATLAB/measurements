@@ -1,5 +1,5 @@
-Gain_Power_vs_Flux module
-==========================================
+Gain_Power_vs_Flux 
+==================
 
 .. automodule:: Gain_Power_vs_Flux
    :members:

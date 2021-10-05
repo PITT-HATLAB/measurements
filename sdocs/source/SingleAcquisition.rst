@@ -1,5 +1,5 @@
-SingleAcquisition module
-==========================================
+SingleAcquisition 
+=================
 
 .. automodule:: SingleAcquisition
    :members:

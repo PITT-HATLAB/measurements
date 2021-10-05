@@ -1,5 +1,5 @@
-remote_module module
-==========================================
+remote_module 
+=============
 
 .. automodule:: remote_module
    :members:

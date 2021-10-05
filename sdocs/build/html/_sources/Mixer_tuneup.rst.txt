@@ -1,5 +1,5 @@
-Mixer_tuneup module
-==========================================
+Mixer_tuneup 
+============
 
 .. automodule:: Mixer_tuneup
    :members:

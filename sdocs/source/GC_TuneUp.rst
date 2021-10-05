@@ -1,5 +1,5 @@
-GC_TuneUp module
-==========================================
+GC_TuneUp 
+=========
 
 .. automodule:: GC_TuneUp
    :members:

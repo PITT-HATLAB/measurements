@@ -1,5 +1,5 @@
-CXA_modesweeper module
-==========================================
+CXA_modesweeper 
+===============
 
 .. automodule:: CXA_modesweeper
    :members:

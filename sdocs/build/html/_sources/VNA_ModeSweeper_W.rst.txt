@@ -1,5 +1,5 @@
-VNA_ModeSweeper_W module
-==========================================
+VNA_ModeSweeper_W 
+=================
 
 .. automodule:: VNA_ModeSweeper_W
    :members:

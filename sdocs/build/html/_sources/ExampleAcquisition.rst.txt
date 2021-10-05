@@ -1,5 +1,5 @@
-ExampleAcquisition module
-==========================================
+ExampleAcquisition 
+==================
 
 .. automodule:: ExampleAcquisition
    :members:

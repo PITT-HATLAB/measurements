@@ -1,5 +1,5 @@
-Simple_Sweeps module
-==========================================
+Simple_Sweeps 
+=============
 
 .. automodule:: Simple_Sweeps
    :members:

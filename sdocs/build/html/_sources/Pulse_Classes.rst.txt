@@ -1,5 +1,5 @@
-Pulse_Classes module
-==========================================
+Pulse_Classes 
+=============
 
 .. automodule:: Pulse_Classes
    :members:

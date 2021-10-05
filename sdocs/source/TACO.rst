@@ -1,5 +1,5 @@
-TACO module
-==========================================
+TACO 
+====
 
 .. automodule:: TACO
    :members:

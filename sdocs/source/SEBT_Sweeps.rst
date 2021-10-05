@@ -1,5 +1,5 @@
-SEBT_Sweeps module
-==========================================
+SEBT_Sweeps 
+===========
 
 .. automodule:: SEBT_Sweeps
    :members:

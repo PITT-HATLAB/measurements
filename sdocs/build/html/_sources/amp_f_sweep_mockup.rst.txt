@@ -1,5 +1,5 @@
-amp_f_sweep_mockup module
-==========================================
+amp_f_sweep_mockup 
+==================
 
 .. automodule:: amp_f_sweep_mockup
    :members:

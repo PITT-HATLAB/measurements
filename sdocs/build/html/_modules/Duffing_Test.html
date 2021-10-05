@@ -51,8 +51,38 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <div class="viewcode-block" id="Duffing_Test"><a class="viewcode-back" href="../Duffing_Test.html#Duffing_Test.Duffing_Test">[docs]</a><span class="k">class</span> <span class="nc">Duffing_Test</span><span class="p">():</span>
-    
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    DATADIR : TYPE</span>
+<span class="sd">        DESCRIPTION.</span>
+<span class="sd">    name : TYPE</span>
+<span class="sd">        DESCRIPTION.</span>
+<span class="sd">    VNA_settings : TYPE</span>
+<span class="sd">        DESCRIPTION.</span>
+<span class="sd">    CS_settings : TYPE</span>
+<span class="sd">        DESCRIPTION.</span>
+<span class="sd">    Gen_Settings : TYPE</span>
+<span class="sd">        DESCRIPTION.</span>
+<span class="sd">    fs_fit_filepath : fit_fluxsweep</span>
+<span class="sd">        This is an object that references a datadict with fluxsweep data</span>
+<span class="sd">        that has already been fitted.</span>
+<span class="sd">    mode_kappa : TYPE, optional</span>
+<span class="sd">        DESCRIPTION. The default is 15e7.</span>
+<span class="sd">    mode_side : TYPE, optional</span>
+<span class="sd">        DESCRIPTION. The default is 4.</span>
+<span class="sd">    ramp_rate : TYPE, optional</span>
+<span class="sd">        DESCRIPTION. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+<span class="sd">    </span>
+<span class="sd">    HELLO??</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DATADIR</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">VNA_settings</span><span class="p">,</span> <span class="n">CS_settings</span><span class="p">,</span> <span class="n">Gen_Settings</span><span class="p">,</span> <span class="n">fs_fit_filepath</span><span class="p">,</span> <span class="n">mode_kappa</span> <span class="o">=</span> <span class="mf">15e7</span><span class="p">,</span> <span class="n">mode_side</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">ramp_rate</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span> 
+        
+        
         <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">VNA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA_fstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA_fstop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA_fpoints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA_avgs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">VNA_power</span><span class="p">]</span> <span class="o">=</span> <span class="n">VNA_settings</span>
         <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_points</span><span class="p">]</span> <span class="o">=</span> <span class="n">CS_settings</span>
         <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Gen</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn</span><span class="p">]</span> <span class="o">=</span> <span class="n">Gen_Settings</span>

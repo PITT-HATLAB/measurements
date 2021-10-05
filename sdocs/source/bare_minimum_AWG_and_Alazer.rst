@@ -1,5 +1,5 @@
-bare_minimum_AWG_and_Alazer module
-==========================================
+bare_minimum_AWG_and_Alazer 
+===========================
 
 .. automodule:: bare_minimum_AWG_and_Alazer
    :members:

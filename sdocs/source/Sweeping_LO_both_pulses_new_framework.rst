@@ -1,5 +1,5 @@
-Sweeping_LO_both_pulses_new_framework module
-==========================================
+Sweeping_LO_both_pulses_new_framework 
+=====================================
 
 .. automodule:: Sweeping_LO_both_pulses_new_framework
    :members:

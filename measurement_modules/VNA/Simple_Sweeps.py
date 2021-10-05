@@ -12,6 +12,25 @@ import numpy as np
 
 #%%
 def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None):
+    '''
+    Parameters
+    ----------
+    DATADIR : string
+        directory for saving location.
+    name : TYPE
+        DESCRIPTION.
+    VNA_settings : TYPE
+        DESCRIPTION.
+    CS_settings : TYPE
+        DESCRIPTION.
+    ramp_rate : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    None.
+
+    '''
     
     [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs] = VNA_settings
     [CS, c_start, c_stop, c_points] = CS_settings

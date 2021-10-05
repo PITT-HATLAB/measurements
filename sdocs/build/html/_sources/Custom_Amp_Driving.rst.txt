@@ -1,5 +1,5 @@
-Custom_Amp_Driving module
-==========================================
+Custom_Amp_Driving 
+==================
 
 .. automodule:: Custom_Amp_Driving
    :members:

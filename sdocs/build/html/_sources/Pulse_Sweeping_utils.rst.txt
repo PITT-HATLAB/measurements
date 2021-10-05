@@ -1,5 +1,5 @@
-Pulse_Sweeping_utils module
-==========================================
+Pulse_Sweeping_utils 
+====================
 
 .. automodule:: Pulse_Sweeping_utils
    :members:

@@ -1,5 +1,5 @@
-Pump_Scanning module
-==========================================
+Pump_Scanning 
+=============
 
 .. automodule:: Pump_Scanning
    :members:

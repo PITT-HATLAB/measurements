@@ -1,5 +1,5 @@
-Sweeping_LO_both_pulses_one_datadict module
-==========================================
+Sweeping_LO_both_pulses_one_datadict 
+====================================
 
 .. automodule:: Sweeping_LO_both_pulses_one_datadict
    :members:
