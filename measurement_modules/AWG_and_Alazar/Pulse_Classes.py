@@ -493,7 +493,7 @@ class cavity_mimicking_pulse_class_3_state:
 
         #all in one box,
         wait_time = 1e-6
-        rearm_time = 15e-6
+        rearm_time = 200e-6
         pulse_dur = 2e-6
         buffer = 300e-9
         mkr_high_time = 80e-9
@@ -548,7 +548,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ1.marker1 = [(0e-6,mkr_high_time)]
         
         #make the I channel for F:
-        I2_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
+        # I2_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
         bpI2 = bb.BluePrint()
         bpI2.setSR(1e9)
         bpI2.insertSegment(1, 'waituntil', (wait_time))
@@ -559,7 +559,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpI2.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
         
         #make the Q channel for F:
-        Q2_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim
+        # Q2_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim
         bpQ2 = bb.BluePrint()
         bpQ2.setSR(1e9)
         bpQ2.insertSegment(1, 'waituntil', (wait_time))
@@ -578,18 +578,18 @@ class cavity_mimicking_pulse_class_3_state:
         waitElMkr.addBluePrint(2, bpTrigWait)
         
         CavEl1 = bb.Element()
-        CavEl1.addBluePrint(1,bpI0)
-        CavEl1.addBluePrint(2,bpQ0)
+        CavEl1.addBluePrint(1,bpI0+bpTrigWait)
+        CavEl1.addBluePrint(2,bpQ0+bpTrigWait)
         # plotter(CavEl1)
         
         CavEl2 = bb.Element()
-        CavEl2.addBluePrint(1,bpI1)
-        CavEl2.addBluePrint(2,bpQ1)
+        CavEl2.addBluePrint(1,bpI1+bpTrigWait)
+        CavEl2.addBluePrint(2,bpQ1+bpTrigWait)
         # plotter(CavEl2)
         
         CavEl3 = bb.Element()
-        CavEl3.addBluePrint(1,bpI2)
-        CavEl3.addBluePrint(2,bpQ2)
+        CavEl3.addBluePrint(1,bpI2+bpTrigWait)
+        CavEl3.addBluePrint(2,bpQ2+bpTrigWait)
         
         ###############################################
         #put elements into sequence
@@ -610,38 +610,57 @@ class cavity_mimicking_pulse_class_3_state:
         
         self.AWG_inst.ch1_m1_high(2.5)
         self.AWG_inst.ch1_m2_high(2.5)
-        self.AWG_inst.ch2_m1_high(1.9)
-        self.AWG_inst.ch2_m2_high(2.5)
+        self.AWG_inst.ch2_m1_high(1.5)
+        self.AWG_inst.ch2_m2_high(1.5)
         
         #now we have to prep it for the AWG
-        CavSeq.addElement(1, waitElMkr)
-        CavSeq.addElement(2, waitEl)
-        CavSeq.addElement(3, CavEl1)
-        CavSeq.addElement(4, waitEl)
-        CavSeq.addElement(5, CavEl2)
-        CavSeq.addElement(6, waitEl)
-        CavSeq.addElement(7, CavEl3)
-        CavSeq.addElement(8, waitEl)
+        # CavSeq.addElement(1, waitElMkr)
+        # CavSeq.addElement(1, waitEl)
+        CavSeq.addElement(1, CavEl1)
+        # CavSeq.addElement(3, waitEl)
+        CavSeq.addElement(2, CavEl2)
+        # CavSeq.addElement(5, waitEl)
+        CavSeq.addElement(3, CavEl3)
+        # CavSeq.addElement(7, waitEl)
         
         CavSeq.setSR(1e9)
         
         
         #set the sequencing
+        # CavSeq.setSequencingTriggerWait(1, 1)
+        # CavSeq.setSequencingTriggerWait(2, 1)
+        # CavSeq.setSequencingNumberOfRepetitions(2, 150)
+        # CavSeq.setSequencingTriggerWait(3, 0)
+        # CavSeq.setSequencingTriggerWait(4, 0)
+        # CavSeq.setSequencingTriggerWait(5, 0)
+        # CavSeq.setSequencingTriggerWait(6, 0)
+        # CavSeq.setSequencingTriggerWait(7, 0)
+        # CavSeq.setSequencingTriggerWait(8, 0)
+        
         CavSeq.setSequencingTriggerWait(1, 1)
         CavSeq.setSequencingTriggerWait(2, 1)
-        CavSeq.setSequencingNumberOfRepetitions(2, 150)
-        CavSeq.setSequencingTriggerWait(3, 0)
-        CavSeq.setSequencingTriggerWait(4, 1)
-        CavSeq.setSequencingTriggerWait(5, 0)
-        CavSeq.setSequencingTriggerWait(6, 1)
-        CavSeq.setSequencingTriggerWait(7, 0)
-        CavSeq.setSequencingTriggerWait(8, 1)
-        CavSeq.setSequencingGoto(8, 3)
-    
+        CavSeq.setSequencingTriggerWait(3, 1)
+        CavSeq.setSequencingNumberOfRepetitions(1, 2562)
+        CavSeq.setSequencingNumberOfRepetitions(2, 2562)
+        CavSeq.setSequencingNumberOfRepetitions(3, 2562)
         CavSeq.checkConsistency()
-        plotter(CavSeq)
+        
+        #subsequences aren't fully implemented in broadbean :(
+        # mainseq = bb.Sequence()
+        # mainseq.setSR(1e9)
+        # mainseq.addSubSequence(1, CavSeq)
+        # mainseq.setSequencingNumberOfRepetitions(1, 2562)
+        # mainseq.setChannelAmplitude(1, 4.5)
+        # mainseq.setChannelAmplitude(2, 4.5)
+        if preview: 
+            plotter(CavSeq)
+            # plotter(mainseq)
+            print("number of AWG points in subsequence", CavSeq.points)
+            # print("number of AWG points in main sequence", mainseq.points)
+        
+
         package = CavSeq.outputForAWGFile()
-        package.channels
+        # package.channels
         self.AWG_inst.make_send_and_load_awg_file(*package[:])
         self.AWG_inst.ch1_amp(4.5)
         self.AWG_inst.ch2_amp(4.5)

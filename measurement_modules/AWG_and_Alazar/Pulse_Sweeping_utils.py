@@ -25,8 +25,8 @@ def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
     ad = alazar_dataclass
     
     with alazar.syncing():    
-        alazar.clock_source('INTERNAL_CLOCK')
-        # alazar.clock_source('EXTERNAL_CLOCK_10MHz_REF')
+        # alazar.clock_source('INTERNAL_CLOCK')
+        alazar.clock_source('EXTERNAL_CLOCK_10MHz_REF')
         alazar.sample_rate(1000000000)
         alazar.decimation(1)
         alazar.coupling1('AC')
@@ -45,11 +45,11 @@ def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
         alazar.trigger_slope2('TRIG_SLOPE_POSITIVE')
         alazar.trigger_level2(128)
         alazar.external_trigger_coupling('DC')
-        alazar.external_trigger_range('ETR_5V')
+        alazar.external_trigger_range('ETR_1V')
         alazar.trigger_delay(0)
         alazar.timeout_ticks(0)
-        alazar.aux_io_mode('AUX_IN_AUXILIARY') # AUX_IN_TRIGGER_ENABLE for seq mode on
-        alazar.aux_io_param('NONE') # TRIG_SLOPE_POSITIVE for seq mode on
+        # alazar.aux_io_mode('AUX_IN_AUXILIARY') # AUX_IN_TRIGGER_ENABLE for seq mode on
+        # alazar.aux_io_param('NONE') # TRIG_SLOPE_POSITIVE for seq mode on
     print("\nAlazar Configured\n")
     # Create the acquisition controller which will take care of the data handling and tell it which 
     # alazar instrument to talk to. Explicitly pass the default options to the Alazar.
@@ -61,18 +61,19 @@ def Standard_Alazar_Config(alazar_inst,alazar_dataclass):
     
     print("Samples per record: ",myctrl.samples_per_record())
     alazar.buffer_timeout.set(20000)
+    
     rec_num = ad.record_num
     chan1 = AlazarChannel(myctrl, 'ChanA', demod=False, integrate_samples=False, average_records=False, average_buffers = True)
     chan1.alazar_channel('A')
     chan1.records_per_buffer(rec_num)
     chan1.num_averages(1)
-    chan1.prepare_channel()
+    # chan1.prepare_channel() #save for later
     
     chan2 = AlazarChannel(myctrl, 'ChanB', demod=False, integrate_samples=False, average_records= False, average_buffers = True)
     chan2.alazar_channel('B')
     chan2.records_per_buffer(rec_num)
     chan2.num_averages(1)
-    chan2.prepare_channel()
+    # chan2.prepare_channel() #save for later
     
     myctrl.channels.append(chan1)
     myctrl.channels.append(chan2)
@@ -204,17 +205,43 @@ def acquire_one_pulse(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug 
 
     return sI_c, sQ_c, rI_trace, rQ_trace
 
+from threading import Thread
+
+def data_handler(data_storage_list, data_parameter): 
+    print("dataThread acquiring data...")
+    data_storage_list.append(data_parameter())
+    print("dataThread acquisition complete")
+    
 def acquire_one_pulse_3_state(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug = False): 
     print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
     myctrl = Alazar_controller
     AWG = AWG_inst
-    AWG.ch1_m1_high(1.8)
-    AWG.ch1_m2_high(2.5)
-    AWG.ch2_m1_high(1.9)
-    AWG.ch2_m2_high(2.5)
+    # AWG.ch1_m1_high(2.5)
+    # AWG.ch1_m2_high(2.5)
+    # AWG.ch2_m1_high(2.5)
+    # AWG.ch2_m2_high(2.5)
+    myctrl.channels[0].prepare_channel()
+    myctrl.channels[1].prepare_channel()
+    
+    # time.sleep(15)
+    #have to use multithreading to start the Alazar acquisition first, only THEN start the AWG
+    #the problem is alazar acquisition blocks commands, hence the threading
+    
+    dataList = []
+    dataThread = Thread(target = data_handler, args = (dataList, myctrl.channels.data))
+    dataThread.start()
+    sleep_time = 0.5
+    print(f'Waiting for {sleep_time}s between AWG start and Alazar acquire')
+    time.sleep(sleep_time) #hardcoded temp value. Need enough time to start the thread and prep the alazar
     AWG.run()
+    #close the thread
+    #wait a bit longer
     time.sleep(1)
-    ch1data, ch2data = myctrl.channels.data()
+    dataThread.join()
+    if debug: 
+        print("Data: ", dataList)
+    ch1data, ch2data = dataList[0]
+    
     AWG.stop()
     #Demodulation
     mod_period = sample_rate//mod_freq
@@ -569,7 +596,7 @@ class Pulse_Sweep_3_state():
                  Ref_Gen): 
         
         '''
-        Implicit in this file is the external interferometer, these components
+        Implicit in this file is the external interferometer
         '''
         self.filename_prepend = name+'_'
         self.AWG_inst = AWG
@@ -664,15 +691,19 @@ class Pulse_Sweep_3_state():
                     s = list(np.shape(sI_c))
                     s[0] = int(s[0]//3) #evenly divided amongst I_plus and I_minus
                     time_step = self.Alazar_config.SR/self.AWG_Config.Mod_freq
+                    print("sI_c shape: ", np.shape(sI_c))
+                    num_records = np.shape(sI_c)[0]
+                    if num_records%3 != 0: raise Exception("Number of records not divisible by 3")
+                    rec_per_pulse = num_records//3
                     writer.add_data(
                             record_num = np.repeat(np.arange(s[0]), s[1]),
                             time = np.tile(np.arange(int(s[1]))*time_step, s[0]),
-                            I_G = sI_c[0::3].flatten(),
-                            Q_G = sQ_c[0::3].flatten(),
-                            I_E = sI_c[1::3].flatten(),
-                            Q_E = sQ_c[1::3].flatten(),
-                            I_F = sI_c[2::3].flatten(),
-                            Q_F = sQ_c[2::3].flatten()
+                            I_G = sI_c[0:rec_per_pulse].flatten(),
+                            Q_G = sQ_c[0:rec_per_pulse].flatten(),
+                            I_E = sI_c[rec_per_pulse:2*rec_per_pulse].flatten(),
+                            Q_E = sQ_c[rec_per_pulse:2*rec_per_pulse].flatten(),
+                            I_F = sI_c[2*rec_per_pulse:3*rec_per_pulse].flatten(),
+                            Q_F = sQ_c[2*rec_per_pulse:3*rec_per_pulse].flatten()
                             )
                     
                 self.post_measurement_operation(i)
