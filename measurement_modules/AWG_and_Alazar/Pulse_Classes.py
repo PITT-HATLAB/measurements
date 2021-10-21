@@ -452,6 +452,8 @@ class cavity_mimicking_pulse_class_3_state:
     phase_correction: float
     amplitude: float
     phase_rotation: float
+    wait_time: int
+    
     sim_filepath_G: str
     sim_filepath_E: str
     sim_filepath_F: str
@@ -492,11 +494,16 @@ class cavity_mimicking_pulse_class_3_state:
             ax.grid()
 
         #all in one box,
+        trig_wait_time = self.wait_time/1e6
         wait_time = 1e-6
-        rearm_time = 200e-6
+        rearm_time = 500e-6
         pulse_dur = 2e-6
         buffer = 300e-9
         mkr_high_time = 80e-9
+        mkr2_high_time = 400e-6
+        
+        marker_input = (trig_wait_time,mkr_high_time)
+        
         #make element just for waiting for the trigger vefore each pulse
         bpTrigWait = bb.BluePrint()
         bpTrigWait.insertSegment(1, 'waituntil', rearm_time)
@@ -505,7 +512,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpTrigWaitMkr = bb.BluePrint()
         bpTrigWaitMkr.insertSegment(1, 'waituntil', rearm_time)
         bpTrigWaitMkr.setSR(1e9)
-        bpTrigWaitMkr.marker1 = [(0e-6,mkr_high_time)]
+        bpTrigWaitMkr.marker1 = [(trig_wait_time+0e-6,trig_wait_time+mkr_high_time)]
         #make the I channel for G:
         I0_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
         bpI0 = bb.BluePrint()
@@ -513,10 +520,9 @@ class cavity_mimicking_pulse_class_3_state:
         bpI0.insertSegment(1, 'waituntil', (wait_time))
         bpI0.insertSegment(2, I0_channel, (pulse_voltage, self.sim_filepath_G), name='Ig', dur=pulse_dur)
         bpI0.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpI0.marker1 = [(0e-6,mkr_high_time)]
+        bpI0.marker1 = [marker_input]
         
-        bpI0.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
-        
+        bpI0.marker2 = [(wait_time-buffer,mkr2_high_time)]
         
         #make the Q channel for G:
         Q0_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim
@@ -525,7 +531,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ0.insertSegment(1, 'waituntil', (wait_time))
         bpQ0.insertSegment(2, Q0_channel, (pulse_voltage, self.sim_filepath_G), name='Qg', dur=pulse_dur)
         bpQ0.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpQ0.marker1 = [(0e-6,mkr_high_time)]
+        bpQ0.marker1 = [marker_input]
         
         #make the I channel for E:
         I1_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
@@ -534,9 +540,9 @@ class cavity_mimicking_pulse_class_3_state:
         bpI1.insertSegment(1, 'waituntil', (wait_time))
         bpI1.insertSegment(2, I1_channel, (pulse_voltage, self.sim_filepath_E), name='Ie', dur=pulse_dur)
         bpI1.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpI1.marker1 = [(0e-6,mkr_high_time)]
+        bpI1.marker1 = [marker_input]
         
-        bpI1.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
+        bpI1.marker2 = [(wait_time-buffer,mkr2_high_time)]
         
         #make the Q channel for E:
         Q1_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim
@@ -545,7 +551,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ1.insertSegment(1, 'waituntil', (wait_time))
         bpQ1.insertSegment(2, Q1_channel, (pulse_voltage, self.sim_filepath_E), name='Qe', dur=pulse_dur)
         bpQ1.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpQ1.marker1 = [(0e-6,mkr_high_time)]
+        bpQ1.marker1 = [marker_input]
         
         #make the I channel for F:
         # I2_channel = Ifunc_corrected # args: ampl, filepath_to_cavity_sim
@@ -554,9 +560,9 @@ class cavity_mimicking_pulse_class_3_state:
         bpI2.insertSegment(1, 'waituntil', (wait_time))
         bpI2.insertSegment(2, I1_channel, (pulse_voltage, self.sim_filepath_F), name='If', dur=pulse_dur)
         bpI2.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpI2.marker1 = [(0e-6,mkr_high_time)]
+        bpI2.marker1 = [marker_input]
         
-        bpI2.marker2 = [(wait_time-buffer,pulse_dur+2*buffer)]
+        bpI2.marker2 = [(wait_time-buffer,mkr2_high_time)]
         
         #make the Q channel for F:
         # Q2_channel = Qfunc_corrected # args: ampl,filepath_to_cavity_sim
@@ -565,7 +571,7 @@ class cavity_mimicking_pulse_class_3_state:
         bpQ2.insertSegment(1, 'waituntil', (wait_time))
         bpQ2.insertSegment(2, Q1_channel, (pulse_voltage, self.sim_filepath_F), name='Qf', dur=pulse_dur)
         bpQ2.insertSegment(3, 'waituntil', (2*wait_time+pulse_dur))
-        bpQ2.marker1 = [(0e-6,mkr_high_time)]
+        bpQ2.marker1 = [marker_input]
         
         ##############################################
         #put blueprints into elements

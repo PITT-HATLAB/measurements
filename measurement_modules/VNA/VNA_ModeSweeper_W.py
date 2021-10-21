@@ -28,14 +28,15 @@ from dataclasses import dataclass
 #%% fluxsweep
 
 DATADIR = r'Z:\Data\SH_5B1_4141\fluxsweep\SNAIL'
-name='YROKO_sweep_half_quanta_A_mode'
+name='half_quanta_S_mode'
 #instruments
 VNA = pVNA
-CS = YROKO1
+# CS = YROKO1
+CS = yoko2
 #starting parameters
-c_start = -0e-3
+c_start = 0e-3
 c_stop = -5.5e-3
-c_points = 450
+c_points = 250
 
 VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 10
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]

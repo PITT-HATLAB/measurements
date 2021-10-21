@@ -168,6 +168,25 @@ class Phase_Correction_Parameter(Parameter):
     def create_and_load_awg_sequence(self):
         self.pulse_class.setup_pulse()
 
+class wait_time_parameter(Parameter): 
+    def __init__(self, name, cavity_mimicking_pulse_class):
+        # only name is required
+        super().__init__(name)
+        self._wait_time = cavity_mimicking_pulse_class.wait_time
+        self.pulse_class = cavity_mimicking_pulse_class
+        self.unit = 'us'
+
+    # you must provide a get method, a set method, or both.
+    def get_raw(self):
+        return self.pulse_class.wait_time
+
+    def set_raw(self, val):
+        self.pulse_class.wait_time = val
+        self.create_and_load_awg_sequence()
+        
+    def create_and_load_awg_sequence(self):
+        self.pulse_class.setup_pulse()
+
 
     
 def acquire_one_pulse(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug = False): 
