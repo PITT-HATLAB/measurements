@@ -71,7 +71,7 @@ class Duffing_Test():
         fs_fit_func = interp1d(currents, res_freqs, interpolation)
         return fs_fit_func
     
-    def save_data(self, bias_current, gen_power, gen_freq, vna_freqs, undriven_vna_phase, undriven_vna_power, driven_vna_phase, driven_vna_power): 
+    def save_data(self, bias_current, gen_power, gen_freq, vna_freqs, undriven_vna_phase, undriven_vna_power, driven_vna_phase, driven_vna_power):
         self.writer.add_data(
             current = bias_current*np.ones(np.size(vna_freqs)), 
             gen_power = (gen_power-self.attn)*np.ones(np.size(vna_freqs)), 
@@ -87,11 +87,11 @@ class Duffing_Test():
             )
     
     def measure(self, debug = False, adaptive_VNA_window = False):
-        
+        self.VNA.rfout(1)
         for i, bias_current in enumerate(self.currents):
             if adaptive_VNA_window: 
                 self.VNA.fcenter(float(self.fs_fit_func(bias_current)))
-                self.VNA.fspan(10*self.mode_kappa)
+                self.VNA.fspan(5*self.mode_kappa)
             self.CS.change_current(bias_current, ramp_rate = self.ramp_rate)
             vna_freqs = self.VNA.getSweepData() #1XN array, N in [1601,1000]
             vnadata = np.array(self.VNA.average(self.VNA_avgs)) #2xN array, N in [1601, 1000]
@@ -111,7 +111,7 @@ class Duffing_Test():
                     print(f"Current: {np.round(bias_current, 6)}, Power: {np.round(gen_power, 2)}")
                 
                 self.save_data(bias_current, gen_power, gen_freq, vna_freqs, undriven_vna_phase, undriven_vna_power, driven_vna_phase, driven_vna_power)
-            if i%5 == 0: 
+            if i%1 == 0: 
                 print(f'--------------------\nPROGRESS: {np.round((i+1)/self.c_points*100)} percent  complete\n---------------------')
         print("Sweep, completed")
         self.writer.file.close()

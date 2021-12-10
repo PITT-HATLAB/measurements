@@ -35,7 +35,7 @@ Al_config  = Alazar_Channel_config()
 Al_config.record_num = 7686
 # Al_config.record_num = 11529 
 Al_config.ch1_range = 0.1
-Al_config.ch2_range = 0.4
+Al_config.ch2_range = 0.1
 # Al_config.record_time = 4e-6 #limit is about 15us 
 Al_config.record_time = 4e-6
 Al_config.SR = 1e9
@@ -44,27 +44,29 @@ Alazar_ctrl = PU.Standard_Alazar_Config(alazar, Al_config)
 
 dll_path = r'C:\Users\Hatlab_3\Desktop\RK_Scripts\New_Drivers\HatDrivers\DLL\sc5511a.dll'
 SigGen = Keysight_N5183B("SigGen", address = "TCPIP0::169.254.29.44::inst0::INSTR")
+SC5 = SignalCore_SC5511A('SigCore5', serial_number = '10001852', debug = True)
+# SigGen = SC5
 logging.basicConfig(level=logging.INFO)
 SC4 = SignalCore_SC5511A('SigCore4', serial_number = '10001851', debug = False)
 SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 
 #%%
-DATADIR = r'Z:\Data\Hakan\SH_5B1_SS_Gain_bp3\3_state\bp3\detuning_sweep_fine'
+DATADIR = r'Z:\Data\Hakan\SA_3C1_3221_7GHz\signal_power_sweep'
 mod_freq = 50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
 # cf = 6.066e9
 # target_freq = 6.7999e9
-target_freq = 6.8e9+0.1e6
+target_freq = 6.982e9
 SC4.frequency(target_freq)
 SC9.frequency(target_freq-50e6)
 LO_freqs = np.arange(target_freq-0.5e6, target_freq+0.5e6, 0.05e6)
 # LO_freqs = np.arange(cf+0.5e6, cf+7.5e6, 0.2e6)
 
-SG_pow = 11.57 #with 10dB att
+SG_pow = -11 #with 10dB att
 # SG_pow = 7.78 #without 10dB att and with switch + cable
 
-SG_freq = 13.6e9
+SG_freq = 13.9565e9
 pump_powers = np.arange(SG_pow-1, SG_pow+1, 0.05)
 # pump_powers = [-20]
 # print(np.size(LO_freqs))
@@ -76,8 +78,14 @@ AWG_config.Mod_freq = 50e6
 AWG_config.Sig_freq = target_freq
 AWG_config.Ref_freq = target_freq+50e6
 
-name = 'bp3_LO_detuning_0.3V'
-num_reps = 1
+name = 'amp_gain_test'
+num_reps = 5
+
+phase_points = np.linspace(0,2*np.pi, 12, endpoint = False)
+voltage_points = np.arange(0.05, 0.5, 0.05)
+phase_correction_points = np.linspace(0.1, 0.2, 11)
+rep_array = np.arange(num_reps)
+wait_times = np.arange(0, 500, 10)
 
 cmpc = PC.cavity_mimicking_pulse_class_3_state(
     # name 
@@ -87,9 +95,9 @@ cmpc = PC.cavity_mimicking_pulse_class_3_state(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (0.014, 0.024, 0.0, 0.0),
+    (-0.017, 0.18, 0.0, 0.0),
     # ch2_correction: 
-    0.955,
+    0.9572579591737458,
     # 1,
     # phase_correction_on_I: 
     0.15,
@@ -127,11 +135,7 @@ Wait = PU.wait_time_parameter("Trigger_wait", cmpc)
 SigGen.output_status(amp_pump)
 SigGen.frequency(SG_freq)
 SigGen.power(SG_pow)
-phase_points = np.linspace(0,2*np.pi, 12, endpoint = False)
-voltage_points = np.arange(0.05, 1.5, 0.05)
-phase_correction_points = np.linspace(0.1, 0.2, 11)
-rep_array = np.arange(num_reps)
-wait_times = np.arange(0, 500, 10)
+
 
 #ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
 amp_dict = dict(Amp = dict(parameter = SigGen.output_status, vals = np.array([0,1])))
@@ -145,18 +149,19 @@ wait_dict = dict(Trigger_wait = dict(parameter = Wait, vals = wait_times))
 # 
 # PS.add_independent_parameter(amp_dict)
 # PS.add_independent_parameter(pump_pwr_dict)
-PS.add_independent_parameter(LO_dict)
-# PS.add_independent_parameter(volt_dict)
+# PS.add_independent_parameter(LO_dict)
+PS.add_independent_parameter(volt_dict)
 # PS.add_independent_parameter(phase_dict)
-# PS.add_independent_parameter(rep_dict)
+PS.add_independent_parameter(rep_dict)
 # PS.add_independent_parameter(phase_corr_dict)
 # PS.add_independent_parameter(wait_dict)
 # 
 # V(1.5) #will run pulse setup
 cmpc.setup_pulse(preview = True)
+
 #%%
-V(0.3)
-PS.sweep(DATADIR)
+# V(2)
+PS.sweep(DATADIR, debug = False)
 #%%
 cmpc.print_info()
 cmpc.setup_pulse(preview = True)

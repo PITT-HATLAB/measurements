@@ -52,6 +52,40 @@ CXA_settings = [CXA, CXA_fcenter, CXA_fspan, CXA_avgs]
 Gen_settings = [Gen, pstart, pstop, ppoints]
 Spec_power_sweep(DATADIR, name, CXA_settings, Gen_settings)
 
+#%% 2x power sweep
+from measurement_modules.VNA.Simple_Sweeps import twoPowerSpec
+
+TPS = twoPowerSpec(
+    DATADIR = r"Z:\Data\Hakan\SH_5B1_SS_Gain_bp4\trace\TwoPowerSpec",
+    name = "TPS_bp4_more_avgs",
+    CXA_inst = CXA,
+    CXA_fcenter = 6.8e9,
+    CXA_fspan = 1.5e6,
+    CXA_avgs = 250,
+    
+    #gen1 is the pump
+    Gen1_inst = SigGen,
+    Gen1_frequency = 6.8e9*2,
+    Gen1_pstart = 11.4,
+    Gen1_pstop = 13.9,
+    Gen1_ppoints = 25,
+    Gen1_attn = 10,
+    
+    #gen2 is the signal
+    Gen2_inst = SC9,
+    Gen2_frequency = 6.8e9-100e3,
+    Gen2_pstart = -20,
+    Gen2_pstop = 15,
+    Gen2_ppoints = 35,
+    Gen2_attn = 70
+    
+    )
+
+TPS.ETA()
+
+#%% run TPS
+TPS.run()
+
 #%% 2-Tone test for IIP3
 
 DATADIR = r'Z:\Data\Hakan\SH_5B1_SS_Gain_6.064GHz\IIP3_SA_sweep'

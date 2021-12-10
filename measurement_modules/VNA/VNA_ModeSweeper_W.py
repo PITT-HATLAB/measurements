@@ -17,28 +17,29 @@ import time
 import pickle
 from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, saturation_gen_power_sweep
 from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
-from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
+
 from measurement_modules.dataclasses import GPF_dataclass
 
 from plottr.data import datadict_storage as dds, datadict as dd
 from datetime import datetime
 from plottr.apps.autoplot import autoplotDDH5, script, main
 from dataclasses import dataclass
-
+#%%
+# from measurement_modules.remote_module import controller_adjust
 #%% fluxsweep
-
-DATADIR = r'Z:\Data\SH_5B1_4141\fluxsweep\SNAIL'
-name='half_quanta_S_mode'
+from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep
+DATADIR = r'Z:\Data\SH6F1_1141\fluxsweep'
+name='half_quanta_A_mode_-73dBm_fine'
 #instruments
 VNA = pVNA
 # CS = YROKO1
 CS = yoko2
 #starting parameters
 c_start = 0e-3
-c_stop = -5.5e-3
-c_points = 250
+c_stop = 0.1e-3
+c_points = 300
 
-VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 2000, 10
+VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs = pVNA.fcenter(), pVNA.fspan(), 1500, 10
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 
 CS_settings = [CS, c_start, c_stop, c_points]
@@ -71,79 +72,66 @@ for (name, sgpow) in list(zip(names, pows)):
 SigGen.output_status(0)
 
 #%%power sweep
-DATADIR = r'Z:\Data\Hakan\SH_5B1_SS_Gain_6.064GHz\vna_gain_sweep'
+from measurement_modules.VNA.Simple_Sweeps import Power_Sweep
+DATADIR = r'Z:\Data\SH6F1_1141\gp7\gen_power_sweep'
 #instruments
 VNA = pVNA
 pVNA.rfout(1)
 Gen = SigGen
-# mode = CuCav
-# mode = AlCav
-#ifbw = 200 for low power, 500 high power
-
-# mode.push(VNA = pVNA)
-# VNA_avgs = mode.avgnum()
-# AlCav.push(VNA = pVNA)
-# temp = 820
-# if mode.name == 'AlCav': 
-#     DATADIR = r'Z:\Texas\Cooldown_20210525\PC_HPAl_etch_3'
-
-# elif mode.name == 'CuCav': 
-#     DATADIR = r'Z:\Texas\Cooldown_20210525\PC_CuCollar'
-# else: 
-#     raise Exception("AAAAAHHHHH")
 #starting parameters
-VNA_fcenter, VNA_fspan, VNA_fpoints = SigGen.frequency()/2, 10e6, 2000
-VNA_avgs = 50
-p_start, p_stop, p_points = -7, -6, 21 #wi!h -40dB on RT atten
+VNA_fcenter, VNA_fspan, VNA_fpoints = SigGen.frequency()/2, 100e6, 2000
+VNA_avgs = 30
+p_start, p_stop, p_points = -10, 5, 41 #wi!h -40dB on RT atten
 # p_start, p_stop, p_points = -20, 20, 41 #with 0 dB on RT atten
 # name = f'vna_trace_vs_vna_power_40dBatten_{temp}mK'
-name = f'gain_vs_gen_power_50dBatten'
+name = f'gain_vs_gen_power_10dBatten'
 SigGen.output_status(1)
 VNA_settings = [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs]
 Gen_settings = [SigGen, p_start, p_stop, p_points]
 Power_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 #%% Duffing Test
 #v2: uses a file with a pre-fitted fluxsweep to help out
-
-DATADIR = r'Z:\Data\SA_3C1_3132\duffing\SNAIL'
-name = "SA_3C1_Duffing"
-fs_fit_file = r'Z:/Data/SA_3C1_3132/fluxsweep/fits/2021-08-30/2021-08-30_0004_SA_3C1_fine_fit/2021-08-30_0004_SA_3C1_fine_fit.ddh5'
-[VNA, VNA_fstart, VNA_fstop, VNA_fpoints, VNA_avgs, VNA_power] = [pVNA, 6e9, 7.8e9, 2000, 20, -30]
+from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
+DATADIR = r'Z:\Data\SH6F1_1141\duffing'
+name = "SH6F1_SNAIL_Duffing"
+fs_fit_file = r'Z:/Data/SH6F1_1141/fluxsweep/fits/2021-11-29/2021-11-29_0004_SH_6F1_A_mode_full_fit/2021-11-29_0004_SH_6F1_A_mode_full_fit.ddh5'
+[VNA, VNA_fstart, VNA_fstop, VNA_fpoints, VNA_avgs, VNA_power] = [pVNA, 7.5e9, 7.8e9, 1500, 10, -30]
 #-0.04457831325301205 mA to  0.05180722891566265 mA
-[CS, c_start, c_stop, c_points] = [yoko2, -0.044e-3, 0.1e-3, 80]
-[Gen, p_start, p_stop, p_points, attn] = [SigGen, -10.0, 5, 40, 40]
+[CS, c_start, c_stop, c_points] = [yoko2, 0.089e-3, 0.093e-3, 15]
+[Gen, p_start, p_stop, p_points, attn] = [SigGen, -10.0, 20, 40, 40]
 
 VNA_Settings = [VNA, VNA_fstart, VNA_fstop, VNA_fpoints, VNA_avgs, VNA_power]
 CS_Settings = [CS, c_start, c_stop, c_points]
 Gen_Settings = [Gen, p_start, p_stop, p_points, attn]
 
-DT = Duffing_Test(DATADIR, name, VNA_Settings, CS_Settings, Gen_Settings, fs_fit_file, mode_kappa = 40e6, mode_side = 4, ramp_rate = 1e-3)
+DT = Duffing_Test(DATADIR, name, VNA_Settings, CS_Settings, Gen_Settings, fs_fit_file, mode_kappa = 35e6, mode_side = 5, ramp_rate = None)
 DT.preview()
 #%%Run the msmt
 DT.measure(adaptive_VNA_window = True)
 #%%Saturation over cw_frequencies
-DATADIR = r'E:\Data\Cooldown_20210408\SNAIL_Amps\C1\saturation_over_band'
-name = 'SA_C1_0mA_sat_test_gen10.1dBm'
+from measurement_modules.VNA.Simple_Sweeps import Saturation_freq_Sweep
+DATADIR = r'Z:\Data\SA_3C1_3221\Pulse_data_7GHz\saturation_over_CW_freqs'
+name = 'SA_C1_3221_sat_test_gen-21dBm_total'
 
 VNA = pVNA 
 vna_avgs = 30 
 vna_cw_start = pVNA.fstart()
 vna_cw_stop = pVNA.fstop()
-vna_cw_points = 100
+vna_cw_points = 30
 vna_p_start = -43
-vna_p_stop = 0 
+vna_p_stop = -10
 vna_p_pts = 1000 
-vna_att = 30
+vna_att = 40
 
 Gen = SigGen 
 gen_freq = SigGen.frequency()
 gen_power = SigGen.power()
-gen_att = 0
+gen_att = 10
 
 VNA_settings = [VNA, vna_avgs, vna_cw_start, vna_cw_stop, vna_cw_points, vna_p_start, vna_p_stop, vna_p_pts, vna_att]
 Gen_settings = [Gen, gen_freq, gen_power, gen_att]
 
-Saturation_Sweep(DATADIR, name, VNA_settings, Gen_settings)
+Saturation_freq_Sweep(DATADIR, name, VNA_settings, Gen_settings)
 
 
 #%%Saturation vs generator power

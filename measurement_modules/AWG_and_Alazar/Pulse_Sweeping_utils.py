@@ -15,7 +15,7 @@ from instrument_drivers.alazar_utilities.controller.ATSChannelController import 
 from instrument_drivers.alazar_utilities.controller.alazar_channel import AlazarChannel
 from qcodes.instrument.parameter import Parameter
 from data_processing.signal_processing.Pulse_Processing import demod, phase_correction
-
+import matplotlib.pyplot as plt
 import time
 
 from itertools import product
@@ -328,46 +328,6 @@ def acquire_one_pulse_finite_IF(AWG_inst, Alazar_controller, mod_freq, sample_ra
 
     return sI, sQ, rI, rQ
 
-def acquire_one_pulse_set(AWG_inst, Alazar_controller, mod_freq, sample_rate, num_pulsetypes = 2, debug = False): 
-    # print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
-    # myctrl = Alazar_controller
-    # AWG = AWG_inst
-    # AWG.ch1_m1_high(1.8)
-    # AWG.ch1_m2_high(2.5)
-    # AWG.ch2_m1_high(1.9)
-    # AWG.ch2_m2_high(2.5)
-    # AWG.run()
-    # time.sleep(1)
-    # ch1data, ch2data = myctrl.channels.data()
-    # AWG.stop()
-    # #Demodulation
-    # mod_period = sample_rate//mod_freq
-    # arr_shape = list(np.shape(ch1data)) #same as ch2
-    # arr_shape[1] = int(arr_shape[1]//mod_period)
-    
-    # sI = []
-    # sQ = []
-    # rI = []
-    # rQ = []
-    
-    # for i, (ch1data_record, ch2data_record) in enumerate(zip(ch1data, ch2data)):
-        
-    #     sI_row,sQ_row,rI_row,rQ_row = demod(ch1data_record, ch2data_record)
-    #     sI.append(sI_row)
-    #     sQ.append(sQ_row)
-    #     rI.append(rI_row)
-    #     rQ.append(rQ_row)
-        
-    # sI = np.array(sI)
-    # sQ = np.array(sQ)
-    # rI = np.array(rI)
-    # rQ = np.array(rQ)
-    # # Phase correction
-    # sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)
-
-    # return sI_c, sQ_c, rI_trace, rQ_trace
-    pass
-
 class Pulse_Sweep(): 
     
     def __init__(self, 
@@ -428,7 +388,7 @@ class Pulse_Sweep():
         self.ref_gen.output_status(0)
         print(f"\nMeasurement {i+1} out of {np.shape(list(self.setpoint_arr))[0]} completed\n")
     
-    def sweep(self, DATADIR, savemode = 'seperate'):
+    def sweep(self, DATADIR, savemode = 'seperate', debug = False):
         
         if not self.is_ind_par_set: 
             raise Exception("Independent parameter not yet set. Run set_independent_parameter method")
@@ -470,6 +430,7 @@ class Pulse_Sweep():
                 
                 with dds.DDH5Writer(DATADIR, self.datadict, name=filename) as writer:
                     sI_c, sQ_c, ref_I, ref_Q = acquire_one_pulse(self.AWG_inst, self.Alazar_ctrl, self.AWG_Config.Mod_freq, self.Alazar_config.SR)
+
                     s = list(np.shape(sI_c))
                     s[0] = int(s[0]//2) #evenly divided amongst I_plus and I_minus
                     time_step = self.Alazar_config.SR/self.AWG_Config.Mod_freq
@@ -663,7 +624,7 @@ class Pulse_Sweep_3_state():
         self.ref_gen.output_status(0)
         print(f"\nMeasurement {i+1} out of {np.shape(list(self.setpoint_arr))[0]} completed\n")
     
-    def sweep(self, DATADIR, savemode = 'seperate'):
+    def sweep(self, DATADIR, savemode = 'seperate', debug = True):
         
         if not self.is_ind_par_set: 
             raise Exception("Independent parameter not yet set. Run set_independent_parameter method")
@@ -710,7 +671,17 @@ class Pulse_Sweep_3_state():
                     s = list(np.shape(sI_c))
                     s[0] = int(s[0]//3) #evenly divided amongst I_plus and I_minus
                     time_step = self.Alazar_config.SR/self.AWG_Config.Mod_freq
-                    print("sI_c shape: ", np.shape(sI_c))
+                    if debug: 
+                        plt.figure()
+                        plt.plot(ref_I[:500])
+                        plt.title("I")
+                        plt.figure()
+                        plt.plot(ref_Q[:500])
+                        plt.title("Q")
+                        plt.figure()
+                        plt.plot(np.mod(np.angle(ref_I+1j*ref_Q), 2*np.pi)[:500], '.')
+                        plt.title("Phase")
+                        print("sI_c shape: ", np.shape(sI_c))
                     num_records = np.shape(sI_c)[0]
                     if num_records%3 != 0: raise Exception("Number of records not divisible by 3")
                     rec_per_pulse = num_records//3

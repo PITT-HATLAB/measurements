@@ -9,7 +9,8 @@ A repostory for functional 1-parameter sweeps that produce either a 2d image or 
 """
 import numpy as np 
 from plottr.data import datadict_storage as dds, datadict as dd
-
+import typing
+from dataclasses import dataclass, asdict
 #%%
 def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None):
     
@@ -131,6 +132,87 @@ def Spec_power_sweep(DATADIR, name, CXA_settings, Gen_settings):
             print(f'{np.round((i+1)/ppoints*100)} percent  complete')
             i+=1
     Gen.output_status(0)
+
+@dataclass
+class twoPowerSpec: 
+    DATADIR: str = None
+    name: str = None
+    CXA_inst: typing.Any = None
+    CXA_fcenter: float = None
+    CXA_fspan: float = None
+    CXA_avgs: int = None
+    
+    #gen1 is the pump
+    Gen1_inst: any = None
+    Gen1_frequency: float = None
+    Gen1_pstart: float = None
+    Gen1_pstop: float = None
+    Gen1_ppoints: int = None
+    Gen1_attn: float = None
+    
+    #gen2 is the signal
+    Gen2_inst: typing.Any = None
+    Gen2_frequency: float = None
+    Gen2_pstart: float = None
+    Gen2_pstop: float = None
+    Gen2_ppoints: int = None
+    Gen2_attn: float = None
+    
+    def ETA(self):
+        self.CXA_inst.fcenter(self.CXA_fcenter)
+        self.CXA_inst.fspan(self.CXA_fspan)
+        print("ETA: ", self.Gen1_ppoints*self.Gen2_ppoints*self.CXA_inst.sweep_time()*self.CXA_avgs/60, ' minutes')
+    
+    def run(self): 
+        data = dd.DataDict(
+            Pump_power = dict(unit='dBm'),
+            Signal_power = dict(unit = 'dBm'), 
+            Spectrum_frequency = dict(unit='Hz'),
+            Spectrum_power = dict(axes=['Pump_power', 'Signal_power', 'Spectrum_frequency'], unit = 'dBm'), 
+        )
+        data.validate()
+        self.CXA_inst.fcenter(self.CXA_fcenter)
+        self.CXA_inst.fspan(self.CXA_fspan)
+        
+        self.Gen1_inst.frequency(self.Gen1_frequency)
+        self.Gen1_inst.power(self.Gen1_pstart)
+        self.Gen1_inst.output_status(1)
+        
+        self.Gen2_inst.frequency(self.Gen2_frequency)
+        self.Gen2_inst.power(self.Gen2_pstart)
+        self.Gen2_inst.output_status(1)
+        i = 0
+        
+        with dds.DDH5Writer(self.DATADIR, data, name=self.name) as writer:
+            for Gen1_p_val in np.linspace(self.Gen1_pstart,self.Gen1_pstop, self.Gen1_ppoints):
+                for Gen2_p_val in np.linspace(self.Gen2_pstart,self.Gen2_pstop, self.Gen2_ppoints):
+                    self.Gen1_inst.power(Gen1_p_val)
+                    self.Gen2_inst.power(Gen2_p_val)
+                    data = self.CXA_inst.get_data(count = self.CXA_avgs)
+                    freqs = data[:, 0] #1XN array, N in [1601,1000]
+                    pows = data[:, 1]
+                    writer.add_data(
+                            Pump_power = Gen1_p_val*np.ones(np.size(freqs))-self.Gen1_attn,
+                            Signal_power = Gen2_p_val*np.ones(np.size(freqs))-self.Gen2_attn,
+                            Spectrum_frequency = freqs,
+                            Spectrum_power = pows
+                        )
+                print(f'{np.round((i+1)/self.Gen1_ppoints*100)} percent  complete')
+                i+=1
+                
+            self.filepath = writer.file_path
+        self.Gen1_inst.output_status(0)
+        self.Gen2_inst.output_status(0)
+        #save a file containing all the relevant details, like the generator frequencies, attenuation, etc
+        #first have to replace the instruments with their names, qcodes instruments cant be pickled
+        self.CXA_inst = self.CXA_inst.name
+        self.Gen1_inst = self.Gen1_inst.name
+        self.Gen2_inst = self.Gen2_inst.name
+        infoFile = open(self.filepath.rpartition('\\')[0]+'\\'+self.name+'_info.txt', mode = 'w')
+        infoFile.write(str(asdict(self)))
+        infoFile.close()
+        
+
 #%% 2 Tone Test for measuring IIP3
 
 def Two_Tone(DATADIR, name, CXA_settings, Gen_settings): 
