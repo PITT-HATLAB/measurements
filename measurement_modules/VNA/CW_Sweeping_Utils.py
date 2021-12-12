@@ -33,6 +33,8 @@ class CW_sweep():
         self.mode = mode
         
         self.VNA_inst = VNA_inst
+        self.VNA_mode = 'NOT_SET'
+        
         self.SA_inst = SA_inst
         
         self.Gen_inst_arr = Gen_arr
@@ -47,6 +49,40 @@ class CW_sweep():
         self.ind_par_dict_arr.append(ind_par_dict)
         self.is_ind_par_set = True
         
+    def setup_VNA(self, sweep_mode, start, stop, points):
+        '''
+        Function for setting the primary indpendent variable of the VNA, and also the window of that variable
+        
+        e.g. for a frequency sweep,
+        VNA.set_mode('FREQ')
+        VNA.fstart()
+        VNA.fstop()
+        VNA.fpoints()
+        VNA.avgnum(10)
+
+        '''
+        self.VNA_mode = [sweep_mode.upper() if sweep_mode.upper() == 'POW' or 'FREQ' else 'WRONG_INPUT'][0]
+        
+        if self.VNN_mode == 'FREQ': 
+            self.VNA_inst.fstart(start)
+            self.VNA_inst.fstop(stop)
+            self.VNA_inst.num_points(points)
+            
+        elif self.VNA_mode == 'POW': 
+            self.VNA_inst.power_start(start)
+            self.VNA_inst.power_stop(stop)
+            self.VNA_inst.num_points(points)
+        elif self.VNA_mode == 'WRONG_INPUT': 
+            raise Exception('Wrong user input, either "POW" or "FREQ"')
+        
+    def VNA_parameter_name(self): 
+        if self.VNA_mode == 'FREQ': 
+            return 'vna_frequency'
+        elif self.VNA_mode == 'POW': 
+            return 'vna_power'
+        else: 
+            raise Exception(f'VNA mode not correct: ({self.VNA_mode})')
+        
     def make_datadict(self, mode):
         '''
         use the independent variables supplied by CW_sweep.add_independent_variables 
@@ -60,13 +96,14 @@ class CW_sweep():
         dd_ind_var_dict = dict()
         for ind_par_dict in self.ind_par_dict_arr: 
             dd_ind_var_dict[ind_par_dict['name']] = dict(unit = ind_par_dict['parameter'].unit)
-            
+        
         if mode == 'VNA': 
-            axes_arr.append('vna_frequency')
-            dd_ind_var_dict['vna_frequency'] = dict(unit = 'Hz')
-            dd_dep_var_dict = dict(vna_phase = dict(axes = axes_arr, unit = 'Rad'),
-                                   vna_power = dict(axes = axes_arr, unit = 'dB')                                   
-                                   )
+            if self.VNA_mode == 'FREQ': 
+                axes_arr.append(self.VNA_parameter_name())
+                dd_ind_var_dict[self.VNA_parameter_name()] = dict(unit = 'Hz')
+                dd_dep_var_dict = dict(vna_phase = dict(axes = axes_arr, unit = 'Rad'),
+                                       vna_power = dict(axes = axes_arr, unit = 'dB')                                   
+                                       )
         if mode == 'SA': 
             axes_arr.append('spec_frequency')
             dd_ind_var_dict['spec_frequency'] = dict(unit = 'Hz')
@@ -79,8 +116,8 @@ class CW_sweep():
     def pre_measurement_operation(self):
         '''
         function that handles preparation for that particular setpoint of the experiment
-        Adding dependency on the setpoint dictionary lets you make adjustments to the measurement, 
-        e.g. changing the vna window for a Duffing Test
+        Adding dependency on the setpoint dictionary (stored in self) lets you make adjustments to the measurement, 
+        e.g. changing the vna window for a Duffing Test or fluxsweep
         
         But this should NOT be done in this class, you should create another class that subclasses this 
         one (CW_Sweeps), then write a method that overrides this one
@@ -152,7 +189,7 @@ class CW_sweep():
             
             if self.mode == 'VNA' or self.mode == 'both': 
                 if debug: print("\nVNA measuring\n")
-                vna_freqs = self.VNA_inst.getSweepData() #this could also be a power... fuck
+                vna_ind_var = self.VNA_inst.getSweepData() #this could also be a power... fuck
                 vna_data = self.VNA_inst.average(VNA_avgnum)
                 vna_power = vna_data[0]
                 vna_phase = vna_data[1]
@@ -160,11 +197,11 @@ class CW_sweep():
     
                 vna_writer_dict = {}
                 
-                for ind_par_dict in self.ind_par_dict_arr: 
+                for ind_par_dict in self.ind_par_dict_arr:
                     vna_writer_dict[ind_par_dict['name']] = ind_par_dict['parameter']()*np.ones(d) #asks the instrument for an update, resize for plottr
                 
                 #I need to find a way to incorporate power sweeps into this too. for now, just frequency
-                vna_writer_dict['vna_frequency'] = vna_freqs
+                vna_writer_dict[self.VNA_parameter_name()] = vna_ind_var
                 
                 #add the dependent data...
                 vna_writer_dict['vna_power'] = vna_power
