@@ -147,7 +147,7 @@ class CW_sweep():
         if i+1 == np.shape(list(self.setpoint_arr))[0]: #the sweep is done
             [Gen.output_status(0) if Gen is not None else '' for Gen in self.Gen_inst_arr]
     
-    def sweep(self, DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 200):
+    def sweep(self, DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 400):
         
         if not self.is_ind_par_set: 
             raise Exception("Independent parameter not yet set. Run set_independent_parameter method")
