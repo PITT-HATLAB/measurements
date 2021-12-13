@@ -63,7 +63,7 @@ class CW_sweep():
         '''
         self.VNA_mode = [sweep_mode.upper() if sweep_mode.upper() == 'POW' or 'FREQ' else 'WRONG_INPUT'][0]
         
-        if self.VNN_mode == 'FREQ': 
+        if self.VNA_mode == 'FREQ': 
             self.VNA_inst.fstart(start)
             self.VNA_inst.fstop(stop)
             self.VNA_inst.num_points(points)
@@ -74,6 +74,14 @@ class CW_sweep():
             self.VNA_inst.num_points(points)
         elif self.VNA_mode == 'WRONG_INPUT': 
             raise Exception('Wrong user input, either "POW" or "FREQ"')
+    def setup_SA(self, start, stop):
+        '''
+        Function for setting up the SA
+        '''
+
+        self.SA_inst.fstart(start)
+        self.SA_inst.fstop(stop)
+
         
     def VNA_parameter_name(self): 
         if self.VNA_mode == 'FREQ': 
@@ -183,8 +191,11 @@ class CW_sweep():
             self.pre_measurement_operation()
             #setting independent parameter values
             for name, val in self.setpoint_dict.items(): 
+                # try: 
+                print(name, val)
                 val['parameter'](val['val'])
-
+                # except: 
+                    # print(name, val)
             #taking data with VNA, SA, or both
             
             if self.mode == 'VNA' or self.mode == 'both': 

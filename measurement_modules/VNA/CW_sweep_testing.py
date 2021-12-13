@@ -76,7 +76,23 @@ CWSWP.add_independent_parameter(pump_power_dict)
 # V(2)
 CWSWP.sweep(DATADIR, debug = True)
 
+#%%
+DATADIR = r'Z:\Data\testing'
 
+name = 'CW_Sweeps_VNA_and_SA_test'
+
+CWSWP = CW.CW_sweep(name, "both", VNA_inst = pVNA, SA_inst = CXA, Gen_arr = [SigGen])
+CWSWP.setup_VNA('FREQ', 7.511e9, 7.711e9, 2000) #start, stop, points
+CWSWP.setup_SA(7.511e9, 7.711e9)
+# vna_power_dict = dict(name = 'vna_input_power', parameter = pVNA.power, vals = np.array([-30, -25, -20]))
+pump_power_dict = dict(name = 'pump_power', parameter = SigGen.power, vals = np.linspace(-10, 0, 6))
+
+# CWSWP.add_independent_parameter(vna_power_dict)
+CWSWP.add_independent_parameter(pump_power_dict)
+
+#%%
+# V(2)
+CWSWP.sweep(DATADIR, debug = True)
 
 
 
