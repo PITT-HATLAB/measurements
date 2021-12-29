@@ -29,13 +29,13 @@ def gain_mapping(DATADIR, name, VNA, gen, CS, FS_fit_filepath):
         I_b = dict(unit='A'),
         G_max = dict(axes=['Delta_f_pump','p_pump','I_b'], unit = 'dBm'))
 
-    I_b = np.linspace(-5e-5,0,1)
+    I_b = np.linspace(-5e-5,-3.4e-3,5)
     
-    Delta_f = np.linspace(-50e6,50e6,10)
+    Delta_f = np.linspace(-50e6,50e6,20)
     
-    p_pump = np.linspace(-5,2,10)
+    p_pump = np.linspace(-10,19,30)
     
-    VNA_avgs = 10
+    VNA_avgs = 40
     
     omega0 = lambdify_omega0(FS_fit_filepath)
     
@@ -44,10 +44,14 @@ def gain_mapping(DATADIR, name, VNA, gen, CS, FS_fit_filepath):
     VNA.fspan(100e6)
     
     gen.output_status(0)
+    
+    stop_for_20db = False
 
     with dds.DDH5Writer(DATADIR, data, name=name) as writer:
         
         for i in range(0,len(I_b)):
+            
+            
             
             CS.change_current(I_b[i], ramp_rate = 1e-6)
             
@@ -60,6 +64,10 @@ def gain_mapping(DATADIR, name, VNA, gen, CS, FS_fit_filepath):
                 gen.frequency(f_pump[j])
                                 
                 for k in range(0,len(p_pump)):
+                    
+                    print('Pump power: ' + str(p_pump[k]))
+                    print('Pump freq: ' + str(f_pump[j]))
+                    print('Bias current: ' + str(I_b[i]))
                     
                     gen.power(p_pump[k])
                     
@@ -79,6 +87,19 @@ def gain_mapping(DATADIR, name, VNA, gen, CS, FS_fit_filepath):
 
                     G_max = get_gain_from_trace(VNA_p_off, VNA_p_on)
                     
+                    print(G_max)
+                    print(' ')
+                    
+                    if stop_for_20db:
+                        if (G_max > 20):
+                            
+                            print('20 dB reached! press q to stop pausing')
+                            q = input()
+                            if q == 'q':
+                                stop_for_20db = False
+                    
+                    
+                    
                     writer.add_data(
                             Delta_f_pump = Delta_f[j],
                             p_pump = p_pump[k],
@@ -91,7 +112,7 @@ def gain_mapping(DATADIR, name, VNA, gen, CS, FS_fit_filepath):
 #%%
 
 DATADIR = 'Z:/Data/SA_4C1_3152/gain_mapping'
-name = 'testing'
+name = 'gain_map_-60dBm'
 VNA = pVNA
 gen = SC4
 CS = yoko2
