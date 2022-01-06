@@ -9,8 +9,89 @@ A repostory for functional 1-parameter sweeps that produce either a 2d image or 
 """
 import numpy as np 
 from plottr.data import datadict_storage as dds, datadict as dd
+from plottr.data.datadict_storage import all_datadicts_from_hdf5
+from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
 
 #%%
+
+def read_fs_data(fs_filepath, interpolation = 'linear'):
+        ret = all_datadicts_from_hdf5(fs_filepath)
+        res_freqs = ret['data'].extract('base_resonant_frequency').data_vals('base_resonant_frequency')
+        currents = ret['data'].extract('base_resonant_frequency').data_vals('current')
+        fs_fit_func = interp1d(currents, res_freqs, interpolation)
+        return fs_fit_func
+
+def Duffing_Sweep(DATADIR, name, VNA_settings, CS_settings, Gen_settings,att, fs_filepath):
+    
+    '''
+    VNA_settings = [pVNA,7.5e9,3e9,1500,15]
+    CS_settings = [yoko2, -6e-5,-3.4e-5,40]
+    Gen_settings = [SC4, -19, 18, 40]
+    att = 10
+    '''
+    
+    omega0 = read_fs_data(fs_filepath)
+    
+    [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs] = VNA_settings
+    [CS, c_start, c_stop, c_points] = CS_settings
+    [gen, gen_start, gen_stop, gen_points] = Gen_settings
+    VNA.fcenter(VNA_fcenter)
+    VNA.fspan(VNA_fspan)
+    VNA.num_points(VNA_fpoints)
+    VNA.avgnum(VNA_avgs)
+    
+    data = dd.DataDict(
+        current = dict(unit='A'),
+        frequency = dict(unit='Hz'),
+        gen_power = dict(unit='dBm'),
+        gen_freq = dict(axes=['current'], unit = 'Hz'), 
+        undriven_power = dict(axes=['current', 'frequency', 'gen_power'], unit = 'dBm'), 
+        undriven_phase = dict(axes=['current', 'frequency', 'gen_power'], unit = 'Degrees'),
+        driven_power = dict(axes=['current', 'frequency', 'gen_power'], unit = 'dBm'), 
+        driven_phase = dict(axes=['current', 'frequency', 'gen_power'], unit = 'Degrees'),
+    )
+    
+    data.validate()
+    i = 0
+    with dds.DDH5Writer(DATADIR, data, name=name) as writer:
+        for current_val in np.linspace(c_start,c_stop,c_points):
+
+            gen_freq = float(omega0(current_val))
+            
+            gen.frequency(gen_freq)
+            
+            CS.change_current(current_val)
+            
+            for gen_val in np.linspace(gen_start-att,gen_stop-att,gen_points):
+                
+                
+                gen.power(gen_val+att)
+                
+                gen.output_status(0)
+                
+                
+                freqs = VNA.getSweepData() #1XN array, N in [1601,1000]
+                undriven_vnadata = np.array(VNA.average(VNA_avgs)) #2xN array, N in [1601, 1000]
+                
+                gen.output_status(1)
+                
+                freqs = VNA.getSweepData() #1XN array, N in [1601,1000]
+                driven_vnadata = np.array(VNA.average(VNA_avgs)) #2xN array, N in [1601, 1000]
+        
+                writer.add_data(
+                        current = current_val*np.ones(np.size(freqs)),
+                        gen_power = gen_val*np.ones(np.size(freqs)),
+                        gen_freq = gen_freq*np.ones(np.size(freqs)),
+                        frequency = freqs,
+                        undriven_power = undriven_vnadata[0],
+                        undriven_phase = undriven_vnadata[1],
+                        driven_power = driven_vnadata[0],
+                        driven_phase = driven_vnadata[1],
+                    )
+                print(f'{np.round((i+1)/c_points*100/gen_points)} percent  complete')
+                i+=1
+
 def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings):
     
     [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs] = VNA_settings

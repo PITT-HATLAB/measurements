@@ -13,6 +13,13 @@ import matplotlib.pyplot as plt
 class Duffing_Test():
     
     def __init__(self, DATADIR, name, VNA_settings, CS_settings, Gen_Settings, fs_fit_filepath, mode_kappa = 15e7, mode_side = 4): 
+        
+        '''
+        VNA_settings = [pVNA,6.5e9,8.5e9,1500,15,-20]
+        CS_settings = [yoko2, -6e-5,-3.4e-5,40]
+        Gen_Settings = [SC4, -19, 18, 40, -10]
+        '''
+        
         [self.VNA, self.VNA_fstart, self.VNA_fstop, self.VNA_fpoints, self.VNA_avgs, self.VNA_power] = VNA_settings
         [self.CS, self.c_start, self.c_stop, self.c_points] = CS_settings
         [self.Gen, self.p_start, self.p_stop, self.p_points, self.attn] = Gen_Settings
