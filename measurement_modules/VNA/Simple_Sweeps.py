@@ -12,6 +12,34 @@ from plottr.data import datadict_storage as dds, datadict as dd
 import typing
 from dataclasses import dataclass, asdict
 #%%
+
+def Flux_Sweep_Debug(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None):
+    
+    [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs] = VNA_settings
+    [CS, c_start, c_stop, c_points] = CS_settings
+    VNA.fcenter(VNA_fcenter)
+    VNA.fspan(VNA_fspan)
+    VNA.num_points(VNA_fpoints)
+    VNA.avgnum(VNA_avgs)
+    
+    data = dd.DataDict(
+        current = dict(unit='A'),
+        frequency = dict(unit='Hz'),
+        power = dict(axes=['current', 'frequency'], unit = 'dBm'), 
+        phase = dict(axes=['current', 'frequency'], unit = 'Degrees'),
+    )
+    
+    data.validate()
+    i = 0
+    with dds.DDH5Writer(DATADIR, data, name=name) as writer:
+        writer.add_data(
+                current = 1,
+                frequency = 2,
+                power = 3,
+                phase = 4
+            )
+
+
 def Flux_Sweep(DATADIR, name, VNA_settings, CS_settings, ramp_rate = None):
     
     [VNA, VNA_fcenter, VNA_fspan, VNA_fpoints, VNA_avgs] = VNA_settings
@@ -422,3 +450,11 @@ def saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings):
                 sat_phases = phases.reshape(1, -1)
                 )
     Gen.output_status(0)
+
+
+DATADIR = r'Z:/Data/SA_4C1_3152/fluxsweeps'
+name = 'debug'
+VNA_settings = [pVNA, 6400000000.0, 840000000.0, 1500, 15]
+CS_settings = [yoko2, 0, 0.00003, 40]
+fs = Flux_Sweep_Debug(DATADIR, name, VNA_settings, CS_settings)  
+

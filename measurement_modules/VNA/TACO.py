@@ -25,36 +25,37 @@ from dataclasses import dataclass
 
 #%%Minimum Gain pwr vs flux
 GP_F_dc = GPF_dataclass(
-    cwd = r'Z:\Data\SA_3C1_3132\tacos',
+    cwd = r'Z:\Data\SA_4C1_3152\tacos\2s',
     filename = f'{yoko2.current()}mA_TACO',
     inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
     bias_current = yoko2.current(),
     #SigGen settings
     gen_att = 20,
     #VNA settings
-    vna_att = 50, 
-    vna_p_avgs = 30
+    vna_att = 40,
+    vna_p_avgs = 30,
+    vna_power = -20
     )
 #%% go to your start point then run this
 GP_F_dc.set_start()
 #%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 130e6, gen_power_offset = 0)
+GP_F_dc.goto_stop(gen_freq_offset = 120e6, gen_power_offset = 0)
 #%%tune, then run this
-GP_F_dc.set_stop(gen_pts = 50)
+GP_F_dc.set_stop(gen_pts = 10)
 #%%check: 
 GP_F_dc.goto_start()
 #%%
 GP_F_dc.set_sweep_settings(
-                           peak_width_minimum = 1, 
+                           peak_width_minimum = 1, #MHz
                            vna_avgs = 10, 
-                           stepsize = 0.05, 
+                           stepsize = 0.1,  #power step in dBm
                            block_size = 10,
                            limit = 8,
-                           target_gain = 20,
+                           target_gain = 15,
                            threshold = 1, 
                            gain_tracking = 'gen_frequency', 
-                           gain_detuning = 500e3)
-#%%if you only want one, jus trun this
+                           gain_detuning = 100e3)
+#%%if you only want one, just run this
 GP_F_dc.sweep()
 #%%
 sweeps = []
