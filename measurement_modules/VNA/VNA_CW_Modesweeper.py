@@ -27,18 +27,18 @@ class wrapped_current(Parameter):
     
 #%%fluxsweep with or without the generator on
 
-DATADIR = r'Z:\Data\SH6F1_1141\fluxweep\2A_pump'
+DATADIR = r'Z:\Data\SA_3B1_1131\FS'
 
-name = 'FS_2A_Gen_pwr_0dBm_freq10'
+name = '3B1_1131_FS_fine'
 
-CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = CXA, Gen_arr = [SigGen])
+CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [])
 
-CWSWP.setup_VNA('FREQ',6282454232.64, 8800000000.0, 2000) #start, stop, points
+CWSWP.setup_VNA('FREQ',7.4e9, 8e9, 2000) #start, stop, points
 current_par = wrapped_current(yoko2.current, yoko2.change_current)
-current_dict = dict(name = 'bias_current', parameter = current_par, vals = np.linspace(-0.025e-3, 0.013e-3, 51))
-pump_dict = dict(name = 'pumpONOFF', parameter = SigGen.power, vals = [-20, 9, 12, 15])
+current_dict = dict(name = 'bias_current', parameter = current_par, vals = np.linspace(0, 0.275e-3, 276))
+# pump_dict = dict(name = 'pumpONOFF', parameter = SigGen.power, vals = [-20, 9, 12, 15])
 CWSWP.add_independent_parameter(current_dict)
-CWSWP.add_independent_parameter(pump_dict)
+# CWSWP.add_independent_parameter(pump_dict)
 CWSWP.eta()
 #%%
 vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 5, SA_avgnum = 500)
@@ -100,3 +100,20 @@ CWSWP.add_independent_parameter(pump_freq_dict)
 #%%
 vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 500)
 
+#%%flux CW sweep
+
+DATADIR = r'Z:\Data\SH6F1_1141\fluxweep\2A_pump'
+
+name = 'FS_2A_Gen_pwr_0dBm_freq10'
+
+CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [SigGen])
+
+fcenter = something
+
+CWSWP.setup_VNA('FREQ',fcenter, fcenter, 100) #start, stop, points
+current_par = wrapped_current(yoko2.current, yoko2.change_current)
+current_dict = dict(name = 'bias_current', parameter = current_par, vals = np.linspace(-0.025e-3, 0.013e-3, 51))
+pump_dict = dict(name = 'pump freq', parameter = SigGen.frequency, vals = np.linspace(,,))
+CWSWP.add_independent_parameter(current_dict)
+CWSWP.add_independent_parameter(pump_dict)
+CWSWP.eta()

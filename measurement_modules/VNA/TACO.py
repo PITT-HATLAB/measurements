@@ -13,9 +13,9 @@ import datetime as dt
 from instrument_drivers.meta_instruments import Modes
 import time
 import pickle
-from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, saturation_gen_power_sweep
+# from measurement_modules.VNA.Simple_Sweeps import Flux_Sweep, Frequency_Sweep, Power_Sweep, saturation_gen_power_sweep
 from measurement_modules.Adaptive_Sweeps.Gain_Power_vs_Flux import Gain_Power_vs_Flux
-from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
+# from measurement_modules.Adaptive_Sweeps.Duffing_Test import Duffing_Test
 from measurement_modules.dataclasses import GPF_dataclass
 
 from plottr.data import datadict_storage as dds, datadict as dd
@@ -25,23 +25,23 @@ from dataclasses import dataclass
 
 #%%Minimum Gain pwr vs flux
 GP_F_dc = GPF_dataclass(
-    cwd = r'Z:\Data\SA_4C1_3152\tacos\2s',
+    cwd = r'Z:\Data\SA_3B1_1131\tacos\2s',
     filename = f'{yoko2.current()}mA_TACO',
     inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
     bias_current = yoko2.current(),
     #SigGen settings
-    gen_att = 20,
+    gen_att = 3,
     #VNA settings
-    vna_att = 40,
+    vna_att = 53,
     vna_p_avgs = 30,
-    vna_power = -20
+    vna_power = -35
     )
 #%% go to your start point then run this
 GP_F_dc.set_start()
 #%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 120e6, gen_power_offset = 0)
+GP_F_dc.goto_stop(gen_freq_offset = 30e6, gen_power_offset = -5)
 #%%tune, then run this
-GP_F_dc.set_stop(gen_pts = 10)
+GP_F_dc.set_stop(gen_pts = 30)
 #%%check: 
 GP_F_dc.goto_start()
 #%%
@@ -51,10 +51,10 @@ GP_F_dc.set_sweep_settings(
                            stepsize = 0.1,  #power step in dBm
                            block_size = 10,
                            limit = 8,
-                           target_gain = 15,
+                           target_gain = 20,
                            threshold = 1, 
                            gain_tracking = 'gen_frequency', 
-                           gain_detuning = 100e3)
+                           gain_detuning = 300e3)
 #%%if you only want one, just run this
 GP_F_dc.sweep()
 #%%

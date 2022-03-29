@@ -58,6 +58,8 @@ class GPF_dataclass:
         self.gen_power_start = self.inst_dict['Gen'].power()
         self.gen_freq_start_set = 1
         self.c_start = self.inst_dict['CS'].current()
+        print('Gen_freq: ', self.inst_dict['Gen'].frequency())
+        print('Gen Power: ', self.inst_dict['Gen'].power())
     
     def goto_stop(self, gen_freq_offset = 30e6, gen_power_offset = 0):
         try: 
@@ -89,6 +91,8 @@ class GPF_dataclass:
         self.inst_dict['Gen'].frequency(self.gen_freq_start)
         self.inst_dict['Gen'].output_status(1)
         self.inst_dict['VNA'].fstart(self.vna_start)
+        print('Gen_freq: ', self.inst_dict['Gen'].frequency())
+        print('Gen Power: ', self.inst_dict['Gen'].power())
     
     def print_info(self): 
         print(self.__dict__)

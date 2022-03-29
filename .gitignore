@@ -4,3 +4,4 @@ measurement_modules/AWG_and_Alazar/__pycache__/Pulse_Sweeping_utils.cpython-37.p
 *.pyc
 *.pyc
 *.pyc
+*.pyc

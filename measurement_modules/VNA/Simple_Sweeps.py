@@ -452,9 +452,8 @@ def saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings):
     Gen.output_status(0)
 
 
-DATADIR = r'Z:/Data/SA_4C1_3152/fluxsweeps'
-name = 'debug'
-VNA_settings = [pVNA, 6400000000.0, 840000000.0, 1500, 15]
-CS_settings = [yoko2, 0, 0.00003, 40]
-fs = Flux_Sweep_Debug(DATADIR, name, VNA_settings, CS_settings)  
-
+DATADIR = r'Z:\Data\MASER\20220306 cooldown\SNAIL\flux_sweep'
+name = '3GHz_9GHz_fluxsweep_-10.5mA_0mA_01'
+VNA_settings = [pVNA, 6e9, 6e9, 1601, 3]
+CS_settings = [yoko2, -10.5e-3, 0.000, 1050]
+fs = Flux_Sweep(DATADIR, name, VNA_settings, CS_settings)  
