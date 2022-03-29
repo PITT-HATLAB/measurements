@@ -47,7 +47,7 @@ GP_F_dc.goto_start()
 #%%
 GP_F_dc.set_sweep_settings(
                            peak_width_minimum = 1, #MHz
-                           vna_avgs = 10, 
+                           vna_avgs = test123, 
                            stepsize = 0.1,  #power step in dBm
                            block_size = 10,
                            limit = 8,
