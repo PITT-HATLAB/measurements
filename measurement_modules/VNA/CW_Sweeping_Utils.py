@@ -527,6 +527,7 @@ class CW_stepper_sweep():
             self.vna_writer.file.close()
             
         return self.vna_savepath, self.sa_savepath
+    
 class TACO_sweep(CW_sweep): 
     def __init__(self, 
                  name,
