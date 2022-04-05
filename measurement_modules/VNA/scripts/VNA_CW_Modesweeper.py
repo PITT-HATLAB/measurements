@@ -8,40 +8,49 @@ Purpose: troubleshoot CW sweeps class
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import measurement_modules.VNA.CW_Sweeping_Utils as CW
+import measurement_modules.VNA.CW_Sweeping_Utils as CW, wrapped_current, Time
 import logging
-from qcodes.instrument.parameter import Parameter
+
 from plottr.apps.autoplot import main
+
+import time
 #%%
 
-class wrapped_current(Parameter):
-    def __init__(self, current_par, set_func): 
-        super().__init__('current')
-        self.current_par = current_par
-        self.set_func = set_func
-    def get_raw(self): 
-        return self.current_par()
-    
-    def set_raw(self, val): 
-        return self.set_func(val)
+
     
 #%%fluxsweep with or without the generator on
 
-DATADIR = r'Z:\Data\SA_3B1_1131\FS'
+DATADIR = r'Z:\Data\N10_L2_2P\cooldown_2\FS'
 
-name = '3B1_1131_FS_fine'
+name = 'wide_cal_sweep'
 
 CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [])
 
-CWSWP.setup_VNA('FREQ',7.4e9, 8e9, 2000) #start, stop, points
-current_par = wrapped_current(yoko2.current, yoko2.change_current)
-current_dict = dict(name = 'bias_current', parameter = current_par, vals = np.linspace(0, 0.275e-3, 276))
+CWSWP.setup_VNA('FREQ',5e9, 7.5e9, 500) #start, stop, points
+current_par = wrapped_current(yoko2.current, yoko2.change_current, ramp_rate = 0.05e-3)
+current_dict = dict(name = 'bias_current', parameter = current_par, vals = np.linspace(-3e-3, 3e-3, 300))
 # pump_dict = dict(name = 'pumpONOFF', parameter = SigGen.power, vals = [-20, 9, 12, 15])
 CWSWP.add_independent_parameter(current_dict)
 # CWSWP.add_independent_parameter(pump_dict)
 CWSWP.eta()
 #%%
-vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 5, SA_avgnum = 500)
+vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 1, SA_avgnum = 500)
+
+#%%Stability measurements 
+DATADIR = r'Z:\Data\SA_3B1_1131\gain_stability'
+
+name = 'gain_pt_1'
+
+CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [SigGen])
+CWSWP.setup_VNA('POW', -43, 0, 1000) #start, stop, points
+time_par = Time()
+time_dict = dict(name = 'time', parameter = time_par, vals = np.tile(43.2, 1000))
+# pump_power_dict = dict(name = 'pump_power', parameter = SigGen.power, vals = np.linspace(14.5, 15.5, 11))
+CWSWP.add_independent_parameter(time_dict)
+# CWSWP.add_independent_parameter(pump_power_dict)
+CWSWP.eta()
+#%%
+vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 15, SA_avgnum = 500)
 
 #%% quick bias-point duffing
 

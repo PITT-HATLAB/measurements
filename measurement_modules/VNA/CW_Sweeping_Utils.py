@@ -14,8 +14,37 @@ import numpy as np
 
 from plottr.data import datadict_storage as dds, datadict as dd
 from itertools import product
+import time
+from qcodes.instrument.parameter import Parameter
+from datetime import datetime
+
+#%%supporting parameters for the CW sweep class
 
 
+class wrapped_current(Parameter):
+    def __init__(self, current_par, set_func, ramp_rate = 0.1e-3): 
+        super().__init__('current')
+        self.current_par = current_par
+        self.set_func = set_func
+        self._ramp_rate = ramp_rate
+    def get_raw(self): 
+        return self.current_par()
+    
+    def set_raw(self, val): 
+        return self.set_func(val, ramp_rate = self._ramp_rate)
+
+class Time(Parameter):
+    def __init__(self): 
+        super().__init__('record_time')
+        self.time_stored = 0
+    def get_raw(self): 
+        return self.time_stored
+    
+    def set_raw(self, val):
+        time.sleep(val)
+        self.time_stored = datetime.timestamp(datetime.now())
+        
+#%% core class
 class CW_sweep(): 
     """
     One class to unify all non-adaptive CW measurements
@@ -89,7 +118,7 @@ class CW_sweep():
         if self.VNA_mode == 'FREQ': 
             return 'vna_frequency'
         elif self.VNA_mode == 'POW': 
-            return 'vna_power'
+            return 'vna_input_power'
         else: 
             raise Exception(f'VNA mode not correct: ({self.VNA_mode})')
         
@@ -111,6 +140,12 @@ class CW_sweep():
             if self.VNA_mode == 'FREQ': 
                 axes_arr.append(self.VNA_parameter_name())
                 dd_ind_var_dict[self.VNA_parameter_name()] = dict(unit = 'Hz')
+                dd_dep_var_dict = dict(vna_phase = dict(axes = axes_arr, unit = 'Rad'),
+                                       vna_power = dict(axes = axes_arr, unit = 'dB')                                   
+                                       )
+            if self.VNA_mode == 'POW': 
+                axes_arr.append(self.VNA_parameter_name())
+                dd_ind_var_dict[self.VNA_parameter_name()] = dict(unit = 'dB')
                 dd_dep_var_dict = dict(vna_phase = dict(axes = axes_arr, unit = 'Rad'),
                                        vna_power = dict(axes = axes_arr, unit = 'dB')                                   
                                        )
