@@ -17,10 +17,11 @@ from itertools import product
 import time
 from qcodes.instrument.parameter import Parameter
 from datetime import datetime
+from scipy.interpolate import interp1d
+from plottr.data.datadict_storage import all_datadicts_from_hdf5
+import matplotlib.pyplot as plt
 
 #%%supporting parameters for the CW sweep class
-
-
 class wrapped_current(Parameter):
     def __init__(self, current_par, set_func, ramp_rate = 0.1e-3): 
         super().__init__('current')
@@ -32,7 +33,46 @@ class wrapped_current(Parameter):
     
     def set_raw(self, val): 
         return self.set_func(val, ramp_rate = self._ramp_rate)
-
+    
+class amplifier_bias(Parameter): 
+    '''
+    purpose: 
+        create an independent parameter that can integrate duffing tests into the functionality of cw_sweep
+        
+        what this means is that it will take info from a fluxsweep fit and use that to change the generator frequency
+        according to the current that the user is sweeping.
+    '''
+    def __init__(self, current_par, generator_freq_par, fs_fit_filepath, gen_offset = 500e6): 
+        super().__init__('bias_current')
+        self._current_par = current_par
+        self.fs_fit_func = self.read_fs_data(fs_fit_filepath)
+        self._generator_freq_par = generator_freq_par
+        self._gen_offset = gen_offset
+        
+    def read_fs_data(self, fs_filepath, interpolation = 'linear'):
+        ret = all_datadicts_from_hdf5(fs_filepath)
+        res_freqs = ret['data'].extract('base_resonant_frequency').data_vals('base_resonant_frequency')
+        currents = ret['data'].extract('base_resonant_frequency').data_vals('current')
+        fs_fit_func = interp1d(currents, res_freqs, interpolation)
+        return fs_fit_func
+    
+    def get_raw(self): 
+        return self._current_par()
+        
+    def set_raw(self, val): 
+        self._current_par(val)
+        self._generator_freq_par(self.fs_fit_func(val)+self._gen_offset)
+    
+    def preview_range(self, currents): 
+        fig, ax = plt.subplots(1,1)
+        
+        ax.plot(currents*1000, self.fs_fit_func(currents), label = 'Amp_res')
+        # ax.plot(currents*1000, self.fs_fit_func(currents)+self._gen_offset, label = 'Generator')
+        ax.set_xlabel('Bias currents (mA)')
+        ax.set_ylabel('Frequency (GHz)')
+        ax.legend()
+        ax.grid()
+        
 class Time(Parameter):
     def __init__(self): 
         super().__init__('record_time')

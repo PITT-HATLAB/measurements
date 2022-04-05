@@ -8,15 +8,15 @@ Purpose: troubleshoot CW sweeps class
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import measurement_modules.VNA.CW_Sweeping_Utils as CW, wrapped_current, Time
+import measurement_modules.VNA.CW_Sweeping_Utils as CW
 import logging
-
+from plottr.data.datadict_storage import all_datadicts_from_hdf5
 from plottr.apps.autoplot import main
 
 import time
 #%%
 
-
+        
     
 #%%fluxsweep with or without the generator on
 
@@ -27,7 +27,7 @@ name = 'wide_cal_sweep'
 CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [])
 
 CWSWP.setup_VNA('FREQ',5e9, 7.5e9, 500) #start, stop, points
-current_par = wrapped_current(yoko2.current, yoko2.change_current, ramp_rate = 0.05e-3)
+current_par = CW.wrapped_current(yoko2.current, yoko2.change_current, ramp_rate = 0.05e-3)
 current_dict = dict(name = 'bias_current', parameter = current_par, vals = np.linspace(-3e-3, 3e-3, 300))
 # pump_dict = dict(name = 'pumpONOFF', parameter = SigGen.power, vals = [-20, 9, 12, 15])
 CWSWP.add_independent_parameter(current_dict)
@@ -43,7 +43,7 @@ name = 'gain_pt_1'
 
 CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [SigGen])
 CWSWP.setup_VNA('POW', -43, 0, 1000) #start, stop, points
-time_par = Time()
+time_par = CW.Time()
 time_dict = dict(name = 'time', parameter = time_par, vals = np.tile(43.2, 1000))
 # pump_power_dict = dict(name = 'pump_power', parameter = SigGen.power, vals = np.linspace(14.5, 15.5, 11))
 CWSWP.add_independent_parameter(time_dict)
@@ -70,7 +70,31 @@ CWSWP.add_independent_parameter(duff_tone_dict)
 
 #%%
 vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 500)
+
+#%%hardcore duffing test, requires a filepath to a fluxsweep fit file
+
+DATADIR = r'Z:\Data\N10_L2_SQ\cooldown_2\Duffing'
+
+name = 'N10_L2_2P_Duff'
+fs_fit_fp = r'Z:/Data/N10_L2_SQ/FS_Fits/2022-04-04/2022-04-04_0003_N10_L2_2P/2022-04-04_0003_N10_L2_2P.ddh5'
+
+CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [SigGen])
+
+current_par = CW.wrapped_current(yoko2.current, yoko2.change_current, ramp_rate = 1e-3)
+current_vals = np.linspace(-4e-3, -2e-3, 50)
+
+amp_par = CW.amplifier_bias(current_par, SigGen.frequency, fs_fit_fp, gen_offset = -0.1e9)
+amp_par.preview_range(current_vals)
+CWSWP.setup_VNA('FREQ', pVNA.fcenter()-1e9, pVNA.fcenter()+1e9, 200) #start, stop, points
+duff_tone_dict = dict(name = 'gen_power', parameter = SigGen.power, vals = np.linspace(-20, -10, 11))
+amp_bias_dict = dict(name = 'amp_bias', parameter = amp_par, vals = current_vals)
+CWSWP.add_independent_parameter(amp_bias_dict)
+CWSWP.add_independent_parameter(duff_tone_dict)
+
+CWSWP.eta()
 #%%
+vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 1, SA_avgnum = 500)
+ #%%
 DATADIR = r'Z:\Data\SH6F1_1141\gp8\high_sat_pwr_gen_swp'
 
 name = 'pow_sweep_vna_pow'
