@@ -249,13 +249,13 @@ def acquire_one_pulse_3_state(AWG_inst, Alazar_controller, mod_freq, sample_rate
     dataList = []
     dataThread = Thread(target = data_handler, args = (dataList, myctrl.channels.data))
     dataThread.start()
-    sleep_time = 0.5
+    sleep_time = 0.1
     print(f'Waiting for {sleep_time}s between AWG start and Alazar acquire')
     time.sleep(sleep_time) #hardcoded temp value. Need enough time to start the thread and prep the alazar
     AWG.run()
     #close the thread
     #wait a bit longer
-    time.sleep(1)
+    time.sleep(0.5)
     dataThread.join()
     if debug: 
         print("Data: ", dataList)
@@ -286,6 +286,10 @@ def acquire_one_pulse_3_state(AWG_inst, Alazar_controller, mod_freq, sample_rate
     rQ = np.array(rQ)
     # Phase correction
     sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)
+    # sI_c = sI
+    # sQ_c = sQ
+    # rI_trace = np.average(rI,axis = 1)
+    # rQ_trace = np.average(rQ, axis = 1)
 
     return sI_c, sQ_c, rI_trace, rQ_trace
 
@@ -561,8 +565,11 @@ class Pulse_Sweep_finite_IF():
                             I_minus = sI_c[1::2].flatten(),
                             Q_minus = sQ_c[1::2].flatten()
                             )
+                    filepath = writer.file_path
                     
                 self.post_measurement_operation(i)
+                
+                return filepath
 
 class Pulse_Sweep_3_state(): 
     
@@ -667,19 +674,19 @@ class Pulse_Sweep_3_state():
                 
                 
                 with dds.DDH5Writer(DATADIR, self.datadict, name=filename) as writer:
-                    sI_c, sQ_c, ref_I, ref_Q = acquire_one_pulse_3_state(self.AWG_inst, self.Alazar_ctrl, self.AWG_Config.Mod_freq, self.Alazar_config.SR)
+                    sI_c, sQ_c, ref_I, ref_Q = acquire_one_pulse_3_state(self.AWG_inst, self.Alazar_ctrl, np.abs(self.AWG_Config.Mod_freq), self.Alazar_config.SR)
                     s = list(np.shape(sI_c))
                     s[0] = int(s[0]//3) #evenly divided amongst I_plus and I_minus
-                    time_step = self.Alazar_config.SR/self.AWG_Config.Mod_freq
+                    time_step = self.Alazar_config.SR/np.abs(self.AWG_Config.Mod_freq)
                     if debug: 
                         plt.figure()
-                        plt.plot(ref_I[:500])
+                        plt.plot(ref_I)
                         plt.title("I")
                         plt.figure()
-                        plt.plot(ref_Q[:500])
+                        plt.plot(ref_Q)
                         plt.title("Q")
                         plt.figure()
-                        plt.plot(np.mod(np.angle(ref_I+1j*ref_Q), 2*np.pi)[:500], '.')
+                        plt.plot(np.mod(np.angle(ref_I+1j*ref_Q), 2*np.pi), '.')
                         plt.title("Phase")
                         print("sI_c shape: ", np.shape(sI_c))
                     num_records = np.shape(sI_c)[0]

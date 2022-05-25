@@ -33,7 +33,7 @@ def dB2power(dB):
 #     w = savgol_filter(trace, window_len, 3)
 #     return w
 
-def smoothen(trace, window_len=50):
+def smoothen(trace, window_len=5):
     w = np.blackman(window_len)
     return np.convolve(w/w.sum(), trace, mode='same')
 

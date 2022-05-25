@@ -385,10 +385,10 @@ class Fridge_Logger():
             latest_temp = new_data[self.log_key['MC RuOx Temp (K)']]
             msg = f"Latest Info: {str(datetime.now())}\nMC RuOx Temp: {new_data[self.log_key['MC RuOx Temp (K)']]}\nMC Cernox Temp (K): {new_data[self.log_key['MC Cernox Temp (K)']]}"
             print(msg)
-            if latest_temp > 50e-3:
-                if time.time() - lastalerted > 600:
-                    self.AlertRyan(msg)
-                    lastalerted = time.time()
+            # if latest_temp > 50e-3:
+            #     if time.time() - lastalerted > 600:
+            #         self.AlertRyan(msg)
+            #         lastalerted = time.time()
     
     def duplicate_log(self): 
         pass
@@ -398,5 +398,6 @@ FL.monitor()
 
 #rtest
 
-
+#%%
+FL.fridge_writer.file.close()
 

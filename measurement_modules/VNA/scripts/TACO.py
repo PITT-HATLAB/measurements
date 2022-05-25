@@ -24,22 +24,25 @@ from plottr.apps.autoplot import autoplotDDH5, script, main
 from dataclasses import dataclass
 
 #%%Minimum Gain pwr vs flux
+target_gain = 20
 GP_F_dc = GPF_dataclass(
-    cwd = r'Z:\Data\SA_3B1_1131\tacos\2s',
-    filename = f'{yoko2.current()}mA_TACO',
+    cwd = r'Z:\Data\N25_L3_SQ\tacos',
+    filename = f'{yoko2.current()}mA_TACO_{target_gain}dB',
     inst_dict = dict(VNA = pVNA, CS = yoko2, Gen = SigGen),
     bias_current = yoko2.current(),
     #SigGen settings
-    gen_att = 3,
+    gen_att = 0,
     #VNA settings
-    vna_att = 53,
-    vna_p_avgs = 30,
-    vna_power = -35
+    vna_att = 30,
+    vna_p_avgs = 50,
+    vna_power = -35, 
+    vna_p_start = -30, 
+    vna_p_stop = 5
     )
 #%% go to your start point then run this
 GP_F_dc.set_start()
 #%% #jump to  a possible stop point
-GP_F_dc.goto_stop(gen_freq_offset = 30e6, gen_power_offset = -5)
+GP_F_dc.goto_stop(gen_freq_offset = 25e6, gen_power_offset = 0)
 #%%tune, then run this
 GP_F_dc.set_stop(gen_pts = 30)
 #%%check: 
@@ -47,14 +50,14 @@ GP_F_dc.goto_start()
 #%%
 GP_F_dc.set_sweep_settings(
                            peak_width_minimum = 1, #MHz
-                           vna_avgs = test123, 
+                           vna_avgs = 2, 
                            stepsize = 0.1,  #power step in dBm
                            block_size = 10,
                            limit = 8,
-                           target_gain = 20,
-                           threshold = 1, 
+                           target_gain = target_gain,
+                           threshold = 0.5, 
                            gain_tracking = 'gen_frequency', 
-                           gain_detuning = 300e3)
+                           gain_detuning = 500e3)
 #%%if you only want one, just run this
 GP_F_dc.sweep()
 #%%
@@ -62,8 +65,20 @@ sweeps = []
 #%%
 sweeps.append(GP_F_dc)
 #%%
-for sweep in sweeps: 
+sweeps[-1].sweep()
+#%%
+sweeps[-2].sweep()
+#%%
+sweeps[-3].sweep()
+#%%
+for sweep in sweeps:
     sweep.sweep()
+#%%
+for sweep in sweeps: 
+    sweep.inst_dict['VNA'] = pVNA
+    sweep.vna_p_start = -43
+    sweep.vna_avgs = 3
+    sweep.vna_power = -43
 #%%
 for sweep in sweeps: 
     sweep.threshold = 1
