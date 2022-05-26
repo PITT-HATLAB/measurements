@@ -51,25 +51,27 @@ SC4 = SignalCore_SC5511A('SigCore4', serial_number = '10001851', debug = False)
 SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 
 #%%
-DATADIR = r'Z:\Data\N25_L3_SQ\BP1\amp_saturation_0.4mA_sweep_0dB_att'
+# DATADIR = r'Z:\Data\N25_L3_SP_2\time-domain\18dB_wideband_gain\init_amp_test_replug_clock'
+DATADIR = r'Z:\Data\N25_L3_SP_2\time-domain\18dB_wideband_gain\fixed\signal_power_sweep_-30MHz_detuned'
+# DATADIR = r'Z:\Data\N25_L3_SP_2\time-domain\18dB_wideband_gain\loopbacks'
 mod_freq = -50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
 # cf = 6.066e9
 # target_freq = 6.7999e9
-target_freq = 5.92e9-3e6
+target_freq = 5.631e9
 SC4.frequency(target_freq)
 SC9.frequency(target_freq+mod_freq)
 SC4.power(16)
 SC9.power(16)
-LO_freqs = np.array([target_freq-3e6, target_freq])
+LO_freqs = np.array([target_freq, target_freq+10e6, target_freq+20e6, target_freq+25e6])
 # LO_freqs = np.arange(cf+0.5e6, cf+7.5e6, 0.2e6)
 
-SG_pow = 10.76
+SG_pow = 9.9
 # SG_pow = 7.78 #without 10dB att and with switch + cable
 
-SG_freq = 11.8444e9
-pump_powers = np.array([SG_pow-1, SG_pow])
+SG_freq = 11.322e9
+pump_powers = np.array([SG_pow])
 # pump_powers = [-20]
 # print(np.size(LO_freqs))
 # print(np.size(pump_powers))
@@ -80,9 +82,9 @@ AWG_config.Mod_freq = mod_freq
 AWG_config.Sig_freq = target_freq
 AWG_config.Ref_freq = target_freq+mod_freq
 
-name = 'pwr_sweep_0dB_att'
+name = 'pwr_swp_0dB_att'
 num_reps = 1
-amp_pump = 1
+amp_pump = 0
 
 
 phase_points = -np.pi/2+0.25+np.arange(0,2*np.pi, np.pi)
@@ -99,12 +101,12 @@ cmpc = PC.cavity_mimicking_pulse_class_3_state(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.16, -0.12, 0.0, 0.0),
+    (-0.124, -0.062, 0.0, 0.0),
     # ch2_correction: 
     1.00338,
     # 1,
     # phase_correction_on_I: 
-    0.029,
+    0.076,
     #amplitude: 
     0.311, #about 0dBm steady state
     # phase_rotation:
@@ -151,10 +153,10 @@ phase_corr_dict = dict(I_Ph_corr = dict(parameter=PCor, vals = phase_correction_
 rep_dict = dict(Rep = dict(parameter=rep, vals = rep_array))
 wait_dict = dict(Trigger_wait = dict(parameter = Wait, vals = wait_times))
 # PS.add_independent_parameter(phase_corr_dict)
-# PS.add_independent_parameter(amp_dict)
-PS.add_independent_parameter(pump_pwr_dict)
-PS.add_independent_parameter(LO_dict)
-PS.add_independent_parameter(volt_dict)
+PS.add_independent_parameter(amp_dict)
+# PS.add_independent_parameter(pump_pwr_dict)
+# PS.add_independent_parameter(LO_dict)
+# PS.add_independent_parameter(volt_dict)
 # PS.add_independent_parameter(phase_dict)
 # PS.add_independent_parameter(rep_dict)
 
@@ -166,7 +168,7 @@ cmpc.setup_pulse(preview = True)
 #%%
 # V(2)
 
-fp = PS.sweep(DATADIR, debug = False)
+fp = PS.sweep(DATADIR, debug = True)
 print(fp)
 #%%
 cmpc.print_info()

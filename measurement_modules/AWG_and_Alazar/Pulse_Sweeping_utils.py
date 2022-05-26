@@ -231,7 +231,7 @@ def data_handler(data_storage_list, data_parameter):
     data_storage_list.append(data_parameter())
     print("dataThread acquisition complete")
     
-def acquire_one_pulse_3_state(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug = False): 
+def acquire_one_pulse_3_state(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug = False, mode = 'demod'): 
     print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
     myctrl = Alazar_controller
     AWG = AWG_inst
@@ -262,36 +262,42 @@ def acquire_one_pulse_3_state(AWG_inst, Alazar_controller, mod_freq, sample_rate
     ch1data, ch2data = dataList[0]
     
     AWG.stop()
-    #Demodulation
-    mod_period = sample_rate//mod_freq
-    arr_shape = list(np.shape(ch1data)) #same as ch2
-    arr_shape[1] = int(arr_shape[1]//mod_period)
     
-    sI = []
-    sQ = []
-    rI = []
-    rQ = []
+    if mode == None: 
+        #Demodulation
+        mod_period = sample_rate//mod_freq
+        arr_shape = list(np.shape(ch1data)) #same as ch2
+        arr_shape[1] = int(arr_shape[1]//mod_period)
+        
+        sI = []
+        sQ = []
+        rI = []
+        rQ = []
+        
+        for i, (ch1data_record, ch2data_record) in enumerate(zip(ch1data, ch2data)):
+            
+            sI_row,sQ_row,rI_row,rQ_row = demod(ch1data_record, ch2data_record)
+            sI.append(sI_row)
+            sQ.append(sQ_row)
+            rI.append(rI_row)
+            rQ.append(rQ_row)
+            
+        sI = np.array(sI)
+        sQ = np.array(sQ)
+        rI = np.array(rI)
+        rQ = np.array(rQ)
+        # Phase correction
+        sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)
+        # sI_c = sI
+        # sQ_c = sQ
+        # rI_trace = np.average(rI,axis = 1)
+        # rQ_trace = np.average(rQ, axis = 1)
     
-    for i, (ch1data_record, ch2data_record) in enumerate(zip(ch1data, ch2data)):
+        return sI_c, sQ_c, rI_trace, rQ_trace
+    elif mode == 'raw': 
         
-        sI_row,sQ_row,rI_row,rQ_row = demod(ch1data_record, ch2data_record)
-        sI.append(sI_row)
-        sQ.append(sQ_row)
-        rI.append(rI_row)
-        rQ.append(rQ_row)
+        return ch1data, ch2data
         
-    sI = np.array(sI)
-    sQ = np.array(sQ)
-    rI = np.array(rI)
-    rQ = np.array(rQ)
-    # Phase correction
-    sI_c, sQ_c, rI_trace, rQ_trace = phase_correction(sI, sQ, rI, rQ)
-    # sI_c = sI
-    # sQ_c = sQ
-    # rI_trace = np.average(rI,axis = 1)
-    # rQ_trace = np.average(rQ, axis = 1)
-
-    return sI_c, sQ_c, rI_trace, rQ_trace
 
 def acquire_one_pulse_finite_IF(AWG_inst, Alazar_controller, mod_freq, sample_rate, debug = False): 
     print(f"Mod freq: {mod_freq}\nSample Rate: {sample_rate}")
@@ -705,4 +711,125 @@ class Pulse_Sweep_3_state():
                     
                 self.post_measurement_operation(i)
     
+class Pulse_Sweep_3_state_raw_data(): 
     
+    def __init__(self, 
+                 name,
+                 AWG, 
+                 AWG_Config, 
+                 Alazar_ctrl, 
+                 Alazar_config, 
+                 Sig_Gen, 
+                 Ref_Gen): 
+        
+        '''
+        Implicit in this file is the external interferometer
+        '''
+        self.filename_prepend = name+'_'
+        self.AWG_inst = AWG
+        self.is_ind_par_set = False
+        self.Alazar_ctrl = Alazar_ctrl
+        # self.Alazar_ctrl = Standard_Alazar_Config(Alazar, Alazar_config)
+        self.Alazar_config = Alazar_config
+        self.AWG_Config = AWG_Config
+        self.sig_gen = Sig_Gen
+        self.ref_gen = Ref_Gen
+        self.ind_par_dict_arr = []
+        
+    def add_independent_parameter(self, ind_par_dict: dict): 
+        '''
+        will take input in form of 
+        ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
+        '''
+        self.ind_par_dict_arr.append(ind_par_dict)
+        self.is_ind_par_set = True
+    
+    def filename_func(self, val_dict):
+        '''
+        takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+        eg {SigGen.power: dict('name' = str, 'val' = float))}
+        '''
+        filename = self.filename_prepend
+        for name, val in val_dict.items(): 
+            filename += (name+'_')
+            filename += (str(np.round(val['val'], 3))+'_'+val['parameter'].unit + '_')
+        return filename
+    
+    def pre_measurement_operation(self): 
+        '''
+        takes in a dictionary where the parameters are the keys, and the vals are the setpoints
+        eg {name: dict(parameter = SigGen.power, 'val' = float))} 
+        '''
+        for name, val in self.setpoint_dict.items(): 
+            val['parameter'](val['val'])
+        print(f'Setting {name} to {val["val"]} {val["parameter"].unit}\nvia {val["parameter"].name}')
+        self.sig_gen.output_status(1)
+        self.ref_gen.output_status(1)
+
+    def post_measurement_operation(self, i): 
+        self.sig_gen.output_status(0)
+        self.ref_gen.output_status(0)
+        print(f"\nMeasurement {i+1} out of {np.shape(list(self.setpoint_arr))[0]} completed\n")
+    
+    def sweep(self, DATADIR, savemode = 'seperate', debug = True):
+        
+        if not self.is_ind_par_set: 
+            raise Exception("Independent parameter not yet set. Run set_independent_parameter method")
+        
+        if savemode == 'seperate': 
+            '''zip all the combos of parameters, names, units, and values to 
+            iterate over, we want ONE loop to rule them all
+            '''
+            ind_par_names = []
+            ind_par_parameters = []
+            ind_par_vals = []
+            for ind_par_dict in self.ind_par_dict_arr: 
+                for name, info_dict in ind_par_dict.items(): 
+                    ind_par_names.append(name)
+                    ind_par_parameters.append(ind_par_dict[name]['parameter'])
+                    ind_par_vals.append(ind_par_dict[name]['vals'])
+                
+            ################
+            self.setpoint_arr = list(product(*ind_par_vals))
+            for i, values in enumerate(self.setpoint_arr): 
+                self.setpoint_dict = {}
+                for j in range(np.size(values)):
+                    self.setpoint_dict[ind_par_names[j]] = dict(parameter = ind_par_parameters[j], 
+                                                           val = values[j])
+                
+                dep_var_dict = dict(time = dict(unit = 'ns'),
+                                    record_num = dict(unit = 'num'),
+                                    R_G = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    V_G = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    R_E = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    V_E = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    R_f = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    V_F = dict(axes=['record_num', 'time' ], unit = 'V')
+                                    )
+                
+                ####################### Set up the datadict
+                self.datadict = dd.DataDict(**dep_var_dict)
+                self.pre_measurement_operation()
+                filename = self.filename_func(self.setpoint_dict)
+                
+                
+                with dds.DDH5Writer(DATADIR, self.datadict, name=filename) as writer:
+                    signal, reference = acquire_one_pulse_3_state(self.AWG_inst, self.Alazar_ctrl, np.abs(self.AWG_Config.Mod_freq), self.Alazar_config.SR, mode = 'raw')
+                    s = list(np.shape(signal))
+                    s[0] = int(s[0]//3) #three different record types
+                    time_step = 1 #ns, the sampling rate of the alazar
+                    num_records = s[0]
+                    if num_records%3 != 0: raise Exception("Number of records not divisible by 3")
+                    rec_per_pulse = num_records//3
+                    writer.add_data(
+                            record_num = np.repeat(np.arange(s[0]), s[1]),
+                            time = np.tile(np.arange(int(s[1]))*time_step, s[0]),
+                            R_G = reference[0:rec_per_pulse].flatten(),
+                            V_G = signal[0:rec_per_pulse].flatten(),
+                            R_E = reference[rec_per_pulse:2*rec_per_pulse].flatten(),
+                            V_E = signal[rec_per_pulse:2*rec_per_pulse].flatten(),
+                            R_F = reference[2*rec_per_pulse:3*rec_per_pulse].flatten(),
+                            V_F = signal[2*rec_per_pulse:3*rec_per_pulse].flatten()
+                            )
+                    
+                self.post_measurement_operation(i)

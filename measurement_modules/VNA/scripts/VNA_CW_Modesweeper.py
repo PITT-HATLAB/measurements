@@ -22,9 +22,9 @@ amp_par = CW.amplifier_bias(current_par, SigGen.frequency, fs_fit_fp, gen_offset
 
 #%%fluxsweep with or without the generator on
 
-DATADIR = r'Z:\Data\N25_L3_2P_2\fluxsweeps'
+DATADIR = r'Z:/Data/N25_L3_SP_2/fluxsweeps'
 
-name = 'FS_-40dBm'
+name = 'FS_-50dBm'
 
 CWSWP = CW.CW_sweep(name, "VNA", VNA_inst = pVNA, SA_inst = None, Gen_arr = [])
 CWSWP.setup_VNA('FREQ',4.5e9, 7e9, 1000) #start, stop, points
@@ -35,7 +35,7 @@ CWSWP.add_independent_parameter(current_dict)
 # CWSWP.add_independent_parameter(pump_dict)
 CWSWP.eta()
 #%%
-vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 500)
+vna_fp, sa_fp = CWSWP.sweep(DATADIR, debug = True, VNA_avgnum = 50, SA_avgnum = 500)
 
 
 #%%
