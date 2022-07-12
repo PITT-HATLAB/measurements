@@ -112,7 +112,7 @@ class repitition_parameter(Parameter):
     def set_raw(self, val):
         self.rep = val
         
-class LO_Parameter(Parameter): 
+class signalParameter(Parameter): 
     def __init__(self, name, RefGen, SigGen, Modulation_freq):
         # only name is required
         super().__init__(name)
@@ -129,6 +129,21 @@ class LO_Parameter(Parameter):
     def set_raw(self, val):
         self.SigGen.frequency(val)
         self.RefGen.frequency(val+self.mod_freq)
+
+class refParameter(Parameter): 
+    def __init__(self, name, RefGen, SigGen):
+        # only name is required
+        super().__init__(name)
+        self.SigGen = SigGen
+        self.RefGen = RefGen
+        self.unit = 'Hz'
+        
+    # you must provide a get method, a set method, or both.
+    def get_raw(self):
+        return -(self.SigGen.frequency()-self.RefGen.frequency())
+
+    def set_raw(self, refDet):
+        self.RefGen.frequency(self.SigGen.frequency()+refDet)
         
 class Voltage_Parameter(Parameter): 
     def __init__(self, name, cavity_mimicking_pulse_class):
@@ -720,7 +735,8 @@ class Pulse_Sweep_3_state_raw_data():
                  Alazar_ctrl, 
                  Alazar_config, 
                  Sig_Gen, 
-                 Ref_Gen): 
+                 Ref_Gen, 
+                 gen_power = 15): 
         
         '''
         Implicit in this file is the external interferometer
@@ -735,6 +751,7 @@ class Pulse_Sweep_3_state_raw_data():
         self.sig_gen = Sig_Gen
         self.ref_gen = Ref_Gen
         self.ind_par_dict_arr = []
+        self.gen_power = gen_power
         
     def add_independent_parameter(self, ind_par_dict: dict): 
         '''
@@ -763,6 +780,8 @@ class Pulse_Sweep_3_state_raw_data():
         for name, val in self.setpoint_dict.items(): 
             val['parameter'](val['val'])
         print(f'Setting {name} to {val["val"]} {val["parameter"].unit}\nvia {val["parameter"].name}')
+        self.sig_gen.power(self.gen_power)
+        self.ref_gen.power(self.gen_power)
         self.sig_gen.output_status(1)
         self.ref_gen.output_status(1)
 
@@ -799,12 +818,12 @@ class Pulse_Sweep_3_state_raw_data():
                 
                 dep_var_dict = dict(time = dict(unit = 'ns'),
                                     record_num = dict(unit = 'num'),
-                                    R_G = dict(axes=['record_num', 'time' ], unit = 'V'),
-                                    V_G = dict(axes=['record_num', 'time' ], unit = 'V'),
-                                    R_E = dict(axes=['record_num', 'time' ], unit = 'V'),
-                                    V_E = dict(axes=['record_num', 'time' ], unit = 'V'),
-                                    R_f = dict(axes=['record_num', 'time' ], unit = 'V'),
-                                    V_F = dict(axes=['record_num', 'time' ], unit = 'V')
+                                    rG = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    vG = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    rE = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    vE = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    rF = dict(axes=['record_num', 'time' ], unit = 'V'),
+                                    vF = dict(axes=['record_num', 'time' ], unit = 'V')
                                     )
                 
                 ####################### Set up the datadict
@@ -816,20 +835,23 @@ class Pulse_Sweep_3_state_raw_data():
                 with dds.DDH5Writer(DATADIR, self.datadict, name=filename) as writer:
                     signal, reference = acquire_one_pulse_3_state(self.AWG_inst, self.Alazar_ctrl, np.abs(self.AWG_Config.Mod_freq), self.Alazar_config.SR, mode = 'raw')
                     s = list(np.shape(signal))
-                    s[0] = int(s[0]//3) #three different record types
                     time_step = 1 #ns, the sampling rate of the alazar
-                    num_records = s[0]
+                    num_records = s[0] #total number of records taken - all three trace types
                     if num_records%3 != 0: raise Exception("Number of records not divisible by 3")
                     rec_per_pulse = num_records//3
+                    
+                    print("rec_per_pulse: ", rec_per_pulse)
+                    print("s_array", s)
+                    
                     writer.add_data(
-                            record_num = np.repeat(np.arange(s[0]), s[1]),
-                            time = np.tile(np.arange(int(s[1]))*time_step, s[0]),
-                            R_G = reference[0:rec_per_pulse].flatten(),
-                            V_G = signal[0:rec_per_pulse].flatten(),
-                            R_E = reference[rec_per_pulse:2*rec_per_pulse].flatten(),
-                            V_E = signal[rec_per_pulse:2*rec_per_pulse].flatten(),
-                            R_F = reference[2*rec_per_pulse:3*rec_per_pulse].flatten(),
-                            V_F = signal[2*rec_per_pulse:3*rec_per_pulse].flatten()
+                            record_num = np.repeat(np.arange(rec_per_pulse), s[1]),
+                            time = np.tile(np.arange(int(s[1]))*time_step, rec_per_pulse),
+                            rG = reference[0:rec_per_pulse].flatten(),
+                            vG = signal[0:rec_per_pulse].flatten(),
+                            rE = reference[rec_per_pulse:2*rec_per_pulse].flatten(),
+                            vE = signal[rec_per_pulse:2*rec_per_pulse].flatten(),
+                            rF = reference[2*rec_per_pulse:3*rec_per_pulse].flatten(),
+                            vF = signal[2*rec_per_pulse:3*rec_per_pulse].flatten()
                             )
                     
                 self.post_measurement_operation(i)

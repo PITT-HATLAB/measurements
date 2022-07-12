@@ -51,26 +51,36 @@ SC4 = SignalCore_SC5511A('SigCore4', serial_number = '10001851', debug = False)
 SC9 = SignalCore_SC5511A('SigCore9', serial_number = '1000190E', debug = False)
 
 #%%
-# DATADIR = r'Z:\Data\N25_L3_SP_2\time-domain\18dB_wideband_gain\init_amp_test_replug_clock'
-DATADIR = r'Z:\Data\N25_L3_SP_2\time-domain\18dB_wideband_gain\fixed\signal_power_sweep_-30MHz_detuned'
-# DATADIR = r'Z:\Data\N25_L3_SP_2\time-domain\18dB_wideband_gain\loopbacks'
+
+DATADIR = r'Z:\Data\N25_L3_SP_3\time_domain\bp1\ps'
+
+# mod_freq = -50e6
 mod_freq = -50e6
 # Print all information about this Alazar card
 print(alazar.get_idn())
 # cf = 6.066e9
 # target_freq = 6.7999e9
-target_freq = 5.631e9
+SG_freq = 11282400000.0
+target_freq = SG_freq/2
+
 SC4.frequency(target_freq)
 SC9.frequency(target_freq+mod_freq)
-SC4.power(16)
-SC9.power(16)
-LO_freqs = np.array([target_freq, target_freq+10e6, target_freq+20e6, target_freq+25e6])
+sig_freqs = np.array([target_freq, target_freq+10e6, target_freq+20e6, target_freq+25e6])
+detuning = 25e6
+ref_freqs = np.arange(mod_freq-detuning, mod_freq+4*detuning, detuning)
 # LO_freqs = np.arange(cf+0.5e6, cf+7.5e6, 0.2e6)
 
-SG_pow = 9.9
-# SG_pow = 7.78 #without 10dB att and with switch + cable
+# SG_pow = 9.9
+# SG_pow = 7.39
+# SG_pow = 10.32
+# SG_pow = 8.21
+SG_pow = 10.7
 
-SG_freq = 11.322e9
+# SG_freq = 11.322e9
+# SG_freq = 11.2038e9
+# SG_freq = 11.2128e9
+# SG_freq = 11.323e9
+
 pump_powers = np.array([SG_pow])
 # pump_powers = [-20]
 # print(np.size(LO_freqs))
@@ -82,16 +92,20 @@ AWG_config.Mod_freq = mod_freq
 AWG_config.Sig_freq = target_freq
 AWG_config.Ref_freq = target_freq+mod_freq
 
-name = 'pwr_swp_0dB_att'
-num_reps = 1
-amp_pump = 0
+name = 'pwr_swp'
+# name = 'loopback_test_at_idler'
+num_reps = 10
+amp_pump = 1
 
 
 phase_points = -np.pi/2+0.25+np.arange(0,2*np.pi, np.pi)
-voltage_points = np.arange(0.05, 1.45, 0.1)
+# voltage_points = np.sqrt(np.power(10, np.arange(-30-20, 0-14, 3)/10)*50)*np.sqrt(2)
+# voltage_points = np.sqrt(np.power(10, np.arange(-50, -40, 1)/10)*50)*np.sqrt(2)
+voltage_points = np.arange(0.1, 1, 0.1)
 phase_correction_points = np.linspace(-0.3, 0.3, 16)
 rep_array = np.arange(num_reps)
-wait_times = np.arange(0, 500, 10)
+wait_times = np.arange(0, 500, 10)  
+phase_vals = np.arange(0, 2*np.pi, np.pi/8)[12:]
 
 cmpc = PC.cavity_mimicking_pulse_class_3_state(
     # name 
@@ -101,16 +115,25 @@ cmpc = PC.cavity_mimicking_pulse_class_3_state(
     # LO_frequency: 
     AWG_config.Sig_freq,
     # DC_offsets: 
-    (-0.124, -0.062, 0.0, 0.0),
+        #lsb
+    #(-0.124, -0.062, 0.0, 0.0),
+    # (-0.128, -0.063, 0.0, 0.0), #usb
+    #imd product testing
+    # (-0.136, -0.164, 0.0, 0.0), 
+    (-0.125, -0.054, 0.0, 0.0), 
     # ch2_correction: 
-    1.00338,
+    # 0.9911,
+    0.986, 
     # 1,
     # phase_correction_on_I: 
-    0.076,
+    # 0.072,
+    # 0.0426,
+    -0.059,
     #amplitude: 
-    0.311, #about 0dBm steady state
+    # 0.311, #about 0dBm steady state
+    0.3,
     # phase_rotation:
-    np.pi/3-0.1,
+    0,
     #wait time before alazar is triggered
     0, 
     # sim_filepath_g: 
@@ -129,11 +152,12 @@ cmpc = PC.cavity_mimicking_pulse_class_3_state(
     False, 
     )
 
-PS = PU.Pulse_Sweep_3_state(name, AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9)
+PS = PU.Pulse_Sweep_3_state_raw_data(name, AWG, AWG_config, Alazar_ctrl, Al_config, SC4, SC9, gen_power=15)
     
 P = PU.Phase_Parameter('rotation_phase', cmpc)
 V = PU.Voltage_Parameter('Voltage', cmpc)
-LO = PU.LO_Parameter('LO_frequency', PS.ref_gen, PS.sig_gen, AWG_config.Mod_freq)
+sig = PU.signalParameter('LO_frequency', PS.ref_gen, PS.sig_gen, AWG_config.Mod_freq)
+ref = PU.refParameter('ref_det', PS.ref_gen, PS.sig_gen)
 PCor = PU.Phase_Correction_Parameter('Iphase_corr', cmpc)
 rep = PU.repitition_parameter('Rep')
 Wait = PU.wait_time_parameter("Trigger_wait", cmpc)
@@ -142,32 +166,34 @@ SigGen.output_status(amp_pump)
 SigGen.frequency(SG_freq)
 SigGen.power(SG_pow)
 
-
 #ind_par_dict{name: dict(parameter = actual_parameter_class, vals = [np_val_arr])}
 amp_dict = dict(Amp = dict(parameter = SigGen.output_status, vals = np.array([0,1])))
 pump_pwr_dict = dict(pump_pwr = dict(parameter = SigGen.power, vals = pump_powers))
 phase_dict = dict(Phase = dict(parameter=P, vals = phase_points))
 volt_dict = dict(Sig_Volt = dict(parameter=V, vals = voltage_points))
-LO_dict = dict(LO_freq = dict(parameter=LO, vals = LO_freqs))
+sig_dict = dict(sig_freq = dict(parameter=sig, vals = sig_freqs))
+ref_dict = dict(ref_det = dict(parameter=ref, vals = ref_freqs))
 phase_corr_dict = dict(I_Ph_corr = dict(parameter=PCor, vals = phase_correction_points))
 rep_dict = dict(Rep = dict(parameter=rep, vals = rep_array))
 wait_dict = dict(Trigger_wait = dict(parameter = Wait, vals = wait_times))
+gen_phase_dict = dict(gen_phase = dict(parameter = SigGen.phase, vals = phase_vals))
 # PS.add_independent_parameter(phase_corr_dict)
-PS.add_independent_parameter(amp_dict)
+# PS.add_independent_parameter(amp_dict)
 # PS.add_independent_parameter(pump_pwr_dict)
-# PS.add_independent_parameter(LO_dict)
-# PS.add_independent_parameter(volt_dict)
+# PS.add_independent_parameter(sig_dict)
+PS.add_independent_parameter(volt_dict)
+# PS.add_independent_parameter(ref_dict)
 # PS.add_independent_parameter(phase_dict)
 # PS.add_independent_parameter(rep_dict)
+# PS.add_independent_parameter(gen_phase_dict)
 
 # PS.add_independent_parameter(wait_dict)
 # 
 # V(1.5) #will run pulse setup
 cmpc.setup_pulse(preview = True)
-
+# V(2)
 #%%
 # V(2)
-
 fp = PS.sweep(DATADIR, debug = True)
 print(fp)
 #%%

@@ -74,7 +74,7 @@ class amplifier_bias(Parameter):
         
         ax.plot(currents*1000, self.fs_fit_func(currents), label = 'Amp_res')
         if show_pump: 
-            ax.plot(currents*1000, self.fs_fit_func(currents)*self._gen_factor+self._gen_offset, label = 'Generator')
+            ax.plot(currents*1000, (self.fs_fit_func(currents)*self._gen_factor+self._gen_offset)/self._gen_factor, label = 'Generator/2')
         ax.set_xlabel('Bias currents (mA)')
         ax.set_ylabel('Frequency (GHz)')
         ax.legend()
@@ -194,7 +194,7 @@ class CW_sweep():
         self.ind_par_dict_arr.append(ind_par_dict)
         self.is_ind_par_set = True
         
-    def setup_VNA(self, sweep_mode, start, stop, points, normalize = False):
+    def setup_VNA(self, sweep_mode, start, stop, points, normalize = False, avg_over_freq = False):
         '''
         Function for setting the primary indpendent variable of the VNA, and also the window of that variable
         
@@ -208,6 +208,7 @@ class CW_sweep():
         '''
         self.VNA_mode = [sweep_mode.upper() if sweep_mode.upper() == 'POW' or 'FREQ' else 'WRONG_INPUT'][0]
         self.vna_normalize = normalize
+        self.vna_freq_avg = avg_over_freq
         if self.VNA_mode == 'FREQ': 
             self.VNA_inst.sweep_type('LIN')
             self.VNA_inst.fstart(start)
@@ -315,6 +316,9 @@ class CW_sweep():
         if self.mode == 'both':
             print(f"ETA with 10 averages: {np.round(self.VNA_inst.sweep_time()*size/60*10+size*self.SA_inst.sweep_time()*500/60)}")
         
+        if self.mode == 'SA':
+            print(f"ETA with 10 averages: {np.round(self.SA_inst.sweep_time()*self.SA_inst.avgnum()*size/60*10)} minutes")
+        
     def sweep(self, DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 400):
         #TODO: hack this into more managable chunks
         if not self.is_ind_par_set: 
@@ -368,8 +372,8 @@ class CW_sweep():
             
             if self.mode == 'VNA' or self.mode == 'both': 
                 if debug: print("\nVNA measuring\n")
-                vna_ind_var = self.VNA_inst.getSweepData() #this could also be a power... fuck
-                vna_data = self.VNA_inst.average(VNA_avgnum)
+                vna_ind_var = np.unique(self.VNA_inst.getSweepData())
+                vna_data = self.VNA_inst.average(VNA_avgnum, avg_over_freq = self.vna_freq_avg)
                 
                 self.last_vna_data = [vna_ind_var, vna_data]
                 vna_power = vna_data[0]
