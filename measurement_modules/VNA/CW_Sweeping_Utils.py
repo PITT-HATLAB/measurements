@@ -285,8 +285,7 @@ class CW_sweep():
         one (CW_Sweeps), then write a method that overrides this one
         '''
         # print(f'Setting {name} to {val["val"]} {val["parameter"].unit}\nvia {val["parameter"].name}')
-        
-        #TODO: this sucks! Make it better, general try except loops are dangerous
+
         [Gen.output_status(1) if Gen is not None else '' for Gen in self.Gen_inst_arr]
         print("Current parameters: ")
         [print(key,': ', val['val'], val['parameter'].unit) for key, val in self.setpoint_dict.items()]
@@ -300,6 +299,7 @@ class CW_sweep():
         
         if i+1 == np.shape(list(self.setpoint_arr))[0]: #the sweep is done
             [Gen.output_status(0) if Gen is not None else '' for Gen in self.Gen_inst_arr]
+
     def eta(self): 
         ind_par_names = []
         ind_par_parameters = []
@@ -319,7 +319,7 @@ class CW_sweep():
         if self.mode == 'SA':
             print(f"ETA with 10 averages: {np.round(self.SA_inst.sweep_time()*self.SA_inst.avgnum()*size/60*10)} minutes")
         
-    def sweep(self, DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 400):
+    def sweep(self, DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 400, new_plottr = True):
         #TODO: hack this into more managable chunks
         if not self.is_ind_par_set: 
             raise Exception("Independent parameter not yet set. Run set_independent_parameter method")
@@ -335,9 +335,14 @@ class CW_sweep():
     
         if self.mode == 'VNA' or self.mode == 'both': 
             self.vna_datadict =self.make_datadict(mode = 'VNA')
-            self.vna_writer = dds.DDH5Writer(DATADIR, self.vna_datadict, name=self.sweep_name+'_VNA')
-            self.vna_writer.__enter__()
-            self.vna_savepath = self.vna_writer.file_path
+            if new_plottr:
+                self.vna_writer = dds.DDH5Writer(self.vna_datadict, DATADIR, name=self.sweep_name + '_VNA')
+                self.vna_writer.__enter__()
+                self.vna_savepath = self.vna_writer.filepath
+            else:
+                self.vna_writer = dds.DDH5Writer(DATADIR, self.vna_datadict, name=self.sweep_name+'_VNA')
+                self.vna_writer.__enter__()
+                self.vna_savepath = self.vna_writer.file_path
         
         else: 
             self.vna_savepath = None
@@ -418,11 +423,13 @@ class CW_sweep():
 
             self.post_measurement_operation(i)
         
-        if self.mode == 'SA' or self.mode == 'both': 
-            self.sa_writer.file.close()
+        if self.mode == 'SA' or self.mode == 'both':
+            if not new_plottr:
+                self.sa_writer.file.close()
         
-        if self.mode == 'VNA' or self.mode == 'both': 
-            self.vna_writer.file.close()
+        if self.mode == 'VNA' or self.mode == 'both':
+            if not new_plottr:
+                self.vna_writer.file.close()
             
         return self.vna_savepath, self.sa_savepath
     
