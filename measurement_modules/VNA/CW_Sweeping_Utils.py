@@ -33,7 +33,7 @@ class wrapped_current(Parameter):
         return self.current_par()
     
     def set_raw(self, val): 
-        return self.set_func(val, ramp_rate = self._ramp_rate)
+        return self.set_func(val, rate = self._ramp_rate)
     
 class amplifier_bias(Parameter): 
     '''
@@ -272,8 +272,13 @@ class CW_sweep():
             dd_dep_var_dict = dict(spec_power = dict(axes = axes_arr, unit = 'dBm'))
             
         assert self.is_ind_par_set == True
-        
-        return  dd.DataDict(**(dd_ind_var_dict | dd_dep_var_dict)) 
+
+        print(dd_ind_var_dict)
+        print(dd_dep_var_dict)
+
+        dd_ind_var_dict.update(dd_dep_var_dict)
+
+        return  dd.DataDict(**(dd_ind_var_dict))
     
     def pre_measurement_operation(self):
         '''
@@ -373,7 +378,7 @@ class CW_sweep():
             if self.mode == 'VNA' or self.mode == 'both': 
                 if debug: print("\nVNA measuring\n")
                 vna_ind_var = np.unique(self.VNA_inst.getSweepData())
-                vna_data = self.VNA_inst.average(VNA_avgnum, avg_over_freq = self.vna_freq_avg)
+                vna_data = self.VNA_inst.average(VNA_avgnum)
                 
                 self.last_vna_data = [vna_ind_var, vna_data]
                 vna_power = vna_data[0]
