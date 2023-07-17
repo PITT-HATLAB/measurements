@@ -80,7 +80,58 @@ class amplifier_bias(Parameter):
         ax.set_ylabel('Frequency (GHz)')
         ax.legend()
         ax.grid()
-        
+
+class setpoint_iterator(Parameter):
+    '''
+    Purpose: take a series of setpoints for an amplifier (current, pump frequency, pump power)
+    and check their saturation powers by stepping up the VNA power over the entire bandwidth
+
+    This parameter will go through setpoints and take care of the instrument settings accordingly
+    the final sweep will only have setpoints+vna input power + vna frequencies as independent variables.
+    The actual generator + current bias settings will have to be backed out from teh same file
+    that this parameter is working from
+    '''
+    def __init__(self, current_par, generator_freq_par, generator_power_par, vna_fcenter_parameter, vna_fspan_parameter, setpoint_fp, vna_freq_range = 100e6, norm = 0):
+        super().__init__('bias_current')
+        self._current_par = current_par
+        self.fs_fit_func = self.read_fs_data(fs_fit_filepath)
+        self._generator_freq_par = generator_freq_par
+        self._generator_power_par = generator_power_par
+        self._vna_fcenter_parameter = vna_fcenter_parameter
+        self._vna_fspan_parameter = vna_fspan_parameter
+        self.read_setpoint_file(setpoint_fp)
+        self._vna_freq_range = vna_freq_frange
+        self._norm = norm
+
+    def read_setpoint_file(self, setpoint_fp):
+        setpoint_data = all_datadicts_from_hdf5(setpoint_fp)['data']
+        self.setpoint_num = setpoint_data['setpoint_num']['values']
+        self.setpoint_current = setpoint_data['currents']['values']
+        self.setpoint_pump_freq = setpoint_data['pump_freq']['values']
+        self.setpoint_pump_pwr = setpoint_data['pump_pwr']['values']
+
+    def total_setpoint_number(self):
+        return np.max(self.setpoint_num)
+
+    def get_raw(self): #not sure which this should return...
+        return self._current_par()
+
+    def set_raw(self, setpoint_num_val):
+        setpoint_filt = self.setpoint_num == setpoint_num_val
+        setpoint_current = self.setpoint_current[setpoint_filt][0] #there should only be one element
+        setpoint_pump_freq = self.setpoint_pump_freq[setpoint_filt][0]
+        setpoint_pump_pwr = self.setpoint_pump_pwr[setpoint_filt][0]
+        self._vna_fcenter_parameter(setpoint_pump_freq/2)
+        self._vna_fspan_parameter(self._vna_freq_range)
+        self._current_par(setpoint_current)
+        self._generator_freq_par(setpoint_pump_freq)
+        self._generator_power_par(setpoint_pump_pwr)
+        if self._norm:
+            self.VNA_inst.renormalize(3 * self.VNA_inst.avgnum())
+
+
+
+
 class generator_detuning(Parameter): 
     '''
     Purpose: 
@@ -154,8 +205,8 @@ class gradient_stepper_gain_curve():
         else:
             None
             
-    
-    
+
+
         
         
 #%% core class
