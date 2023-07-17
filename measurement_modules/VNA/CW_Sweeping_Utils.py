@@ -21,6 +21,7 @@ from scipy.interpolate import interp1d
 from plottr.data.datadict_storage import all_datadicts_from_hdf5
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import pyvisa
 
 #%%supporting parameters for the CW sweep class
 class wrapped_current(Parameter):
@@ -74,7 +75,7 @@ class amplifier_bias(Parameter):
         
         ax.plot(currents*1000, self.fs_fit_func(currents), label = 'Amp_res')
         if show_pump: 
-            ax.plot(currents*1000, (self.fs_fit_func(currents)*self._gen_factor+self._gen_offset)/self._gen_factor, label = 'Generator/2')
+            ax.plot(currents*1000, (self.fs_fit_func(currents)*self._gen_factor+self._gen_offset)/self._gen_factor, '--', label = f'Generator/{self._gen_factor}')
         ax.set_xlabel('Bias currents (mA)')
         ax.set_ylabel('Frequency (GHz)')
         ax.legend()
@@ -87,7 +88,7 @@ class generator_detuning(Parameter):
     '''
     
     def __init__(self, generator_freq_par):
-        super().__init__('bias_current')
+        super().__init__('gen_detuning')
         self._generator_freq_par = generator_freq_par
         self.last_val = 0
         
@@ -185,6 +186,7 @@ class CW_sweep():
         
         self.last_vna_data = None
         self.last_SA_data = None
+        self.vna_sweep_mode = 'unknown'
         
     def add_independent_parameter(self, ind_par_dict: dict): 
         '''
@@ -226,9 +228,12 @@ class CW_sweep():
         '''
         Function for setting up the SA
         '''
-
-        self.SA_inst.fstart(start)
-        self.SA_inst.fstop(stop)
+        try:
+            self.SA_inst.fstart(start)
+            self.SA_inst.fstop(stop)
+        except:
+            self.SA_inst.frequency_start(start)
+            self.SA_inst.frequency_stop(stop)
 
         
     def VNA_parameter_name(self): 
@@ -319,7 +324,7 @@ class CW_sweep():
             print(f"ETA with 10 averages: {np.round(self.VNA_inst.sweep_time()*size/60*10)} minutes")
         
         if self.mode == 'both':
-            print(f"ETA with 10 averages: {np.round(self.VNA_inst.sweep_time()*size/60*10+size*self.SA_inst.sweep_time()*500/60)}")
+            print(f"ETA with 1 average: {np.round(self.VNA_inst.sweep_time()*size/60*1+size*self.SA_inst.sweep_time()*size/60)} minutes")
         
         if self.mode == 'SA':
             print(f"ETA with 10 averages: {np.round(self.SA_inst.sweep_time()*self.SA_inst.avgnum()*size/60*10)} minutes")
@@ -367,7 +372,7 @@ class CW_sweep():
         '''
         
         self.setpoint_arr = list(product(*ind_par_vals))
-        
+
         for i, values in enumerate(self.setpoint_arr): 
             self.setpoint_dict = {}
             for j in range(np.size(values)):
@@ -382,7 +387,23 @@ class CW_sweep():
             
             if self.mode == 'VNA' or self.mode == 'both': 
                 if debug: print("\nVNA measuring\n")
-                vna_ind_var = np.unique(self.VNA_inst.getSweepData())
+                if self.vna_sweep_mode == 'unknown':
+                    try:
+                        vna_ind_var = np.unique(self.VNA_inst.getfdata())
+                        self.vna_sweep_mode = 'old'
+                    except pyvisa.errors.VisaIOError:
+                        vna_ind_var = np.unique(self.VNA_inst.getSweepData())
+                        self.vna_sweep_mode = 'new'
+                    except AttributeError:
+                        vna_ind_var = np.unique(self.VNA_inst.getSweepData())
+                        self.vna_sweep_mode = 'new'
+                elif self.vna_sweep_mode == 'new':
+                    vna_ind_var = np.unique(self.VNA_inst.getSweepData())
+                elif self.vna_sweep_mode == 'old':
+                    vna_ind_var = np.unique(self.VNA_inst.getfdata())
+                else:
+                    raise Exception("What the flying fuck is happening with the VNA?!")
+
                 vna_data = self.VNA_inst.average(VNA_avgnum)
                 
                 self.last_vna_data = [vna_ind_var, vna_data]
@@ -407,6 +428,7 @@ class CW_sweep():
                 
             if self.mode == 'SA' or self.mode == 'both': 
                 if debug: print("\nSA measuring\n")
+
                 sa_data = self.SA_inst.get_data(count = SA_avgnum)
                 sa_freqs = sa_data[:,  0]
                 sa_power = sa_data[:,  1]
