@@ -91,7 +91,7 @@ class setpoint_iterator(Parameter):
     The actual generator + current bias settings will have to be backed out from teh same file
     that this parameter is working from
     '''
-    def __init__(self, current_par, generator_freq_par, generator_power_par, vna_fcenter_parameter, vna_fspan_parameter, setpoint_fp, vna_freq_range = 100e6, norm = 0):
+    def __init__(self, current_par, generator_freq_par, generator_power_par, vna_fcenter_parameter, vna_fspan_parameter, setpoint_fp, fs_fit_filepath, vna_freq_range = 100e6, norm = 0):
         super().__init__('bias_current')
         self._current_par = current_par
         self.fs_fit_func = self.read_fs_data(fs_fit_filepath)
@@ -100,13 +100,20 @@ class setpoint_iterator(Parameter):
         self._vna_fcenter_parameter = vna_fcenter_parameter
         self._vna_fspan_parameter = vna_fspan_parameter
         self.read_setpoint_file(setpoint_fp)
-        self._vna_freq_range = vna_freq_frange
+        self._vna_freq_range = vna_freq_range
         self._norm = norm
+
+    def read_fs_data(self, fs_filepath, interpolation = 'linear'):
+        ret = all_datadicts_from_hdf5(fs_filepath)
+        res_freqs = ret['data'].extract('base_resonant_frequency').data_vals('base_resonant_frequency')
+        currents = ret['data'].extract('base_resonant_frequency').data_vals('current')
+        fs_fit_func = interp1d(currents, res_freqs, interpolation)
+        return fs_fit_func
 
     def read_setpoint_file(self, setpoint_fp):
         setpoint_data = all_datadicts_from_hdf5(setpoint_fp)['data']
         self.setpoint_num = setpoint_data['setpoint_num']['values']
-        self.setpoint_current = setpoint_data['currents']['values']
+        self.setpoint_current = setpoint_data['current']['values']
         self.setpoint_pump_freq = setpoint_data['pump_freq']['values']
         self.setpoint_pump_pwr = setpoint_data['pump_pwr']['values']
 
