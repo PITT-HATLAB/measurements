@@ -104,6 +104,7 @@ class setpoint_iterator(Parameter):
         self._vna_fspan_parameter = vna_fspan_parameter
         self.read_setpoint_file(setpoint_fp)
         self._vna_freq_range = vna_freq_range
+        
         self._norm = norm
         self._active_setpoint_num = 0
 
