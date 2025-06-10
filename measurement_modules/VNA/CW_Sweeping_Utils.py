@@ -133,6 +133,7 @@ class setpoint_iterator(Parameter):
         setpoint_current = self.setpoint_current[setpoint_filt][0] #there should only be one element
         setpoint_pump_freq = self.setpoint_pump_freq[setpoint_filt][0]
         setpoint_pump_pwr = self.setpoint_pump_pwr[setpoint_filt][0]
+        vna_offset = self.vna_offset
         print(setpoint_current, setpoint_pump_freq/1e9, setpoint_pump_pwr)
         self._vna_fcenter_parameter(setpoint_pump_freq/2+vna_offset)
         self._vna_fspan_parameter(self._vna_freq_range)
