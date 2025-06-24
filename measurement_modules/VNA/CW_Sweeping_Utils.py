@@ -232,19 +232,69 @@ class IPN_peak_parameter(Parameter):
         What makes this extra nice is that you can check for what's happening at the pump/2 frequency itself by inputting 0
         :param detuning:
         '''
+        super().__init__('peak_number')
         self._pump_freq_param = pump_frequency_parameter
         self._detuning = detuning
-        self._current_peak_number
+        self._current_peak_number = 0
         self._sa_fcenter_parameter = sa_fcenter_parameter
-        def get_raw(self):
-            return self._current_peak_number
+        
+    def get_raw(self):
+        return self._current_peak_number
 
-        def set_raw(self, peak_num):
-            fcenter = self._pump_freq_param()/2
-            self._sa_fcenter_parameter(fcenter+peak_num*self._detuning)
+    def set_raw(self, peak_num):
+        fcenter = self._pump_freq_param()/2
+        self._sa_fcenter_parameter(fcenter+peak_num*self._detuning)
 
+class dual_SigGen_for_IP3_freq(Parameter):
+    def __init__(self, generator1_freq_par, generator2_freq_par, pump_on=True, delta=10e6):
+        super().__init__('input_frequency')
+        self._generator1_freq_par = generator1_freq_par
+        self._generator2_freq_par = generator2_freq_par
+        self._pump_on = pump_on
+        self._delta = delta
 
+    def get_raw(self):
+        f1 = self._generator1_freq_par()
+        f2 = self._generator2_freq_par()
+        return (f1 + f2) / 2  # return current center frequency
 
+    def set_raw(self, center_freq):
+        lower = center_freq - self._delta / 2
+        upper = center_freq + self._delta / 2
+        self._generator1_freq_par(lower)  # lower tone
+        self._generator2_freq_par(upper)  # higher tone
+        self._last_center_freq = center_freq
+
+class TwiceInputFreq(Parameter):
+    """
+    Returns 2 * center frequency based on a dual_SigGen_for_IP3_freq object.
+    Used to calculate intermodulation product location (2*f_input).
+    """
+    def __init__(self, dual_input_freq_par):
+        super().__init__('twice_input_frequency')
+        self._dual_input_freq_par = dual_input_freq_par
+
+    def get_raw(self):
+        center_freq = self._dual_input_freq_par()
+        return 2 * center_freq
+
+    def set_raw(self, val):
+        raise NotImplementedError("TwiceInputFreq is a read-only derived parameter.")
+
+class dual_SigGen_for_IP3_power(Parameter):
+    def __init__(self, generator1_power_par, generator2_power_par):
+        super().__init__('input_power')
+        self._generator1_power_par = generator1_power_par
+        self._generator2_power_par = generator2_power_par
+
+    def get_raw(self):
+        p1 = self._generator1_power_par()
+        p2 = self._generator2_power_par()
+        return np.mean([p1, p2])
+
+    def set_raw(self, power):
+        self._generator1_power_par(power)
+        self._generator2_power_par(power)
 
 class generator_detuning(Parameter): 
     '''
@@ -390,7 +440,7 @@ class CW_sweep():
             self.VNA_inst.num_points(points)
         elif self.VNA_mode == 'WRONG_INPUT': 
             raise Exception('Wrong user input, either "POW" or "FREQ"')
-    def setup_SA(self, start, stop, pt_num = 1001):
+    def setup_SA(self, start, stop, pt_num = 1001, RBW=500, VBW=500):
         '''
         Function for setting up the SA
         '''
@@ -398,11 +448,14 @@ class CW_sweep():
             self.SA_inst.fstart(start)
             self.SA_inst.fstop(stop)
             self.SA_inst.num_points(pt_num)
+            self.SA_inst.set_bandwidth_res(RBW)
+            self.SA_inst.bandwidth_video(VBW)
         except:
             self.SA_inst.frequency_start(start)
             self.SA_inst.frequency_stop(stop)
             self.SA_inst.num_points(pt_num)
-
+            self.SA_inst.set_bandwidth_res(RBW)
+            self.SA_inst.bandwidth_video(VBW)
         
     def VNA_parameter_name(self): 
         if self.VNA_mode == 'FREQ': 
@@ -495,7 +548,7 @@ class CW_sweep():
             print(f"ETA with 1 average: {np.round(self.VNA_inst.sweep_time()*size/60*1+size*self.SA_inst.sweep_time()*size/60)} minutes")
         
         if self.mode == 'SA':
-            print(f"ETA with 10 averages: {np.round(self.SA_inst.sweep_time()*self.SA_inst.avgnum()*size/60*10)} minutes")
+            print(f"ETA with 10 averages: {np.round(self.SA_inst.sweep_time()*self.SA_inst.sweep_time()*size/60*10)} minutes")
         
     def sweep(self, DATADIR, debug = True, VNA_avgnum = 10, SA_avgnum = 400, new_plottr = True):
         #TODO: hack this into more managable chunks
