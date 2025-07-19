@@ -450,10 +450,3 @@ def saturation_gen_power_sweep(DATADIR, name, VNA_settings, Gen_settings):
                 sat_phases = phases.reshape(1, -1)
                 )
     Gen.output_status(0)
-
-
-DATADIR = r'Z:\Data\MASER\20220306 cooldown\SNAIL\flux_sweep'
-name = '3GHz_9GHz_fluxsweep_-10.5mA_0mA_01'
-VNA_settings = [pVNA, 6e9, 6e9, 1601, 3]
-CS_settings = [yoko2, -10.5e-3, 0.000, 1050]
-fs = Flux_Sweep(DATADIR, name, VNA_settings, CS_settings)  
